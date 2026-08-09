@@ -1,4 +1,4 @@
-# LAVENDER PRO 6.1 ADMIN STABLE
+# LAVENDER PRO 6.2 HORIZONTAL OVERLAY
 
 Стабильная версия для GitHub + Render.
 
@@ -40,3 +40,7 @@ NODE_ENV=production
 LAVENDER_SESSION_SECRET = длинная случайная строка
 
 Если переменной нет, сайт все равно работает, но лучше добавить ее.
+
+
+## 6.2
+OBS Overlay теперь горизонтальный: игрок A слева, счет по центру, игрок B справа.
