@@ -6,7 +6,7 @@ const fs = require("fs");
 const crypto = require("crypto");
 const { Server } = require("socket.io");
 
-const APP_VERSION = "6.0.0";
+const APP_VERSION = "6.1.0";
 const PORT = Number(process.env.PORT || 3000);
 const ROOT = __dirname;
 const DATA_FILE = path.join(ROOT, "data.json");
@@ -22,7 +22,8 @@ const io = new Server(httpServer, {
   pingInterval: 25000,
   pingTimeout: 20000
 });
-const sessions = new Map();
+const AUTH_SECRET = String(process.env.LAVENDER_SESSION_SECRET || (ADMIN_USER + ":" + ADMIN_PASSWORD + ":lavender-v6"));
+const TOKEN_TTL = 12 * 60 * 60 * 1000;
 
 app.disable("x-powered-by");
 app.use(express.json({ limit: "4mb" }));
@@ -82,14 +83,30 @@ function parseCookies(req){
   return out;
 }
 function sessionToken(req){ return parseCookies(req).lavender_session || ""; }
-function isAdmin(req){
-  const token=sessionToken(req), s=sessions.get(token);
-  if(!s) return false;
-  if(Date.now()-s.createdAt>SESSION_TTL){sessions.delete(token);return false}
-  return true;
+function sign(value){
+  return crypto.createHmac("sha256", AUTH_SECRET).update(value).digest("base64url");
 }
+function makeAuthToken(){
+  const payload = Buffer.from(JSON.stringify({u:ADMIN_USER,t:Date.now()}),"utf8").toString("base64url");
+  return payload + "." + sign(payload);
+}
+function verifyAuthToken(token){
+  try{
+    const parts=String(token||"").split(".");
+    if(parts.length!==2)return false;
+    const [payload,sig]=parts;
+    const expected=sign(payload);
+    const a=Buffer.from(sig), b=Buffer.from(expected);
+    if(a.length!==b.length || !crypto.timingSafeEqual(a,b))return false;
+    const obj=JSON.parse(Buffer.from(payload,"base64url").toString("utf8"));
+    if(obj.u!==ADMIN_USER)return false;
+    if(!Number.isFinite(obj.t) || Date.now()-obj.t>TOKEN_TTL)return false;
+    return true;
+  }catch{return false}
+}
+function isAdmin(req){ return verifyAuthToken(sessionToken(req)); }
 function requireAdmin(req,res,next){
-  if(!isAdmin(req)) return res.status(401).json({error:"Нужен вход администратора"});
+  if(!isAdmin(req)) return res.status(401).json({error:"Сессия администратора истекла. Войди заново."});
   next();
 }
 function publicData(d=readData()){
@@ -127,19 +144,20 @@ app.get("/api/auth/status",(req,res)=>ok(res,{authenticated:isAdmin(req),user:is
 app.post("/api/auth/login",(req,res)=>{
   const username=String(req.body?.username||"");
   const password=String(req.body?.password||"");
-  const userOk=crypto.timingSafeEqual(Buffer.from(username.padEnd(Math.max(username.length,ADMIN_USER.length))),Buffer.from(ADMIN_USER.padEnd(Math.max(username.length,ADMIN_USER.length))));
-  const passOk=crypto.timingSafeEqual(Buffer.from(password.padEnd(Math.max(password.length,ADMIN_PASSWORD.length))),Buffer.from(ADMIN_PASSWORD.padEnd(Math.max(password.length,ADMIN_PASSWORD.length))));
+  const userBuf=Buffer.from(username), expectedUser=Buffer.from(ADMIN_USER);
+  const passBuf=Buffer.from(password), expectedPass=Buffer.from(ADMIN_PASSWORD);
+  const userOk=userBuf.length===expectedUser.length && crypto.timingSafeEqual(userBuf,expectedUser);
+  const passOk=passBuf.length===expectedPass.length && crypto.timingSafeEqual(passBuf,expectedPass);
   if(!userOk||!passOk) return fail(res,"Неверный логин или пароль",401);
-  const token=crypto.randomBytes(32).toString("hex");
-  sessions.set(token,{createdAt:Date.now()});
+  const token=makeAuthToken();
   res.setHeader("Set-Cookie",`lavender_session=${token}; HttpOnly; SameSite=Lax; Path=/; Max-Age=43200${COOKIE_SECURE?"; Secure":""}`);
-  ok(res,{ok:true});
+  ok(res,{ok:true,user:ADMIN_USER,version:APP_VERSION});
 });
 app.post("/api/auth/logout",(req,res)=>{
-  sessions.delete(sessionToken(req));
   res.setHeader("Set-Cookie",`lavender_session=; HttpOnly; SameSite=Lax; Path=/; Max-Age=0${COOKIE_SECURE?"; Secure":""}`);
   ok(res,{ok:true});
 });
+app.get("/api/admin/ping",requireAdmin,(req,res)=>ok(res,{ok:true,user:ADMIN_USER,version:APP_VERSION}));
 
 app.patch("/api/settings",requireAdmin,(req,res)=>{
   const d=readData();
@@ -258,6 +276,5 @@ app.get("/",(req,res)=>res.sendFile(path.join(ROOT,"index.html")));
 app.get("/overlay.html",(req,res)=>res.sendFile(path.join(ROOT,"overlay.html")));
 app.get("*",(req,res)=>res.sendFile(path.join(ROOT,"index.html")));
 
-setInterval(()=>{const n=Date.now();for(const [k,v] of sessions)if(n-v.createdAt>SESSION_TTL)sessions.delete(k)},60*60*1000).unref();
 
 httpServer.listen(PORT,"0.0.0.0",()=>console.log(`LAVENDER PRO ${APP_VERSION} listening on ${PORT}`));
