@@ -7,7 +7,7 @@
 </style></head><body>
 <header class="top"><div class="brand" id="brand">🪻 LAVENDER</div><button class="menu" onclick="nav.classList.toggle('open')">☰</button><nav class="nav" id="nav"></nav><div class="state" id="state">PUBLIC</div></header>
 <main class="wrap"><div class="banner" id="banner"></div>
-<section class="page on" id="home"><div class="hero"><div class="eyebrow" id="tagline">FREE FIRE COMMUNITY</div><h1>LAVENDER PRO 7.3</h1><div class="muted">Стабильная платформа: админ, игроки, матчи, гильдии и OBS.</div></div><div class="g4" id="stats"></div><div class="grid" style="margin-top:14px"><div class="card"><div class="head"><h2>LIVE / ближайший матч</h2></div><div class="body" id="liveBox"></div></div><div class="card"><div class="head"><h2>Новости</h2></div><div class="body" id="newsBox"></div></div></div><div class="grid" style="margin-top:14px"><div class="card"><div class="head"><h2>Топ игроков</h2></div><div class="table"><table><thead><tr><th>#</th><th>Игрок</th><th>Гильдия</th><th>Ранг</th><th>ELO</th></tr></thead><tbody id="topPlayers"></tbody></table></div></div><div class="card"><div class="head"><h2>Топ гильдий</h2></div><div class="table"><table><thead><tr><th>#</th><th>Гильдия</th><th>Ранг</th><th>ELO</th></tr></thead><tbody id="topGuilds"></tbody></table></div></div></div></section>
+<section class="page on" id="home"><div class="hero"><div class="eyebrow" id="tagline">FREE FIRE COMMUNITY</div><h1>LAVENDER PRO 7.3.2</h1><div class="muted">Стабильная платформа: админ, игроки, матчи, гильдии и OBS.</div></div><div class="g4" id="stats"></div><div class="grid" style="margin-top:14px"><div class="card"><div class="head"><h2>LIVE / ближайший матч</h2></div><div class="body" id="liveBox"></div></div><div class="card"><div class="head"><h2>Новости</h2></div><div class="body" id="newsBox"></div></div></div><div class="grid" style="margin-top:14px"><div class="card"><div class="head"><h2>Топ игроков</h2></div><div class="table"><table><thead><tr><th>#</th><th>Игрок</th><th>Гильдия</th><th>Ранг</th><th>ELO</th></tr></thead><tbody id="topPlayers"></tbody></table></div></div><div class="card"><div class="head"><h2>Топ гильдий</h2></div><div class="table"><table><thead><tr><th>#</th><th>Гильдия</th><th>Ранг</th><th>ELO</th></tr></thead><tbody id="topGuilds"></tbody></table></div></div></div></section>
 <section class="page" id="players"><div class="hero"><h1>Игроки</h1><div class="muted">Рейтинг, статистика и профили.</div></div><div class="toolbar"><input id="ps" placeholder="Поиск по нику или ID"><select id="pr"><option value="">Все ранги</option><option>S</option><option>A</option><option>B</option><option>C</option><option>D</option><option>E</option><option>F</option></select><button class="btn editorOnly" onclick="playerForm()">+ Игрок</button></div><div class="card"><div class="table"><table><thead><tr><th>#</th><th>Игрок</th><th>Гильдия</th><th>Ранг</th><th>ELO</th><th>K/D</th><th>WR</th><th></th></tr></thead><tbody id="playersBody"></tbody></table></div></div></section>
 <section class="page" id="ranks"><div class="hero"><h1>S / A / B / C / D / E / F</h1><div class="muted">Автоматическое распределение по ELO.</div></div><div id="rankBlocks"></div></section>
 <section class="page" id="guilds"><div class="hero"><h1>Гильдии</h1><div class="muted">Рейтинг и составы гильдий.</div></div><div class="toolbar"><input id="gs" placeholder="Поиск гильдии"><button class="btn editorOnly" onclick="guildForm()">+ Гильдия</button></div><div class="g3" id="guildCards"></div></section>
@@ -48,8 +48,20 @@
       <div class="field"><label>Ссылка на стрим</label><input id="szUrl" placeholder="https://..."></div>
       <div class="field"><label>Матч для оверлея</label><select id="szMatch"></select></div>
       <div class="grid">
-        <div class="field"><label>Игрок слева в оверлее</label><select id="szPlayerA"></select></div>
-        <div class="field"><label>Игрок справа в оверлее</label><select id="szPlayerB"></select></div>
+        <div class="field">
+          <label>Игрок слева в оверлее</label>
+          <input id="szPlayerASearch" list="szPlayersAList" placeholder="Начни вводить ник, ID или гильдию..." autocomplete="off">
+          <datalist id="szPlayersAList"></datalist>
+          <input id="szPlayerA" type="hidden">
+          <div class="muted small" id="szPlayerAInfo">Поиск по нику / Game ID / гильдии</div>
+        </div>
+        <div class="field">
+          <label>Игрок справа в оверлее</label>
+          <input id="szPlayerBSearch" list="szPlayersBList" placeholder="Начни вводить ник, ID или гильдию..." autocomplete="off">
+          <datalist id="szPlayersBList"></datalist>
+          <input id="szPlayerB" type="hidden">
+          <div class="muted small" id="szPlayerBInfo">Поиск по нику / Game ID / гильдии</div>
+        </div>
       </div>
       <div class="actions" style="margin-bottom:8px"><button class="btn dark" onclick="playerForm()">+ Добавить нового игрока</button></div>
       <div class="field"><label>Статус</label><select id="szStatus"><option>OFFLINE</option><option>LIVE</option><option>PAUSED</option></select></div>
@@ -65,7 +77,20 @@
   </div>
 </section>
 
-<section class="page" id="studio"><div class="hero"><div class="eyebrow">PRIVATE</div><h1>Stream Studio</h1><div class="muted">Управление активным матчем и OBS Overlay.</div><div class="actions" style="margin-top:10px"><button class="btn red" onclick="logout()">Выйти</button></div></div><div class="grid"><div class="card"><div class="head"><h2>Матч</h2></div><div class="body"><div class="field"><label>Матч</label><select id="smatch"></select></div><div class="field"><label>Название</label><input id="stitle"></div><div class="grid"><div class="field"><label>Счёт A</label><input id="ssa" type="number"></div><div class="field"><label>Счёт B</label><input id="ssb" type="number"></div></div><div class="grid"><div class="field"><label>Раунд</label><input id="sround"></div><div class="field"><label>Формат</label><input id="sformat"></div></div><div class="field"><label>Статус</label><select id="sstatus"><option>LIVE</option><option>SCHEDULED</option><option>PAUSED</option><option>FINAL</option></select></div><div class="actions"><button class="btn" onclick="saveStudio()">Сохранить</button><button class="btn dark" onclick="bump(1,0)">A +</button><button class="btn dark" onclick="bump(0,1)">B +</button><button class="btn dark" onclick="bump(-1,0)">A −</button><button class="btn dark" onclick="bump(0,-1)">B −</button></div></div></div><div class="card"><div class="head"><h2>Overlay</h2></div><div class="body"><div class="field"><label>Текст</label><input id="otext"></div><div class="field"><label>Цвет</label><input id="oaccent" type="color"></div><div class="field"><label>Игрок A</label><select id="opa"></select></div><div class="field"><label>Игрок B</label><select id="opb"></select></div><div class="actions"><button class="btn" onclick="saveOverlay()">Обновить OBS</button><button class="btn green" onclick="copyObs()">Скопировать URL</button></div><p class="muted small">OBS: <span id="obsUrl"></span></p></div></div></div><div class="card" style="margin-top:14px"><div class="head"><h2>Предпросмотр</h2></div><div class="body"><div class="overlayPreview"><div class="hud" id="preview"></div></div></div></div></section>
+<section class="page" id="studio"><div class="hero"><div class="eyebrow">PRIVATE</div><h1>Stream Studio</h1><div class="muted">Управление активным матчем и OBS Overlay.</div><div class="actions" style="margin-top:10px"><button class="btn red" onclick="logout()">Выйти</button></div></div><div class="grid"><div class="card"><div class="head"><h2>Матч</h2></div><div class="body"><div class="field"><label>Матч</label><select id="smatch"></select></div><div class="field"><label>Название</label><input id="stitle"></div><div class="grid"><div class="field"><label>Счёт A</label><input id="ssa" type="number"></div><div class="field"><label>Счёт B</label><input id="ssb" type="number"></div></div><div class="grid"><div class="field"><label>Раунд</label><input id="sround"></div><div class="field"><label>Формат</label><input id="sformat"></div></div><div class="field"><label>Статус</label><select id="sstatus"><option>LIVE</option><option>SCHEDULED</option><option>PAUSED</option><option>FINAL</option></select></div><div class="actions"><button class="btn" onclick="saveStudio()">Сохранить</button><button class="btn dark" onclick="bump(1,0)">A +</button><button class="btn dark" onclick="bump(0,1)">B +</button><button class="btn dark" onclick="bump(-1,0)">A −</button><button class="btn dark" onclick="bump(0,-1)">B −</button></div></div></div><div class="card"><div class="head"><h2>Overlay</h2></div><div class="body"><div class="field"><label>Текст</label><input id="otext"></div><div class="field"><label>Цвет</label><input id="oaccent" type="color"></div><div class="field">
+<label>Игрок A</label>
+<input id="opaSearch" list="opaList" placeholder="Напиши ник, ID или гильдию..." autocomplete="off">
+<datalist id="opaList"></datalist>
+<input id="opa" type="hidden">
+<div class="muted small" id="opaInfo">Начни писать ник игрока</div>
+</div>
+<div class="field">
+<label>Игрок B</label>
+<input id="opbSearch" list="opbList" placeholder="Напиши ник, ID или гильдию..." autocomplete="off">
+<datalist id="opbList"></datalist>
+<input id="opb" type="hidden">
+<div class="muted small" id="opbInfo">Начни писать ник игрока</div>
+</div><div class="actions"><button class="btn" onclick="saveOverlay()">Обновить OBS</button><button class="btn green" onclick="copyObs()">Скопировать URL</button></div><p class="muted small">OBS: <span id="obsUrl"></span></p></div></div></div><div class="card" style="margin-top:14px"><div class="head"><h2>Предпросмотр</h2></div><div class="body"><div class="overlayPreview"><div class="hud" id="preview"></div></div></div></div></section>
 <section class="page" id="admin"><div class="hero"><div class="eyebrow">PRIVATE</div><h1>Админ-панель</h1><div class="muted">Управление контентом и резервной копией.</div><div class="actions" style="margin-top:10px"><button class="btn red" onclick="logout()">Выйти</button><button class="btn green" onclick="testAdmin()">Проверить админ</button></div></div><div class="g4"><div class="card stat"><b id="acp">0</b><span>ИГРОКОВ</span></div><div class="card stat"><b id="acg">0</b><span>ГИЛЬДИЙ</span></div><div class="card stat"><b id="acm">0</b><span>МАТЧЕЙ</span></div><div class="card stat"><b id="act">0</b><span>ТУРНИРОВ</span></div></div><div class="grid" style="margin-top:14px"><div class="card"><div class="head"><h2>Быстрые действия</h2></div><div class="body actions"><button class="btn" onclick="playerForm()">+ Игрок</button><button class="btn" onclick="guildForm()">+ Гильдия</button><button class="btn" onclick="matchForm()">+ Матч</button><button class="btn" onclick="tournamentForm()">+ Турнир</button><button class="btn" onclick="newsForm()">+ Новость</button><button class="btn" onclick="streamerForm()">+ Стример</button></div></div><div class="card"><div class="head"><h2>Backup</h2></div><div class="body"><div class="actions"><button class="btn green" onclick="exportBackup()">Скачать backup</button><button class="btn dark" onclick="$('importFile').click()">Импорт</button><input id="importFile" type="file" accept=".json,application/json" style="display:none"></div><p class="muted small">На бесплатном Render делай backup регулярно.</p></div></div></div>
 <div class="card" style="margin-top:14px">
   <div class="head"><h2>Стримеры</h2><button class="btn" onclick="streamerForm()">+ Добавить стримера</button></div>
@@ -187,6 +212,58 @@ function renderStreamers(){
   }).join("")||'<div class="muted">Стримеров пока нет</div>';
 }
 
+
+function streamerPlayerLabel(p){
+  if(!p)return "";
+  const guild=p.guild?.name||"Без гильдии";
+  const gameId=p.gameId?` • ID ${p.gameId}`:"";
+  return `${p.nickname}${gameId} • ${guild} • ELO ${p.elo}`;
+}
+function findStreamerPlayerByText(text){
+  const q=String(text||"").trim().toLowerCase();
+  if(!q)return null;
+  const players=streamerZoneData?.players||[];
+  return players.find(p=>streamerPlayerLabel(p).toLowerCase()===q)
+      ||players.find(p=>String(p.nickname||"").toLowerCase()===q)
+      ||players.find(p=>String(p.gameId||"").toLowerCase()===q)
+      ||players.find(p=>streamerPlayerLabel(p).toLowerCase().includes(q))
+      ||null;
+}
+function setStreamerPlayer(side,id){
+  const players=streamerZoneData?.players||[];
+  const p=players.find(x=>Number(x.id)===Number(id))||null;
+  $(`szPlayer${side}`).value=p?p.id:"";
+  $(`szPlayer${side}Search`).value=p?streamerPlayerLabel(p):"";
+  $(`szPlayer${side}Info`).textContent=p
+    ? `${p.nickname} • ${p.guild?.name||"Без гильдии"} • ELO ${p.elo} • ${p.rank||""}`
+    : "Поиск по нику / Game ID / гильдии";
+}
+function bindStreamerPlayerSearch(side){
+  const input=$(`szPlayer${side}Search`);
+  const hidden=$(`szPlayer${side}`);
+  const info=$(`szPlayer${side}Info`);
+  const resolve=()=>{
+    const p=findStreamerPlayerByText(input.value);
+    hidden.value=p?p.id:"";
+    info.textContent=p
+      ? `${p.nickname} • ${p.guild?.name||"Без гильдии"} • ELO ${p.elo} • ${p.rank||""}`
+      : (input.value.trim()?"Игрок не найден":"Поиск по нику / Game ID / гильдии");
+  };
+  input.oninput=resolve;
+  input.onchange=resolve;
+  input.onblur=resolve;
+}
+function setupStreamerPlayerSearch(st){
+  const players=streamerZoneData?.players||[];
+  const options=players.map(p=>`<option value="${esc(streamerPlayerLabel(p))}"></option>`).join("");
+  $("szPlayersAList").innerHTML=options;
+  $("szPlayersBList").innerHTML=options;
+  bindStreamerPlayerSearch("A");
+  bindStreamerPlayerSearch("B");
+  setStreamerPlayer("A",st.playerAId||null);
+  setStreamerPlayer("B",st.playerBId||null);
+}
+
 async function loadStreamerZone(){
   if(role!=="streamer")return;
   try{
@@ -265,15 +342,66 @@ async function deleteStreamer(id){
   try{await api("/api/admin/streamers/"+id,{method:"DELETE"});await load(true);toastMsg("Стример удалён")}catch(e){toastMsg(e.message)}
 }
 
+
+function globalPlayerLabel(p){
+  if(!p)return "";
+  const guild=p.guild?.name||"Без гильдии";
+  const gid=p.gameId?` • ID ${p.gameId}`:"";
+  return `${p.nickname}${gid} • ${guild} • ELO ${p.elo}`;
+}
+function findGlobalPlayer(text){
+  const q=String(text||"").trim().toLowerCase();
+  if(!q)return null;
+  return db.players.find(p=>globalPlayerLabel(p).toLowerCase()===q)
+      ||db.players.find(p=>String(p.nickname||"").toLowerCase()===q)
+      ||db.players.find(p=>String(p.gameId||"").toLowerCase()===q)
+      ||db.players.find(p=>globalPlayerLabel(p).toLowerCase().includes(q))
+      ||null;
+}
+function setGlobalPlayer(side,id){
+  const p=db.players.find(x=>Number(x.id)===Number(id))||null;
+  $(`op${side.toLowerCase()}`).value=p?p.id:"";
+  $(`op${side.toLowerCase()}Search`).value=p?globalPlayerLabel(p):"";
+  $(`op${side.toLowerCase()}Info`).textContent=p
+    ? `${p.nickname} • ${p.guild?.name||"Без гильдии"} • ELO ${p.elo} • ${p.rank||""}`
+    : "Начни писать ник игрока";
+}
+function bindGlobalPlayerSearch(side){
+  const key=side.toLowerCase();
+  const input=$(`op${key}Search`);
+  const hidden=$(`op${key}`);
+  const info=$(`op${key}Info`);
+  const resolve=()=>{
+    const p=findGlobalPlayer(input.value);
+    hidden.value=p?p.id:"";
+    info.textContent=p
+      ? `${p.nickname} • ${p.guild?.name||"Без гильдии"} • ELO ${p.elo} • ${p.rank||""}`
+      : (input.value.trim()?"Игрок не найден":"Начни писать ник игрока");
+  };
+  input.oninput=resolve;
+  input.onchange=resolve;
+  input.onblur=resolve;
+}
+function setupGlobalPlayerSearch(){
+  const opts=db.players.map(p=>`<option value="${esc(globalPlayerLabel(p))}"></option>`).join("");
+  $("opaList").innerHTML=opts;
+  $("opbList").innerHTML=opts;
+  bindGlobalPlayerSearch("A");
+  bindGlobalPlayerSearch("B");
+}
+
 function setupStudio(){
  $("obsUrl").textContent=location.origin+"/overlay.html";
  if(!db.matches.length){$("smatch").innerHTML="";return}
  $("smatch").innerHTML=db.matches.map(m=>`<option value="${m.id}">${esc(m.title)}</option>`).join("");
  $("smatch").value=ov.overlay.activeMatchId||db.matches[0].id;$("smatch").onchange=fillStudio;
- const po=`<option value="">—</option>`+db.players.map(p=>`<option value="${p.id}">${esc(p.nickname)}</option>`).join("");
- $("opa").innerHTML=po;$("opb").innerHTML=po;$("otext").value=ov.overlay.customText||"";$("oaccent").value=ov.overlay.accent||"#b46cff";fillStudio();$("opa").value=ov.match?.playerAId||"";$("opb").value=ov.match?.playerBId||"";
+ setupGlobalPlayerSearch();
+ $("otext").value=ov.overlay.customText||"";$("oaccent").value=ov.overlay.accent||"#b46cff";
+ fillStudio();
+ setGlobalPlayer("A",ov.match?.playerAId||null);
+ setGlobalPlayer("B",ov.match?.playerBId||null);
 }
-function fillStudio(){const m=db.matches.find(x=>Number(x.id)===Number($("smatch").value))||db.matches[0];if(!m)return;$("stitle").value=m.title;$("ssa").value=m.scoreA;$("ssb").value=m.scoreB;$("sround").value=m.roundText;$("sformat").value=m.format;$("sstatus").value=m.status;$("opa").value=m.playerAId||"";$("opb").value=m.playerBId||""}
+function fillStudio(){const m=db.matches.find(x=>Number(x.id)===Number($("smatch").value))||db.matches[0];if(!m)return;$("stitle").value=m.title;$("ssa").value=m.scoreA;$("ssb").value=m.scoreB;$("sround").value=m.roundText;$("sformat").value=m.format;$("sstatus").value=m.status;setGlobalPlayer("A",m.playerAId||null);setGlobalPlayer("B",m.playerBId||null)}
 async function saveStudio(){try{const id=Number($("smatch").value);await api("/api/matches/"+id,{method:"PATCH",body:JSON.stringify({title:$("stitle").value,scoreA:Number($("ssa").value),scoreB:Number($("ssb").value),roundText:$("sround").value,format:$("sformat").value,status:$("sstatus").value,playerAId:Number($("opa").value)||null,playerBId:Number($("opb").value)||null})});await api("/api/overlay",{method:"PATCH",body:JSON.stringify({activeMatchId:id,visible:true,accent:$("oaccent").value,position:"bottom",showPlayers:true,showStats:true,customText:$("otext").value})});await load(true);toastMsg("Сохранено")}catch(e){handleActionError(e,"admin")}}
 async function bump(a,b){$("ssa").value=Math.max(0,Number($("ssa").value)+a);$("ssb").value=Math.max(0,Number($("ssb").value)+b);await saveStudio()}
 async function saveOverlay(){await saveStudio()}
