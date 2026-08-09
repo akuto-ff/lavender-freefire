@@ -1,11 +1,9 @@
 {
+  "version": 1,
   "settings": {
     "siteName": "LAVENDER",
-    "accent": "#b46cff",
     "tagline": "FREE FIRE COMMUNITY",
-    "discord": "",
-    "telegram": "",
-    "youtube": ""
+    "accent": "#b46cff"
   },
   "guilds": [
     {
@@ -18,9 +16,7 @@
       "wins": 31,
       "losses": 8,
       "description": "Официальная гильдия LAVENDER",
-      "captain": "",
-      "founded": "",
-      "social": ""
+      "captain": "WEST 1991"
     },
     {
       "id": 2,
@@ -32,9 +28,7 @@
       "wins": 28,
       "losses": 11,
       "description": "Соревновательный состав",
-      "captain": "",
-      "founded": "",
-      "social": ""
+      "captain": "Veyron"
     },
     {
       "id": 3,
@@ -46,9 +40,7 @@
       "wins": 25,
       "losses": 14,
       "description": "Стрим-команда",
-      "captain": "",
-      "founded": "",
-      "social": ""
+      "captain": "AMAHЁ"
     }
   ],
   "players": [
@@ -64,8 +56,7 @@
       "kills": 412,
       "deaths": 171,
       "role": "Player",
-      "country": "Кыргызстан",
-      "bio": ""
+      "country": "Кыргызстан"
     },
     {
       "id": 2,
@@ -79,8 +70,7 @@
       "kills": 355,
       "deaths": 190,
       "role": "Player",
-      "country": "Кыргызстан",
-      "bio": ""
+      "country": "Кыргызстан"
     },
     {
       "id": 3,
@@ -94,8 +84,7 @@
       "kills": 330,
       "deaths": 194,
       "role": "Player",
-      "country": "Кыргызстан",
-      "bio": ""
+      "country": "Кыргызстан"
     },
     {
       "id": 4,
@@ -109,23 +98,7 @@
       "kills": 301,
       "deaths": 201,
       "role": "Player",
-      "country": "Кыргызстан",
-      "bio": ""
-    },
-    {
-      "id": 5,
-      "nickname": "RAVENGAR",
-      "gameId": "FF-7712",
-      "avatar": "🐺",
-      "guildId": 2,
-      "elo": 1620,
-      "wins": 23,
-      "losses": 19,
-      "kills": 267,
-      "deaths": 215,
-      "role": "Player",
-      "country": "Кыргызстан",
-      "bio": ""
+      "country": "Кыргызстан"
     }
   ],
   "matches": [
@@ -133,7 +106,7 @@
       "id": 1,
       "tournament": "LAVENDER CUP",
       "title": "GRAND FINAL",
-      "subtitle": "FREE FIRE • BOOYAH",
+      "subtitle": "FREE FIRE",
       "guildAId": 1,
       "guildBId": 3,
       "scoreA": 3,
@@ -142,29 +115,7 @@
       "status": "LIVE",
       "format": "BO7",
       "playerAId": 1,
-      "playerBId": 3,
-      "scheduledAt": ""
-    }
-  ],
-  "overlay": {
-    "activeMatchId": 1,
-    "visible": true,
-    "accent": "#b46cff",
-    "position": "bottom",
-    "layout": "full",
-    "showPlayers": true,
-    "showElo": true,
-    "showRank": true,
-    "customText": "LAVENDER • LIVE"
-  },
-  "news": [
-    {
-      "id": 1,
-      "title": "LAVENDER PRO запущен",
-      "body": "Обновлённый рейтинг игроков, гильдий и стрим-система готовы к использованию.",
-      "type": "update",
-      "pinned": true,
-      "createdAt": "2026-08-09T10:00:00.000Z"
+      "playerBId": 3
     }
   ],
   "tournaments": [
@@ -172,16 +123,33 @@
       "id": 1,
       "name": "LAVENDER CUP",
       "status": "LIVE",
-      "startDate": "2026-08-09",
-      "prize": "Community Cup",
+      "date": "2026-08-09",
       "format": "BO7",
+      "prize": "Community Cup",
+      "description": "Главный турнир LAVENDER",
       "guildIds": [
         1,
         2,
         3
-      ],
-      "description": "Главный турнир сообщества LAVENDER."
+      ]
     }
   ],
-  "activity": []
+  "news": [
+    {
+      "id": 1,
+      "title": "LAVENDER PRO 6.0",
+      "body": "Стабильная версия платформы запущена.",
+      "pinned": true,
+      "createdAt": "2026-08-09T12:00:00.000Z"
+    }
+  ],
+  "overlay": {
+    "activeMatchId": 1,
+    "visible": true,
+    "accent": "#b46cff",
+    "position": "bottom",
+    "showPlayers": true,
+    "showStats": true,
+    "customText": "LAVENDER • LIVE"
+  }
 }

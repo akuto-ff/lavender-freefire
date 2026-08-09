@@ -1,0 +1,24 @@
+LAVENDER PRO 6.0 STABLE
+
+1. Распакуй ZIP.
+2. GitHub -> lavender-freefire -> Add file -> Upload files.
+3. Замени:
+   index.html
+   overlay.html
+   server.js
+   data.json
+   package.json
+   README.md
+4. Commit changes.
+5. Render сам начнет deploy.
+6. Дождись Live.
+7. Открой /health — должно показать {"ok":true,"version":"6.0.0",...}
+8. Обнови сайт Ctrl+Shift+R.
+
+Render Environment:
+LAVENDER_ADMIN_USER = твой логин
+LAVENDER_ADMIN_PASSWORD = твой пароль
+NODE_ENV = production
+
+OBS:
+https://твой-сайт.onrender.com/overlay.html
