@@ -1,0 +1,17 @@
+{
+  "name": "lavender-pro-free-fire-hub",
+  "version": "4.0.0",
+  "private": true,
+  "description": "Professional Free Fire rankings, guilds, tournaments and realtime OBS overlay",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "express": "^4.21.2",
+    "socket.io": "^4.8.1"
+  }
+}

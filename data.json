@@ -1,0 +1,112 @@
+{
+  "settings": {
+    "siteName": "LAVENDER",
+    "accent": "#b46cff",
+    "tagline": "FREE FIRE COMMUNITY",
+    "discord": "",
+    "telegram": "",
+    "youtube": ""
+  },
+  "guilds": [
+    {
+      "id": 1,
+      "name": "LAVENDER",
+      "tag": "LAV",
+      "logo": "🪻",
+      "region": "Кыргызстан",
+      "elo": 1942,
+      "wins": 31,
+      "losses": 8,
+      "description": "Официальная гильдия LAVENDER",
+      "captain": "",
+      "founded": "",
+      "social": ""
+    }
+  ],
+  "players": [],
+  "matches": [],
+  "overlay": {
+    "activeMatchId": null,
+    "visible": true,
+    "accent": "#b46cff",
+    "position": "bottom",
+    "layout": "full",
+    "showPlayers": true,
+    "showElo": true,
+    "showRank": true,
+    "customText": "LAVENDER • LIVE"
+  },
+  "news": [],
+  "tournaments": [
+    {
+      "id": 1,
+      "name": "LAVENDER CUP",
+      "status": "LIVE",
+      "startDate": "2026-08-09",
+      "prize": "Community Cup",
+      "format": "BO7",
+      "guildIds": [
+        1
+      ],
+      "description": "Главный турнир сообщества LAVENDER."
+    }
+  ],
+  "activity": [
+    {
+      "id": 8,
+      "type": "match",
+      "text": "Удалён матч GRAND FINAL",
+      "meta": {},
+      "createdAt": "2026-08-09T10:58:11.719Z"
+    },
+    {
+      "id": 7,
+      "type": "player",
+      "text": "Удалён игрок WEST 1991",
+      "meta": {},
+      "createdAt": "2026-08-09T10:57:38.690Z"
+    },
+    {
+      "id": 6,
+      "type": "player",
+      "text": "Удалён игрок LAVENDER",
+      "meta": {},
+      "createdAt": "2026-08-09T10:57:36.050Z"
+    },
+    {
+      "id": 5,
+      "type": "player",
+      "text": "Удалён игрок AMAHЁ",
+      "meta": {},
+      "createdAt": "2026-08-09T10:57:33.434Z"
+    },
+    {
+      "id": 4,
+      "type": "player",
+      "text": "Удалён игрок Veyron",
+      "meta": {},
+      "createdAt": "2026-08-09T10:57:30.754Z"
+    },
+    {
+      "id": 3,
+      "type": "player",
+      "text": "Удалён игрок RAVENGAR",
+      "meta": {},
+      "createdAt": "2026-08-09T10:57:27.994Z"
+    },
+    {
+      "id": 2,
+      "type": "guild",
+      "text": "Удалена гильдия AMAHЁ",
+      "meta": {},
+      "createdAt": "2026-08-09T10:57:23.026Z"
+    },
+    {
+      "id": 1,
+      "type": "guild",
+      "text": "Удалена гильдия WEST",
+      "meta": {},
+      "createdAt": "2026-08-09T10:57:20.242Z"
+    }
+  ]
+}
