@@ -7,20 +7,57 @@
 </style></head><body>
 <header class="top"><div class="brand" id="brand">🪻 LAVENDER</div><button class="menu" onclick="nav.classList.toggle('open')">☰</button><nav class="nav" id="nav"></nav><div class="state" id="state">PUBLIC</div></header>
 <main class="wrap"><div class="banner" id="banner"></div>
-<section class="page on" id="home"><div class="hero"><div class="eyebrow" id="tagline">FREE FIRE COMMUNITY</div><h1>LAVENDER PRO 6.1</h1><div class="muted">Стабильная платформа: админ, игроки, матчи, гильдии и OBS.</div></div><div class="g4" id="stats"></div><div class="grid" style="margin-top:14px"><div class="card"><div class="head"><h2>LIVE / ближайший матч</h2></div><div class="body" id="liveBox"></div></div><div class="card"><div class="head"><h2>Новости</h2></div><div class="body" id="newsBox"></div></div></div><div class="grid" style="margin-top:14px"><div class="card"><div class="head"><h2>Топ игроков</h2></div><div class="table"><table><thead><tr><th>#</th><th>Игрок</th><th>Гильдия</th><th>Ранг</th><th>ELO</th></tr></thead><tbody id="topPlayers"></tbody></table></div></div><div class="card"><div class="head"><h2>Топ гильдий</h2></div><div class="table"><table><thead><tr><th>#</th><th>Гильдия</th><th>Ранг</th><th>ELO</th></tr></thead><tbody id="topGuilds"></tbody></table></div></div></div></section>
+<section class="page on" id="home"><div class="hero"><div class="eyebrow" id="tagline">FREE FIRE COMMUNITY</div><h1>LAVENDER PRO 7.0</h1><div class="muted">Стабильная платформа: админ, игроки, матчи, гильдии и OBS.</div></div><div class="g4" id="stats"></div><div class="grid" style="margin-top:14px"><div class="card"><div class="head"><h2>LIVE / ближайший матч</h2></div><div class="body" id="liveBox"></div></div><div class="card"><div class="head"><h2>Новости</h2></div><div class="body" id="newsBox"></div></div></div><div class="grid" style="margin-top:14px"><div class="card"><div class="head"><h2>Топ игроков</h2></div><div class="table"><table><thead><tr><th>#</th><th>Игрок</th><th>Гильдия</th><th>Ранг</th><th>ELO</th></tr></thead><tbody id="topPlayers"></tbody></table></div></div><div class="card"><div class="head"><h2>Топ гильдий</h2></div><div class="table"><table><thead><tr><th>#</th><th>Гильдия</th><th>Ранг</th><th>ELO</th></tr></thead><tbody id="topGuilds"></tbody></table></div></div></div></section>
 <section class="page" id="players"><div class="hero"><h1>Игроки</h1><div class="muted">Рейтинг, статистика и профили.</div></div><div class="toolbar"><input id="ps" placeholder="Поиск по нику или ID"><select id="pr"><option value="">Все ранги</option><option>S</option><option>A</option><option>B</option><option>C</option><option>D</option><option>E</option><option>F</option></select><button class="btn adminOnly" onclick="playerForm()">+ Игрок</button></div><div class="card"><div class="table"><table><thead><tr><th>#</th><th>Игрок</th><th>Гильдия</th><th>Ранг</th><th>ELO</th><th>K/D</th><th>WR</th><th></th></tr></thead><tbody id="playersBody"></tbody></table></div></div></section>
 <section class="page" id="ranks"><div class="hero"><h1>S / A / B / C / D / E / F</h1><div class="muted">Автоматическое распределение по ELO.</div></div><div id="rankBlocks"></div></section>
 <section class="page" id="guilds"><div class="hero"><h1>Гильдии</h1><div class="muted">Рейтинг и составы гильдий.</div></div><div class="toolbar"><input id="gs" placeholder="Поиск гильдии"><button class="btn adminOnly" onclick="guildForm()">+ Гильдия</button></div><div class="g3" id="guildCards"></div></section>
 <section class="page" id="tournaments"><div class="hero"><h1>Турниры</h1><div class="muted">Активные и будущие соревнования.</div></div><div class="actions" style="margin-bottom:12px"><button class="btn adminOnly" onclick="tournamentForm()">+ Турнир</button></div><div class="g3" id="tourCards"></div></section>
 <section class="page" id="matches"><div class="hero"><h1>Матчи</h1><div class="muted">LIVE, расписание и результаты.</div></div><div class="toolbar"><select id="ms"><option value="">Все статусы</option><option>LIVE</option><option>SCHEDULED</option><option>PAUSED</option><option>FINAL</option></select><button class="btn adminOnly" onclick="matchForm()">+ Матч</button></div><div class="g3" id="matchCards"></div></section>
 <section class="page" id="news"><div class="hero"><h1>Новости</h1><div class="muted">Анонсы и обновления проекта.</div></div><div class="actions" style="margin-bottom:12px"><button class="btn adminOnly" onclick="newsForm()">+ Новость</button></div><div class="g3" id="newsCards"></div></section>
+
+<section class="page" id="streamers">
+  <div class="hero"><h1>Стримеры</h1><div class="muted">Участники стримерской зоны LAVENDER.</div></div>
+  <div class="g3" id="streamerCards"></div>
+</section>
+
+<section class="page" id="streamerZone">
+  <div class="hero">
+    <div class="eyebrow">STREAMER ACCESS</div>
+    <h1>Streamer Zone</h1>
+    <div class="muted">Личная зона стримера: запуск/остановка стрима, выбор матча и свой OBS Overlay.</div>
+    <div class="actions" style="margin-top:10px"><button class="btn red" onclick="logout()">Выйти</button></div>
+  </div>
+  <div class="grid">
+    <div class="card"><div class="head"><h2>Мой стрим</h2></div><div class="body">
+      <div class="field"><label>Название</label><input id="szTitle"></div>
+      <div class="field"><label>Платформа</label><select id="szPlatform"><option>YouTube</option><option>TikTok</option><option>Twitch</option><option>VK</option><option>Другой</option></select></div>
+      <div class="field"><label>Ссылка на стрим</label><input id="szUrl" placeholder="https://..."></div>
+      <div class="field"><label>Матч для оверлея</label><select id="szMatch"></select></div>
+      <div class="field"><label>Статус</label><select id="szStatus"><option>OFFLINE</option><option>LIVE</option><option>PAUSED</option></select></div>
+      <div class="actions"><button class="btn green" onclick="streamerStart()">▶ Начать стрим</button><button class="btn red" onclick="streamerStop()">■ Остановить</button><button class="btn" onclick="saveStreamerZone()">Сохранить</button></div>
+    </div></div>
+    <div class="card"><div class="head"><h2>Мой Overlay</h2></div><div class="body">
+      <div class="field"><label>Текст сверху</label><input id="szText"></div>
+      <div class="field"><label>Цвет</label><input id="szAccent" type="color"></div>
+      <div class="field"><label>Позиция</label><select id="szPosition"><option value="bottom">Снизу</option><option value="top">Сверху</option></select></div>
+      <div class="actions"><button class="btn green" onclick="copyStreamerObs()">Скопировать OBS URL</button></div>
+      <p class="muted small" id="szObs"></p>
+    </div></div>
+  </div>
+</section>
+
 <section class="page" id="studio"><div class="hero"><div class="eyebrow">PRIVATE</div><h1>Stream Studio</h1><div class="muted">Управление активным матчем и OBS Overlay.</div><div class="actions" style="margin-top:10px"><button class="btn red" onclick="logout()">Выйти</button></div></div><div class="grid"><div class="card"><div class="head"><h2>Матч</h2></div><div class="body"><div class="field"><label>Матч</label><select id="smatch"></select></div><div class="field"><label>Название</label><input id="stitle"></div><div class="grid"><div class="field"><label>Счёт A</label><input id="ssa" type="number"></div><div class="field"><label>Счёт B</label><input id="ssb" type="number"></div></div><div class="grid"><div class="field"><label>Раунд</label><input id="sround"></div><div class="field"><label>Формат</label><input id="sformat"></div></div><div class="field"><label>Статус</label><select id="sstatus"><option>LIVE</option><option>SCHEDULED</option><option>PAUSED</option><option>FINAL</option></select></div><div class="actions"><button class="btn" onclick="saveStudio()">Сохранить</button><button class="btn dark" onclick="bump(1,0)">A +</button><button class="btn dark" onclick="bump(0,1)">B +</button><button class="btn dark" onclick="bump(-1,0)">A −</button><button class="btn dark" onclick="bump(0,-1)">B −</button></div></div></div><div class="card"><div class="head"><h2>Overlay</h2></div><div class="body"><div class="field"><label>Текст</label><input id="otext"></div><div class="field"><label>Цвет</label><input id="oaccent" type="color"></div><div class="field"><label>Игрок A</label><select id="opa"></select></div><div class="field"><label>Игрок B</label><select id="opb"></select></div><div class="actions"><button class="btn" onclick="saveOverlay()">Обновить OBS</button><button class="btn green" onclick="copyObs()">Скопировать URL</button></div><p class="muted small">OBS: <span id="obsUrl"></span></p></div></div></div><div class="card" style="margin-top:14px"><div class="head"><h2>Предпросмотр</h2></div><div class="body"><div class="overlayPreview"><div class="hud" id="preview"></div></div></div></div></section>
-<section class="page" id="admin"><div class="hero"><div class="eyebrow">PRIVATE</div><h1>Админ-панель</h1><div class="muted">Управление контентом и резервной копией.</div><div class="actions" style="margin-top:10px"><button class="btn red" onclick="logout()">Выйти</button><button class="btn green" onclick="testAdmin()">Проверить админ</button></div></div><div class="g4"><div class="card stat"><b id="acp">0</b><span>ИГРОКОВ</span></div><div class="card stat"><b id="acg">0</b><span>ГИЛЬДИЙ</span></div><div class="card stat"><b id="acm">0</b><span>МАТЧЕЙ</span></div><div class="card stat"><b id="act">0</b><span>ТУРНИРОВ</span></div></div><div class="grid" style="margin-top:14px"><div class="card"><div class="head"><h2>Быстрые действия</h2></div><div class="body actions"><button class="btn" onclick="playerForm()">+ Игрок</button><button class="btn" onclick="guildForm()">+ Гильдия</button><button class="btn" onclick="matchForm()">+ Матч</button><button class="btn" onclick="tournamentForm()">+ Турнир</button><button class="btn" onclick="newsForm()">+ Новость</button></div></div><div class="card"><div class="head"><h2>Backup</h2></div><div class="body"><div class="actions"><button class="btn green" onclick="exportBackup()">Скачать backup</button><button class="btn dark" onclick="$('importFile').click()">Импорт</button><input id="importFile" type="file" accept=".json,application/json" style="display:none"></div><p class="muted small">На бесплатном Render делай backup регулярно.</p></div></div></div></section>
+<section class="page" id="admin"><div class="hero"><div class="eyebrow">PRIVATE</div><h1>Админ-панель</h1><div class="muted">Управление контентом и резервной копией.</div><div class="actions" style="margin-top:10px"><button class="btn red" onclick="logout()">Выйти</button><button class="btn green" onclick="testAdmin()">Проверить админ</button></div></div><div class="g4"><div class="card stat"><b id="acp">0</b><span>ИГРОКОВ</span></div><div class="card stat"><b id="acg">0</b><span>ГИЛЬДИЙ</span></div><div class="card stat"><b id="acm">0</b><span>МАТЧЕЙ</span></div><div class="card stat"><b id="act">0</b><span>ТУРНИРОВ</span></div></div><div class="grid" style="margin-top:14px"><div class="card"><div class="head"><h2>Быстрые действия</h2></div><div class="body actions"><button class="btn" onclick="playerForm()">+ Игрок</button><button class="btn" onclick="guildForm()">+ Гильдия</button><button class="btn" onclick="matchForm()">+ Матч</button><button class="btn" onclick="tournamentForm()">+ Турнир</button><button class="btn" onclick="newsForm()">+ Новость</button><button class="btn" onclick="streamerForm()">+ Стример</button></div></div><div class="card"><div class="head"><h2>Backup</h2></div><div class="body"><div class="actions"><button class="btn green" onclick="exportBackup()">Скачать backup</button><button class="btn dark" onclick="$('importFile').click()">Импорт</button><input id="importFile" type="file" accept=".json,application/json" style="display:none"></div><p class="muted small">На бесплатном Render делай backup регулярно.</p></div></div></div>
+<div class="card" style="margin-top:14px">
+  <div class="head"><h2>Стримеры</h2><button class="btn" onclick="streamerForm()">+ Добавить стримера</button></div>
+  <div class="body" id="adminStreamerList"></div>
+</div>
+</section>
 </main>
 <div class="modal" id="modal" onclick="if(event.target===this)closeModal()"><div class="modalBox" id="modalBox"></div></div><div class="toast" id="toast"></div>
 <script src="/socket.io/socket.io.js"></script><script>
 "use strict";
-let db=null,ov=null,admin=false,reloadTimer=null;
+let db=null,ov=null,admin=false,role=null,currentStreamer=null,streamerZoneData=null,reloadTimer=null;
 const $=id=>document.getElementById(id);
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 async function api(url,opt={}){
@@ -47,17 +84,30 @@ function toastMsg(t){const e=$("toast");e.textContent=t;e.style.display="block";
 function media(v,cls="avatar"){v=String(v||"");return v.startsWith("data:image/")?`<img class="${cls}" src="${v}" alt="">`:`<span style="font-size:${cls==="avatarLg"?"42px":"22px"};margin-right:7px">${esc(v||"👤")}</span>`}
 function modalOpen(html){$("modalBox").innerHTML=html;$("modal").classList.add("show")}
 function closeModal(){$("modal").classList.remove("show")}
-function buildNav(){const items=[["home","Главная"],["players","Игроки"],["ranks","S–F"],["guilds","Гильдии"],["tournaments","Турниры"],["matches","Матчи"],["news","Новости"],["studio","🔒 Studio"],["admin","🔒 Admin"]];$("nav").innerHTML=items.map(x=>`<button data-p="${x[0]}" onclick="showPage('${x[0]}')">${x[1]}</button>`).join("")}
-async function authStatus(){const a=await api("/api/auth/status");admin=!!a.authenticated;$("state").textContent=admin?"ADMIN":"PUBLIC";document.querySelectorAll(".adminOnly").forEach(x=>x.style.display=admin?"":"none");return a}
-async function showPage(id){if((id==="studio"||id==="admin")&&!admin){loginModal(id);return}document.querySelectorAll(".page").forEach(x=>x.classList.remove("on"));$(id).classList.add("on");document.querySelectorAll("#nav button").forEach(x=>x.classList.toggle("on",x.dataset.p===id));$("nav").classList.remove("open")}
-function loginModal(target){modalOpen(`<h2>🔒 Вход администратора</h2><p class="muted">Используй данные из Render → Environment.</p><div class="field"><label>Логин</label><input id="lu" autocomplete="username" autocapitalize="none"></div><div class="field"><label>Пароль</label><input id="lp" type="password" autocomplete="current-password"></div><button class="btn" style="width:100%" id="loginBtn">Войти</button>`);setTimeout(()=>{$("loginBtn").onclick=()=>doLogin(target);$("lp").onkeydown=e=>{if(e.key==="Enter")doLogin(target)};$("lu").focus()},0)}
+function buildNav(){const items=[["home","Главная"],["players","Игроки"],["ranks","S–F"],["guilds","Гильдии"],["tournaments","Турниры"],["matches","Матчи"],["news","Новости"],["streamers","Стримеры"],["streamerZone","🎥 Streamer Zone"],["studio","🔒 Studio"],["admin","🔒 Admin"]];$("nav").innerHTML=items.map(x=>`<button data-p="${x[0]}" onclick="showPage('${x[0]}')">${x[1]}</button>`).join("")}
+async function authStatus(){
+  const a=await api("/api/auth/status");
+  role=a.authenticated?a.role:null;
+  admin=role==="admin";
+  currentStreamer=a.streamer||null;
+  $("state").textContent=admin?"ADMIN":role==="streamer"?"STREAMER":"PUBLIC";
+  document.querySelectorAll(".adminOnly").forEach(x=>x.style.display=admin?"":"none");
+  return a;
+}
+async function showPage(id){
+  if((id==="studio"||id==="admin")&&!admin){loginModal(id);return}
+  if(id==="streamerZone"&&role!=="streamer"&&!admin){loginModal(id);return}
+  if(id==="streamerZone"&&role==="streamer")await loadStreamerZone();
+document.querySelectorAll(".page").forEach(x=>x.classList.remove("on"));$(id).classList.add("on");document.querySelectorAll("#nav button").forEach(x=>x.classList.toggle("on",x.dataset.p===id));$("nav").classList.remove("open")}
+function loginModal(target){modalOpen(`<h2>🔒 Вход администратора</h2><p class="muted">Админ входит своими данными. Стример — логином и паролем, которые создал админ.</p><div class="field"><label>Логин</label><input id="lu" autocomplete="username" autocapitalize="none"></div><div class="field"><label>Пароль</label><input id="lp" type="password" autocomplete="current-password"></div><button class="btn" style="width:100%" id="loginBtn">Войти</button>`);setTimeout(()=>{$("loginBtn").onclick=()=>doLogin(target);$("lp").onkeydown=e=>{if(e.key==="Enter")doLogin(target)};$("lu").focus()},0)}
 async function doLogin(target){
   try{
     const username=$("lu").value.trim(),password=$("lp").value;
     if(!username||!password)return toastMsg("Введи логин и пароль");
     $("loginBtn").disabled=true;
-    await api("/api/auth/login",{method:"POST",body:JSON.stringify({username,password})});
-    await api("/api/admin/ping");
+    const login=await api("/api/auth/login",{method:"POST",body:JSON.stringify({username,password})});
+    if(login.role==="admin")await api("/api/admin/ping");
+    if(login.role==="streamer")await api("/api/streamer/ping");
     closeModal();
     await load(true);
     await showPage(target);
@@ -72,8 +122,8 @@ async function load(silent=false){
   try{
     clearError();
     const [d,o,a]=await Promise.all([api("/api/all"),api("/api/overlay"),api("/api/auth/status")]);
-    db=d;ov=o;admin=!!a.authenticated;
-    $("state").textContent=admin?"ADMIN":"PUBLIC";
+    db=d;ov=o;role=a.authenticated?a.role:null;admin=role==="admin";currentStreamer=a.streamer||null;
+    $("state").textContent=admin?"ADMIN":role==="streamer"?"STREAMER":"PUBLIC";
     document.querySelectorAll(".adminOnly").forEach(x=>x.style.display=admin?"":"none");
     document.documentElement.style.setProperty("--a",db.settings.accent||"#b46cff");
     $("brand").textContent="🪻 "+(db.settings.siteName||"LAVENDER");
@@ -95,7 +145,7 @@ function renderAll(){
  $("newsBox").innerHTML=db.news.slice(0,3).map(n=>`<div style="margin-bottom:10px"><b>${n.pinned?"📌 ":""}${esc(n.title)}</b><div class="muted">${esc(n.body).slice(0,130)}</div></div>`).join("")||`<div class="muted">Новостей нет</div>`;
  $("topPlayers").innerHTML=db.players.slice(0,6).map((p,i)=>`<tr><td>${i+1}</td><td>${media(p.avatar)}<b>${esc(p.nickname)}</b></td><td>${esc(p.guild?.name||"—")}</td><td><span class="rank">${p.rank}</span></td><td>${p.elo}</td></tr>`).join("");
  $("topGuilds").innerHTML=db.guilds.slice(0,6).map((g,i)=>`<tr><td>${i+1}</td><td>${media(g.logo)}<b>${esc(g.name)}</b></td><td><span class="rank">${g.rank}</span></td><td>${g.elo}</td></tr>`).join("");
- renderPlayers();renderRanks();renderGuilds();renderTournaments();renderMatches();renderNews();
+ renderPlayers();renderRanks();renderGuilds();renderTournaments();renderMatches();renderNews();renderStreamers();renderAdminStreamers();
  $("acp").textContent=db.players.length;$("acg").textContent=db.guilds.length;$("acm").textContent=db.matches.length;$("act").textContent=db.tournaments.length;
 }
 function renderPlayers(){const q=($("ps")?.value||"").toLowerCase(),r=$("pr")?.value||"";$("playersBody").innerHTML=db.players.filter(p=>(p.nickname+" "+p.gameId).toLowerCase().includes(q)&&(!r||p.rank===r)).map((p,i)=>`<tr><td>${i+1}</td><td>${media(p.avatar)}<b>${esc(p.nickname)}</b><div class="muted small">${esc(p.gameId)}</div></td><td>${esc(p.guild?.name||"—")}</td><td><span class="rank">${p.rank}</span></td><td>${p.elo}</td><td>${p.kd}</td><td>${p.winrate}%</td><td>${admin?`<button class="btn dark" onclick="playerForm(${p.id})">Изм.</button>`:""}</td></tr>`).join("")}
@@ -104,6 +154,87 @@ function renderGuilds(){const q=($("gs")?.value||"").toLowerCase();$("guildCards
 function renderTournaments(){$("tourCards").innerHTML=db.tournaments.map(t=>`<div class="card tourCard"><span class="status ${t.status}">${esc(t.status)}</span><h3>${esc(t.name)}</h3><p class="muted">${esc(t.description||"")}</p><span class="chip">${esc(t.format)}</span><span class="chip">${t.participants.length} гильдий</span>${admin?`<div class="actions" style="margin-top:10px"><button class="btn dark" onclick="tournamentForm(${t.id})">Редактировать</button></div>`:""}</div>`).join("")}
 function renderMatches(){const s=$("ms")?.value||"";$("matchCards").innerHTML=db.matches.filter(m=>!s||m.status===s).map(m=>`<div class="card matchCard"><span class="status ${m.status}">${esc(m.status)}</span><h3>${esc(m.title)}</h3><div><b>${esc(m.guildA?.name||"A")}</b> <span style="font-size:28px;font-weight:1000">${m.scoreA} : ${m.scoreB}</span> <b>${esc(m.guildB?.name||"B")}</b></div><p class="muted">${esc(m.tournament)} • ${esc(m.roundText)} • ${esc(m.format)}</p>${admin?`<div class="actions"><button class="btn dark" onclick="matchForm(${m.id})">Изм.</button><button class="btn green" onclick="activate(${m.id})">На стрим</button></div>`:""}</div>`).join("")}
 function renderNews(){$("newsCards").innerHTML=db.news.map(n=>`<div class="card newsCard"><h3>${n.pinned?"📌 ":""}${esc(n.title)}</h3><p class="muted">${esc(n.body)}</p>${admin?`<button class="btn dark" onclick="newsForm(${n.id})">Изм.</button>`:""}</div>`).join("")}
+
+function renderStreamers(){
+  if(!$("streamerCards"))return;
+  $("streamerCards").innerHTML=(db.streamers||[]).map(s=>{
+    const st=s.stream||{};
+    const live=st.status==="LIVE";
+    return `<div class="card guildCard">${media(s.avatar||"🎥","avatarLg")}<h3>${esc(s.displayName||s.username)}</h3><div class="muted">@${esc(s.username)}</div><p><span class="status ${live?"LIVE":"FINAL"}">${esc(st.status||"OFFLINE")}</span> ${esc(st.platform||"")}</p><p class="muted">${esc(st.title||"")}</p>${live&&st.streamUrl?`<a class="btn green" href="${esc(st.streamUrl)}" target="_blank" rel="noopener">Открыть стрим</a>`:""}<div class="small muted" style="margin-top:8px">Overlay: /overlay.html?streamer=${s.id}</div></div>`;
+  }).join("")||'<div class="muted">Стримеров пока нет</div>';
+}
+
+async function loadStreamerZone(){
+  if(role!=="streamer")return;
+  try{
+    streamerZoneData=await api("/api/streamer/me");
+    const st=streamerZoneData.stream||{};
+    $("szTitle").value=st.title||"";
+    $("szPlatform").value=st.platform||"YouTube";
+    $("szUrl").value=st.streamUrl||"";
+    $("szStatus").value=st.status||"OFFLINE";
+    $("szText").value=st.customText||`${streamerZoneData.streamer.displayName||streamerZoneData.streamer.username} • LIVE`;
+    $("szAccent").value=st.accent||"#b46cff";
+    $("szPosition").value=st.position||"bottom";
+    $("szMatch").innerHTML=(streamerZoneData.matches||[]).map(m=>`<option value="${m.id}">${esc(m.title)} — ${esc(m.guildA?.name||"A")} vs ${esc(m.guildB?.name||"B")}</option>`).join("");
+    $("szMatch").value=st.matchId||streamerZoneData.matches?.[0]?.id||"";
+    $("szObs").textContent=location.origin+`/overlay.html?streamer=${streamerZoneData.streamer.id}`;
+  }catch(e){toastMsg(e.message)}
+}
+async function saveStreamerZone(){
+  try{
+    const st=await api("/api/streamer/me",{method:"PATCH",body:JSON.stringify({
+      title:$("szTitle").value,platform:$("szPlatform").value,streamUrl:$("szUrl").value,
+      matchId:Number($("szMatch").value)||null,status:$("szStatus").value,
+      customText:$("szText").value,accent:$("szAccent").value,position:$("szPosition").value,
+      showPlayers:true,showStats:true
+    })});
+    streamerZoneData.stream=st;toastMsg("Стримерская зона сохранена");
+  }catch(e){toastMsg(e.message)}
+}
+async function streamerStart(){$("szStatus").value="LIVE";await saveStreamerZone()}
+async function streamerStop(){$("szStatus").value="OFFLINE";await saveStreamerZone()}
+function copyStreamerObs(){
+  if(!streamerZoneData)return;
+  navigator.clipboard.writeText(location.origin+`/overlay.html?streamer=${streamerZoneData.streamer.id}`).then(()=>toastMsg("OBS URL скопирован")).catch(()=>toastMsg("Скопируй URL вручную"));
+}
+
+async function renderAdminStreamers(){
+  if(!$("adminStreamerList"))return;
+  if(!admin){$("adminStreamerList").innerHTML='<div class="muted">Доступно только админу</div>';return}
+  try{
+    const list=await api("/api/admin/streamers");
+    $("adminStreamerList").innerHTML=list.map(s=>`<div class="card" style="padding:12px;margin-bottom:8px"><div style="display:flex;align-items:center;gap:10px">${media(s.avatar||"🎥")}<div style="flex:1"><b>${esc(s.displayName||s.username)}</b><div class="muted small">@${esc(s.username)} • ${s.active===false?"ОТКЛЮЧЕН":"АКТИВЕН"} • ${esc(s.stream?.status||"OFFLINE")}</div></div><div class="actions"><button class="btn dark" onclick="streamerForm(${s.id})">Изм.</button><button class="btn red" onclick="deleteStreamer(${s.id})">Удалить</button></div></div></div>`).join("")||'<div class="muted">Стримеров пока нет</div>';
+  }catch(e){$("adminStreamerList").innerHTML='<div class="muted">'+esc(e.message)+'</div>'}
+}
+async function streamerForm(id){
+  let s=null;
+  if(id){
+    const list=await api("/api/admin/streamers");
+    s=list.find(x=>Number(x.id)===Number(id));
+  }
+  modalOpen(`<h2>${s?"Редактировать":"Добавить"} стримера</h2>
+  <div class="field"><label>Логин</label><input id="su" value="${esc(s?.username||"")}"></div>
+  <div class="field"><label>Отображаемое имя</label><input id="sdn" value="${esc(s?.displayName||"")}"></div>
+  ${avatarField("sav",s?.avatar||"🎥","Аватар")}
+  <div class="field"><label>${s?"Новый пароль (оставь пустым, если не менять)":"Пароль"}</label><input id="spw" type="password"></div>
+  ${s?`<div class="field"><label>Статус аккаунта</label><select id="sactive"><option value="true">Активен</option><option value="false">Отключён</option></select></div>`:""}
+  <button class="btn" onclick="saveStreamer(${id||0})">Сохранить</button>`);
+  if(s)$("sactive").value=String(s.active!==false);
+}
+async function saveStreamer(id){
+  try{
+    const body={username:$("su").value,displayName:$("sdn").value,avatar:$("sav").value,password:$("spw").value};
+    if(id)body.active=$("sactive").value==="true";
+    await api(id?"/api/admin/streamers/"+id:"/api/admin/streamers",{method:id?"PATCH":"POST",body:JSON.stringify(body)});
+    closeModal();await load(true);toastMsg(id?"Стример обновлён":"Стример добавлен");
+  }catch(e){toastMsg(e.message)}
+}
+async function deleteStreamer(id){
+  if(!confirm("Удалить стримера и его стримерскую зону?"))return;
+  try{await api("/api/admin/streamers/"+id,{method:"DELETE"});await load(true);toastMsg("Стример удалён")}catch(e){toastMsg(e.message)}
+}
+
 function setupStudio(){
  $("obsUrl").textContent=location.origin+"/overlay.html";
  if(!db.matches.length){$("smatch").innerHTML="";return}
@@ -142,6 +273,6 @@ $("importFile").addEventListener("change",async e=>{const f=e.target.files?.[0];
 $("ps").addEventListener("input",renderPlayers);$("pr").addEventListener("change",renderPlayers);$("gs").addEventListener("input",renderGuilds);$("ms").addEventListener("change",renderMatches);
 document.addEventListener("click",e=>{if(innerWidth<=900&&$("nav").classList.contains("open")&&!e.target.closest("#nav")&&!e.target.closest(".menu"))$("nav").classList.remove("open")});
 const socket=io({reconnection:true,reconnectionDelay:1000,reconnectionDelayMax:5000,timeout:10000});
-socket.on("overlay:update",d=>{ov=d;draw(d)});socket.on("site:update",scheduleReload);socket.on("connect_error",()=>showError("Связь с сервером восстанавливается…"));socket.on("connect",clearError);
+socket.on("overlay:update",d=>{ov=d;draw(d)});socket.on("site:update",scheduleReload);socket.on("streamer-removed",()=>{if(role==="streamer"){toastMsg("Аккаунт стримера удалён");logout()}});socket.on("connect_error",()=>showError("Связь с сервером восстанавливается…"));socket.on("connect",clearError);
 buildNav();load();
 </script></body></html>

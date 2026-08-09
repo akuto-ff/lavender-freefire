@@ -151,5 +151,7 @@
     "showPlayers": true,
     "showStats": true,
     "customText": "LAVENDER • LIVE"
-  }
+  },
+  "streamers": [],
+  "streamerStreams": []
 }
