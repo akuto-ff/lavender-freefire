@@ -16,7 +16,7 @@ const ADMIN_PASSWORD = process.env.LAVENDER_ADMIN_PASSWORD || "lavender123";
 const sessions = new Map();
 
 app.use(express.json({limit:"10mb"}));
-app.use(express.static(path.join(__dirname,"public")));
+app.use(express.static(__dirname));
 
 function parseCookies(req){
   const out={};
