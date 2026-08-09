@@ -1,6 +1,6 @@
 {
   "name": "lavender-pro-stable",
-  "version": "7.1.0",
+  "version": "7.2.0",
   "private": true,
   "main": "server.js",
   "scripts": {
