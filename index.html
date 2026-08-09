@@ -29,12 +29,12 @@
 </style></head><body>
 <header class="top"><div class="brand" id="brand">🪻 LAVENDER</div><button class="menu" onclick="nav.classList.toggle('open')">☰</button><nav class="nav" id="nav"></nav><div class="state" id="state">PUBLIC</div></header>
 <main class="wrap"><div class="banner" id="banner"></div>
-<section class="page on" id="home"><div class="hero"><div class="eyebrow" id="tagline">FREE FIRE COMMUNITY</div><h1>LAVENDER PRO 7.3.3</h1><div class="muted">Стабильная платформа: админ, игроки, матчи, гильдии и OBS.</div></div><div class="g4" id="stats"></div><div class="grid" style="margin-top:14px"><div class="card"><div class="head"><h2>LIVE / ближайший матч</h2></div><div class="body" id="liveBox"></div></div><div class="card"><div class="head"><h2>Новости</h2></div><div class="body" id="newsBox"></div></div></div><div class="grid" style="margin-top:14px"><div class="card"><div class="head"><h2>Топ игроков</h2></div><div class="table"><table><thead><tr><th>#</th><th>Игрок</th><th>Гильдия</th><th>Ранг</th><th>ELO</th></tr></thead><tbody id="topPlayers"></tbody></table></div></div><div class="card"><div class="head"><h2>Топ гильдий</h2></div><div class="table"><table><thead><tr><th>#</th><th>Гильдия</th><th>Ранг</th><th>ELO</th></tr></thead><tbody id="topGuilds"></tbody></table></div></div></div></section>
+<section class="page on" id="home"><div class="hero"><div class="eyebrow" id="tagline">FREE FIRE COMMUNITY</div><h1>LAVENDER PRO 7.3.5.5.4</h1><div class="muted">Стабильная платформа: админ, игроки, матчи, гильдии и OBS.</div></div><div class="g4" id="stats"></div><div class="grid" style="margin-top:14px"><div class="card"><div class="head"><h2>LIVE / ближайший матч</h2></div><div class="body" id="liveBox"></div></div><div class="card"><div class="head"><h2>Новости</h2></div><div class="body" id="newsBox"></div></div></div><div class="grid" style="margin-top:14px"><div class="card"><div class="head"><h2>Топ игроков</h2></div><div class="table"><table><thead><tr><th>#</th><th>Игрок</th><th>Гильдия</th><th>Ранг</th><th>ELO</th></tr></thead><tbody id="topPlayers"></tbody></table></div></div><div class="card"><div class="head"><h2>Топ гильдий</h2></div><div class="table"><table><thead><tr><th>#</th><th>Гильдия</th><th>Ранг</th><th>ELO</th></tr></thead><tbody id="topGuilds"></tbody></table></div></div></div></section>
 <section class="page" id="players"><div class="hero"><h1>Игроки</h1><div class="muted">Рейтинг, статистика и профили.</div></div><div class="toolbar"><input id="ps" placeholder="Поиск по нику или ID"><select id="pr"><option value="">Все ранги</option><option>S</option><option>A</option><option>B</option><option>C</option><option>D</option><option>E</option><option>F</option></select><button class="btn editorOnly" onclick="playerForm()">+ Игрок</button></div><div class="card"><div class="table"><table><thead><tr><th>#</th><th>Игрок</th><th>Гильдия</th><th>Ранг</th><th>ELO</th><th>K/D</th><th>WR</th><th></th></tr></thead><tbody id="playersBody"></tbody></table></div></div></section>
 <section class="page" id="ranks"><div class="hero"><h1>S / A / B / C / D / E / F</h1><div class="muted">Автоматическое распределение по ELO.</div></div><div id="rankBlocks"></div></section>
 <section class="page" id="guilds"><div class="hero"><h1>Гильдии</h1><div class="muted">Рейтинг и составы гильдий.</div></div><div class="toolbar"><input id="gs" placeholder="Поиск гильдии"><button class="btn editorOnly" onclick="guildForm()">+ Гильдия</button></div><div class="g3" id="guildCards"></div></section>
 <section class="page" id="tournaments"><div class="hero"><h1>Турниры</h1><div class="muted">Активные и будущие соревнования.</div></div><div class="actions" style="margin-bottom:12px"><button class="btn adminOnly" onclick="tournamentForm()">+ Турнир</button></div><div class="g3" id="tourCards"></div></section>
-<section class="page" id="matches"><div class="hero"><h1>Матчи</h1><div class="muted">LIVE, расписание и результаты.</div></div><div class="toolbar"><select id="ms"><option value="">Все статусы</option><option>LIVE</option><option>SCHEDULED</option><option>PAUSED</option><option>FINAL</option></select><button class="btn editorOnly" onclick="matchForm()">+ Матч</button></div><div class="g3" id="matchCards"></div></section>
+<section class="page" id="matches"><div class="hero"><h1>Матчи</h1><div class="muted">LIVE, расписание и результаты. После 🏁 Финал + ELO рейтинг игроков пересчитывается сразу.</div></div><div class="toolbar"><select id="ms"><option value="">Все статусы</option><option>LIVE</option><option>SCHEDULED</option><option>PAUSED</option><option>FINAL</option></select><button class="btn editorOnly" onclick="matchForm()">+ Матч</button></div><div class="g3" id="matchCards"></div></section>
 <section class="page" id="news"><div class="hero"><h1>Новости</h1><div class="muted">Анонсы и обновления проекта.</div></div><div class="actions" style="margin-bottom:12px"><button class="btn adminOnly" onclick="newsForm()">+ Новость</button></div><div class="g3" id="newsCards"></div></section>
 
 <section class="page" id="streamers">
@@ -99,7 +99,8 @@
   </div>
 </section>
 
-<section class="page" id="studio"><div class="hero"><div class="eyebrow">PRIVATE</div><h1>Stream Studio</h1><div class="muted">Управление активным матчем и OBS Overlay.</div><div class="actions" style="margin-top:10px"><button class="btn red" onclick="logout()">Выйти</button></div></div><div class="grid"><div class="card"><div class="head"><h2>Матч</h2></div><div class="body"><div class="field"><label>Матч</label><select id="smatch"></select></div><div class="field"><label>Название</label><input id="stitle"></div><div class="grid"><div class="field"><label>Счёт A</label><input id="ssa" type="number"></div><div class="field"><label>Счёт B</label><input id="ssb" type="number"></div></div><div class="grid"><div class="field"><label>Раунд</label><input id="sround"></div><div class="field"><label>Формат</label><input id="sformat"></div></div><div class="field"><label>Статус</label><select id="sstatus"><option>LIVE</option><option>SCHEDULED</option><option>PAUSED</option><option>FINAL</option></select></div><div class="actions"><button class="btn" onclick="saveStudio()">Сохранить</button><button class="btn dark" onclick="bump(1,0)">A +</button><button class="btn dark" onclick="bump(0,1)">B +</button><button class="btn dark" onclick="bump(-1,0)">A −</button><button class="btn dark" onclick="bump(0,-1)">B −</button></div></div></div><div class="card"><div class="head"><h2>Overlay</h2></div><div class="body"><div class="field"><label>Текст</label><input id="otext"></div><div class="field"><label>Цвет</label><input id="oaccent" type="color"></div>
+<section class="page" id="studio"><div class="hero"><div class="eyebrow">PRIVATE</div><h1>Stream Studio</h1><div class="muted">Управление активным матчем и OBS Overlay.</div><div class="actions" style="margin-top:10px"><button class="btn red" onclick="logout()">Выйти</button></div></div><div class="grid"><div class="card"><div class="head"><h2>Матч</h2></div><div class="body"><div class="field"><label>Матч</label><select id="smatch"></select></div><div class="field"><label>Название</label><input id="stitle"></div><div class="grid"><div class="field"><label>Счёт A</label><input id="ssa" type="number"></div><div class="field"><label>Счёт B</label><input id="ssb" type="number"></div></div><div class="grid"><div class="field"><label>Раунд</label><input id="sround"></div><div class="field"><label>Формат</label><input id="sformat"></div></div><div class="field"><label>Статус</label><select id="sstatus"><option>LIVE</option><option>SCHEDULED</option><option>PAUSED</option><option>FINAL</option></select></div><div class="field"><label>Победитель</label><select id="swinner"><option value="">— выбери победителя —</option></select></div>
+<div class="muted small" style="margin-bottom:10px">Выбираешь двух игроков и победителя — ELO распределится автоматически.</div><div class="actions"><button class="btn" onclick="saveStudio()">Сохранить</button><button class="btn green" onclick="applyWinnerElo()">🏆 Указать победителя + ELO</button><button class="btn dark" onclick="finishStudioMatch()">🏁 По счёту + ELO</button><button class="btn dark" onclick="bump(1,0)">A +</button><button class="btn dark" onclick="bump(0,1)">B +</button><button class="btn dark" onclick="bump(-1,0)">A −</button><button class="btn dark" onclick="bump(0,-1)">B −</button></div></div></div><div class="card"><div class="head"><h2>Overlay</h2></div><div class="body"><div class="field"><label>Текст</label><input id="otext"></div><div class="field"><label>Цвет</label><input id="oaccent" type="color"></div>
 <div class="field">
   <label>Игрок A</label>
   <div class="search-player-wrap">
@@ -229,7 +230,7 @@ function renderPlayers(){const q=($("ps")?.value||"").toLowerCase(),r=$("pr")?.v
 function renderRanks(){const r={S:[],A:[],B:[],C:[],D:[],E:[],F:[]};db.players.forEach(p=>r[p.rank].push(p));$("rankBlocks").innerHTML=Object.keys(r).map(k=>`<div class="card" style="margin-bottom:12px"><div class="head"><h2>${k} RANK</h2><span class="muted">${r[k].length}</span></div><div class="table"><table><tbody>${r[k].map(p=>`<tr><td>${media(p.avatar)}<b>${esc(p.nickname)}</b></td><td>${esc(p.guild?.name||"—")}</td><td>${p.elo}</td><td>K/D ${p.kd}</td></tr>`).join("")||"<tr><td>Пусто</td></tr>"}</tbody></table></div></div>`).join("")}
 function renderGuilds(){const q=($("gs")?.value||"").toLowerCase();$("guildCards").innerHTML=db.guilds.filter(g=>(g.name+" "+g.tag).toLowerCase().includes(q)).map(g=>`<div class="card guildCard">${media(g.logo,"avatarLg")}<h3>${esc(g.name)}</h3><div class="muted">[${esc(g.tag)}] • ${esc(g.region)}${g.createdByRole==="streamer"?` • добавил: ${esc(g.createdByName||"стример")}`:""}</div><p><span class="rank">${g.rank}</span> ELO <b>${g.elo}</b> • WR ${g.winrate}%</p><p class="muted">${esc(g.description||"")}</p><div>${g.roster.map(p=>`<span class="chip">${esc(p.nickname)}</span>`).join("")}</div>${(admin||role==="streamer")?`<div class="actions" style="margin-top:10px"><button class="btn dark" onclick="guildForm(${g.id})">Редактировать</button></div>`:""}</div>`).join("")}
 function renderTournaments(){$("tourCards").innerHTML=db.tournaments.map(t=>`<div class="card tourCard"><span class="status ${t.status}">${esc(t.status)}</span><h3>${esc(t.name)}</h3><p class="muted">${esc(t.description||"")}</p><span class="chip">${esc(t.format)}</span><span class="chip">${t.participants.length} гильдий</span>${admin?`<div class="actions" style="margin-top:10px"><button class="btn dark" onclick="tournamentForm(${t.id})">Редактировать</button></div>`:""}</div>`).join("")}
-function renderMatches(){const s=$("ms")?.value||"";$("matchCards").innerHTML=db.matches.filter(m=>!s||m.status===s).map(m=>`<div class="card matchCard"><span class="status ${m.status}">${esc(m.status)}</span><h3>${esc(m.title)}</h3><div><b>${esc(m.guildA?.name||"A")}</b> <span style="font-size:28px;font-weight:1000">${m.scoreA} : ${m.scoreB}</span> <b>${esc(m.guildB?.name||"B")}</b></div><p class="muted">${esc(m.tournament)} • ${esc(m.roundText)} • ${esc(m.format)}${m.createdByRole==="streamer"?` • добавил: ${esc(m.createdByName||"стример")}`:""}${m.eloApplied&&m.eloChange?` • ELO: ${m.eloChange.deltaA>=0?"+":""}${m.eloChange.deltaA} / ${m.eloChange.deltaB>=0?"+":""}${m.eloChange.deltaB}`:""}</p>${(admin||role==="streamer")?`<div class="actions"><button class="btn dark" onclick="matchForm(${m.id})">Изм.</button>${admin?`<button class="btn green" onclick="activate(${m.id})">На стрим</button>`:""}</div>`:""}</div>`).join("")}
+function renderMatches(){const s=$("ms")?.value||"";$("matchCards").innerHTML=db.matches.filter(m=>!s||m.status===s).map(m=>`<div class="card matchCard"><span class="status ${m.status}">${esc(m.status)}</span><h3>${esc(m.title)}</h3><div><b>${esc(m.guildA?.name||"A")}</b> <span style="font-size:28px;font-weight:1000">${m.scoreA} : ${m.scoreB}</span> <b>${esc(m.guildB?.name||"B")}</b></div><p class="muted">${esc(m.tournament)} • ${esc(m.roundText)} • ${esc(m.format)}${m.createdByRole==="streamer"?` • добавил: ${esc(m.createdByName||"стример")}`:""}${m.eloApplied&&m.eloChange?` • ELO: ${m.eloChange.deltaA>=0?"+":""}${m.eloChange.deltaA} / ${m.eloChange.deltaB>=0?"+":""}${m.eloChange.deltaB}`:""}</p>${(admin||role==="streamer")?`<div class="actions"><button class="btn dark" onclick="matchForm(${m.id})">Изм.</button>${m.status!=="FINAL"?`<button class="btn green" onclick="quickFinishMatch(${m.id})">🏁 Финал + ELO</button>`:""}${admin?`<button class="btn green" onclick="activate(${m.id})">На стрим</button>`:""}</div>`:""}</div>`).join("")}
 function renderNews(){$("newsCards").innerHTML=db.news.map(n=>`<div class="card newsCard"><h3>${n.pinned?"📌 ":""}${esc(n.title)}</h3><p class="muted">${esc(n.body)}</p>${admin?`<button class="btn dark" onclick="newsForm(${n.id})">Изм.</button>`:""}</div>`).join("")}
 
 function renderStreamers(){
@@ -388,7 +389,7 @@ function setGlobalPlayer(side,id){
     ? `${p.nickname} • ${p.guild?.name||"Без гильдии"} • ELO ${p.elo} • ${p.rank||""}`
     : "Поиск по нику, ID или гильдии";
   const box=$(`op${key}Results`);
-  if(box)box.classList.remove("open");
+  if(box)box.classList.remove("open");refreshWinnerOptions();
 }
 function searchPlayers(query){
   const q=String(query||"").trim().toLowerCase();
@@ -464,8 +465,90 @@ function setupStudio(){setupGlobalPlayerSearch();
  setGlobalPlayer("A",ov.match?.playerAId||null);
  setGlobalPlayer("B",ov.match?.playerBId||null);
 }
-function fillStudio(){const m=db.matches.find(x=>Number(x.id)===Number($("smatch").value))||db.matches[0];if(!m)return;$("stitle").value=m.title;$("ssa").value=m.scoreA;$("ssb").value=m.scoreB;$("sround").value=m.roundText;$("sformat").value=m.format;$("sstatus").value=m.status;setGlobalPlayer("A",m.playerAId||null);setGlobalPlayer("B",m.playerBId||null)}
+function fillStudio(){const m=db.matches.find(x=>Number(x.id)===Number($("smatch").value))||db.matches[0];if(!m)return;$("stitle").value=m.title;$("ssa").value=m.scoreA;$("ssb").value=m.scoreB;$("sround").value=m.roundText;$("sformat").value=m.format;$("sstatus").value=m.status;setGlobalPlayer("A",m.playerAId||null);setGlobalPlayer("B",m.playerBId||null);refreshWinnerOptions()}
 async function saveStudio(){try{const id=Number($("smatch").value);await api("/api/matches/"+id,{method:"PATCH",body:JSON.stringify({title:$("stitle").value,scoreA:Number($("ssa").value),scoreB:Number($("ssb").value),roundText:$("sround").value,format:$("sformat").value,status:$("sstatus").value,playerAId:Number($("opa").value)||null,playerBId:Number($("opb").value)||null})});await api("/api/overlay",{method:"PATCH",body:JSON.stringify({activeMatchId:id,visible:true,accent:$("oaccent").value,position:"bottom",showPlayers:true,showStats:true,customText:$("otext").value})});await load(true);toastMsg("Сохранено")}catch(e){handleActionError(e,"admin")}}
+
+
+function refreshWinnerOptions(){
+  const el=$("swinner");
+  if(!el)return;
+  const aId=Number($("opa")?.value)||null;
+  const bId=Number($("opb")?.value)||null;
+  const a=db?.players?.find(p=>Number(p.id)===aId);
+  const b=db?.players?.find(p=>Number(p.id)===bId);
+  const current=el.value;
+  el.innerHTML=`<option value="">— выбери победителя —</option>`
+    +(a?`<option value="${a.id}">${esc(a.nickname)}</option>`:"")
+    +(b?`<option value="${b.id}">${esc(b.nickname)}</option>`:"");
+  if(current&&[String(aId),String(bId)].includes(String(current)))el.value=current;
+}
+async function applyWinnerElo(){
+  try{
+    const id=Number($("smatch").value);
+    const playerAId=Number($("opa").value)||null;
+    const playerBId=Number($("opb").value)||null;
+    const winnerId=Number($("swinner").value)||null;
+    if(!id)return toastMsg("Выбери матч");
+    if(!playerAId||!playerBId)return toastMsg("Выбери двух игроков");
+    if(!winnerId)return toastMsg("Выбери победителя");
+
+    const winner=db.players.find(p=>Number(p.id)===winnerId);
+    if(!confirm(`Победитель: ${winner?.nickname||"игрок"}. Начислить ELO?`))return;
+
+    const result=await api(`/api/matches/${id}/set-winner`,{
+      method:"POST",
+      body:JSON.stringify({playerAId,playerBId,winnerId})
+    });
+
+    await load(true);
+    const c=result.eloChange;
+    if(c){
+      const pa=result.players.A,pb=result.players.B;
+      modalOpen(`<h2>🏆 ELO распределено</h2>
+        <p><b>${esc(pa.nickname)}</b>: ${c.deltaA>=0?"+":""}${c.deltaA} → ELO <b>${pa.elo}</b></p>
+        <p><b>${esc(pb.nickname)}</b>: ${c.deltaB>=0?"+":""}${c.deltaB} → ELO <b>${pb.elo}</b></p>
+        <button class="btn" onclick="closeModal()">Готово</button>`);
+    }else{
+      toastMsg("ELO этого матча уже было рассчитано");
+    }
+  }catch(e){handleActionError(e,role==="streamer"?"streamerZone":"admin")}
+}
+
+async function finishStudioMatch(){
+  try{
+    const id=Number($("smatch").value);
+    if(!id)return toastMsg("Сначала выбери матч");
+    const scoreA=Number($("ssa").value),scoreB=Number($("ssb").value);
+    const playerAId=Number($("opa").value)||null;
+    const playerBId=Number($("opb").value)||null;
+    if(scoreA===scoreB)return toastMsg("При равном счёте ELO не распределяется");
+    if(!playerAId||!playerBId)return toastMsg("Выбери Игрока A и Игрока B");
+
+    if(!confirm(`Завершить матч со счётом ${scoreA}:${scoreB} и сразу распределить ELO?`))return;
+
+    const result=await api(`/api/matches/${id}/finish`,{
+      method:"POST",
+      body:JSON.stringify({
+        scoreA,scoreB,playerAId,playerBId,
+        roundText:$("sround").value,
+        format:$("sformat").value
+      })
+    });
+
+    await load(true);
+    const c=result.eloChange;
+    if(c){
+      const pa=result.players.A,pb=result.players.B;
+      modalOpen(`<h2>🏁 Матч завершён</h2>
+        <p><b>${esc(pa.nickname)}</b>: ${c.deltaA>=0?"+":""}${c.deltaA} ELO → <b>${pa.elo}</b></p>
+        <p><b>${esc(pb.nickname)}</b>: ${c.deltaB>=0?"+":""}${c.deltaB} ELO → <b>${pb.elo}</b></p>
+        <button class="btn" onclick="closeModal()">Готово</button>`);
+    }else{
+      toastMsg("Матч уже был рассчитан раньше — повторного ELO нет");
+    }
+  }catch(e){handleActionError(e,role==="streamer"?"streamerZone":"admin")}
+}
+
 async function bump(a,b){$("ssa").value=Math.max(0,Number($("ssa").value)+a);$("ssb").value=Math.max(0,Number($("ssb").value)+b);await saveStudio()}
 async function saveOverlay(){await saveStudio()}
 async function activate(id){try{await api("/api/overlay",{method:"PATCH",body:JSON.stringify({activeMatchId:id,visible:true})});await load(true);showPage("studio")}catch(e){handleActionError(e,"admin")}}
@@ -478,6 +561,25 @@ async function delGuild(id){if(confirm("Удалить гильдию?"))try{awa
 function playerForm(id){const p=id?db.players.find(x=>x.id===id):null,go=`<option value="">Без гильдии</option>`+db.guilds.map(g=>`<option value="${g.id}" ${p?.guildId===g.id?"selected":""}>${esc(g.name)}</option>`).join("");modalOpen(`<h2>${p?"Редактировать":"Новый"} игрок</h2><div class="grid"><div class="field"><label>Ник</label><input id="pn" value="${esc(p?.nickname||"")}"></div><div class="field"><label>Game ID</label><input id="pid" value="${esc(p?.gameId||"")}"></div>${avatarField("pa",p?.avatar||"👤","Аватар")}<div class="field"><label>Гильдия</label><select id="pg">${go}</select></div><div class="field"><label>ELO</label><input id="pe" type="number" value="${p?.elo||1200}"></div><div class="field"><label>Победы</label><input id="pw" type="number" value="${p?.wins||0}"></div><div class="field"><label>Поражения</label><input id="pls" type="number" value="${p?.losses||0}"></div><div class="field"><label>Убийства</label><input id="pk" type="number" value="${p?.kills||0}"></div><div class="field"><label>Смерти</label><input id="pd" type="number" value="${p?.deaths||0}"></div></div><div class="actions"><button class="btn" onclick="savePlayer(${id||0})">Сохранить</button>${p?`<button class="btn red" onclick="delPlayer(${p.id})">Удалить</button>`:""}</div>`)}
 async function savePlayer(id){try{await api(id?"/api/players/"+id:"/api/players",{method:id?"PATCH":"POST",body:JSON.stringify({nickname:$("pn").value,gameId:$("pid").value,avatar:$("pa").value,guildId:Number($("pg").value)||null,elo:Number($("pe").value),wins:Number($("pw").value),losses:Number($("pls").value),kills:Number($("pk").value),deaths:Number($("pd").value)})});closeModal();await load(true)}catch(e){handleActionError(e,"admin")}}
 async function delPlayer(id){if(confirm("Удалить игрока?"))try{await api("/api/players/"+id,{method:"DELETE"});closeModal();await load(true)}catch(e){handleActionError(e,"admin")}}
+
+async function quickFinishMatch(id){
+  const m=db.matches.find(x=>Number(x.id)===Number(id));
+  if(!m)return;
+  if(Number(m.scoreA)===Number(m.scoreB))return toastMsg("Сначала укажи итоговый счёт — ничья не подходит");
+  if(!m.playerAId||!m.playerBId)return toastMsg("В матче должны быть выбраны Игрок A и Игрок B");
+  if(!confirm(`Завершить ${m.title} со счётом ${m.scoreA}:${m.scoreB} и распределить ELO?`))return;
+  try{
+    const result=await api(`/api/matches/${id}/finish`,{method:"POST",body:JSON.stringify({
+      scoreA:m.scoreA,scoreB:m.scoreB,playerAId:m.playerAId,playerBId:m.playerBId,
+      roundText:m.roundText,format:m.format
+    })});
+    await load(true);
+    const c=result.eloChange;
+    if(c)toastMsg(`ELO: ${result.players.A.nickname} ${c.deltaA>=0?"+":""}${c.deltaA}, ${result.players.B.nickname} ${c.deltaB>=0?"+":""}${c.deltaB}`);
+    else toastMsg("Этот матч уже был рассчитан");
+  }catch(e){handleActionError(e,role==="streamer"?"streamerZone":"admin")}
+}
+
 function matchForm(id){const m=id?db.matches.find(x=>x.id===id):null,go=`<option value="">—</option>`+db.guilds.map(g=>`<option value="${g.id}">${esc(g.name)}</option>`).join("");modalOpen(`<h2>${m?"Редактировать":"Новый"} матч</h2><p class="muted small">Когда статус станет FINAL и счёт не равный, ELO игроков пересчитается автоматически один раз.</p><div class="grid"><div class="field"><label>Турнир</label><input id="mt" value="${esc(m?.tournament||"LAVENDER CUP")}"></div><div class="field"><label>Название</label><input id="mn" value="${esc(m?.title||"LIVE MATCH")}"></div><div class="field"><label>Команда A</label><select id="ma">${go}</select></div><div class="field"><label>Команда B</label><select id="mb">${go}</select></div><div class="field"><label>Счёт A</label><input id="mca" type="number" value="${m?.scoreA||0}"></div><div class="field"><label>Счёт B</label><input id="mcb" type="number" value="${m?.scoreB||0}"></div><div class="field"><label>Раунд</label><input id="mr" value="${esc(m?.roundText||"ROUND 1")}"></div><div class="field"><label>Формат</label><input id="mf" value="${esc(m?.format||"BO7")}"></div><div class="field"><label>Статус</label><select id="mst"><option>LIVE</option><option>SCHEDULED</option><option>PAUSED</option><option>FINAL</option></select></div></div><div class="actions"><button class="btn" onclick="saveMatch(${id||0})">Сохранить</button>${m?`<button class="btn red" onclick="delMatch(${m.id})">Удалить</button>`:""}</div>`);if(m){$("ma").value=m.guildAId||"";$("mb").value=m.guildBId||"";$("mst").value=m.status}}
 async function saveMatch(id){try{await api(id?"/api/matches/"+id:"/api/matches",{method:id?"PATCH":"POST",body:JSON.stringify({tournament:$("mt").value,title:$("mn").value,guildAId:Number($("ma").value)||null,guildBId:Number($("mb").value)||null,scoreA:Number($("mca").value),scoreB:Number($("mcb").value),roundText:$("mr").value,format:$("mf").value,status:$("mst").value})});closeModal();await load(true)}catch(e){handleActionError(e,"admin")}}
 async function delMatch(id){if(confirm("Удалить матч?"))try{await api("/api/matches/"+id,{method:"DELETE"});closeModal();await load(true)}catch(e){handleActionError(e,"admin")}}
