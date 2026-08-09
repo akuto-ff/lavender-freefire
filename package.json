@@ -1,14 +1,13 @@
 {
-  "name": "lavender-pro-free-fire-hub",
-  "version": "4.0.0",
+  "name": "lavender-pro-5",
+  "version": "5.0.0",
   "private": true,
-  "description": "Professional Free Fire rankings, guilds, tournaments and realtime OBS overlay",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
   },
   "engines": {
-    "node": ">=20"
+    "node": ">=20 <26"
   },
   "dependencies": {
     "express": "^4.21.2",

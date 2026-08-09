@@ -1,43 +1,21 @@
-# LAVENDER PRO 4.0
+# LAVENDER PRO 5.0
 
-Профессиональная версия LAVENDER.
+Готовая версия для GitHub + Render.
 
-## Новые функции
-- современная главная страница с LIVE-матчем и рейтингами;
-- публичные профили игроков;
-- публичные профили гильдий и составы;
-- поиск и фильтрация игроков;
-- поиск и фильтрация гильдий;
-- турниры;
-- новости и анонсы;
-- расписание матчей;
-- приватный Stream Studio;
-- приватная Admin Panel;
-- резервное копирование и импорт data.json;
-- журнал активности администратора;
-- настройки названия сайта, подзаголовка, цвета и соцсетей;
-- аватарки игроков и логотипы гильдий;
-- realtime OBS overlay;
-- S/A/B/C/D/E/F рейтинги;
-- K/D и Winrate;
-- только админ может создавать/редактировать/удалять контент.
+Структура файлов в корне:
+- index.html
+- overlay.html
+- server.js
+- data.json
+- package.json
 
-## Запуск
-1. Распакуй ZIP.
-2. Открой CMD в папке.
-3. Выполни:
-   npm install
-   npm start
-4. Сайт:
-   http://localhost:3000
-5. OBS:
-   http://localhost:3000/overlay.html
+Render:
+Build Command: npm install
+Start Command: node server.js
 
-## Администратор
-Логин: admin
-Пароль: lavender123
+Environment:
+LAVENDER_ADMIN_USER
+LAVENDER_ADMIN_PASSWORD
 
-Перед публикацией:
-set LAVENDER_ADMIN_USER=admin
-set LAVENDER_ADMIN_PASSWORD=ТВОЙ_СЛОЖНЫЙ_ПАРОЛЬ
-npm start
+Сайт: /
+OBS: /overlay.html

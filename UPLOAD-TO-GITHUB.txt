@@ -1,0 +1,18 @@
+LAVENDER PRO 5.0 — ОБНОВЛЕНИЕ САЙТА
+
+1. Открой GitHub репозиторий lavender-freefire.
+2. Замени файлы:
+   index.html
+   overlay.html
+   server.js
+   data.json
+   package.json
+   README.md
+3. Commit changes.
+4. Render автоматически запустит новый deploy.
+5. Дождись статуса Live.
+6. Открой свой текущий URL Render.
+
+ВАЖНО:
+Stream Studio и Admin доступны только после входа.
+Логин/пароль задаются в Render Environment Variables.

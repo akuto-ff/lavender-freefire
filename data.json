@@ -21,12 +21,133 @@
       "captain": "",
       "founded": "",
       "social": ""
+    },
+    {
+      "id": 2,
+      "name": "WEST",
+      "tag": "WST",
+      "logo": "⚡",
+      "region": "Кыргызстан",
+      "elo": 1875,
+      "wins": 28,
+      "losses": 11,
+      "description": "Соревновательный состав",
+      "captain": "",
+      "founded": "",
+      "social": ""
+    },
+    {
+      "id": 3,
+      "name": "AMAHЁ",
+      "tag": "AMH",
+      "logo": "🔥",
+      "region": "Кыргызстан",
+      "elo": 1790,
+      "wins": 25,
+      "losses": 14,
+      "description": "Стрим-команда",
+      "captain": "",
+      "founded": "",
+      "social": ""
     }
   ],
-  "players": [],
-  "matches": [],
+  "players": [
+    {
+      "id": 1,
+      "nickname": "WEST 1991",
+      "gameId": "FF-1991",
+      "avatar": "🟣",
+      "guildId": 1,
+      "elo": 1991,
+      "wins": 36,
+      "losses": 7,
+      "kills": 412,
+      "deaths": 171,
+      "role": "Player",
+      "country": "Кыргызстан",
+      "bio": ""
+    },
+    {
+      "id": 2,
+      "nickname": "LAVENDER",
+      "gameId": "FF-8842",
+      "avatar": "🪻",
+      "guildId": 1,
+      "elo": 1870,
+      "wins": 31,
+      "losses": 10,
+      "kills": 355,
+      "deaths": 190,
+      "role": "Player",
+      "country": "Кыргызстан",
+      "bio": ""
+    },
+    {
+      "id": 3,
+      "nickname": "AMAHЁ",
+      "gameId": "FF-1022",
+      "avatar": "🔥",
+      "guildId": 3,
+      "elo": 1840,
+      "wins": 29,
+      "losses": 13,
+      "kills": 330,
+      "deaths": 194,
+      "role": "Player",
+      "country": "Кыргызстан",
+      "bio": ""
+    },
+    {
+      "id": 4,
+      "nickname": "Veyron",
+      "gameId": "FF-4401",
+      "avatar": "⚡",
+      "guildId": 2,
+      "elo": 1765,
+      "wins": 27,
+      "losses": 15,
+      "kills": 301,
+      "deaths": 201,
+      "role": "Player",
+      "country": "Кыргызстан",
+      "bio": ""
+    },
+    {
+      "id": 5,
+      "nickname": "RAVENGAR",
+      "gameId": "FF-7712",
+      "avatar": "🐺",
+      "guildId": 2,
+      "elo": 1620,
+      "wins": 23,
+      "losses": 19,
+      "kills": 267,
+      "deaths": 215,
+      "role": "Player",
+      "country": "Кыргызстан",
+      "bio": ""
+    }
+  ],
+  "matches": [
+    {
+      "id": 1,
+      "tournament": "LAVENDER CUP",
+      "title": "GRAND FINAL",
+      "subtitle": "FREE FIRE • BOOYAH",
+      "guildAId": 1,
+      "guildBId": 3,
+      "scoreA": 3,
+      "scoreB": 2,
+      "roundText": "ROUND 5",
+      "status": "LIVE",
+      "format": "BO7",
+      "playerAId": 1,
+      "playerBId": 3,
+      "scheduledAt": ""
+    }
+  ],
   "overlay": {
-    "activeMatchId": null,
+    "activeMatchId": 1,
     "visible": true,
     "accent": "#b46cff",
     "position": "bottom",
@@ -36,7 +157,16 @@
     "showRank": true,
     "customText": "LAVENDER • LIVE"
   },
-  "news": [],
+  "news": [
+    {
+      "id": 1,
+      "title": "LAVENDER PRO запущен",
+      "body": "Обновлённый рейтинг игроков, гильдий и стрим-система готовы к использованию.",
+      "type": "update",
+      "pinned": true,
+      "createdAt": "2026-08-09T10:00:00.000Z"
+    }
+  ],
   "tournaments": [
     {
       "id": 1,
@@ -46,67 +176,12 @@
       "prize": "Community Cup",
       "format": "BO7",
       "guildIds": [
-        1
+        1,
+        2,
+        3
       ],
       "description": "Главный турнир сообщества LAVENDER."
     }
   ],
-  "activity": [
-    {
-      "id": 8,
-      "type": "match",
-      "text": "Удалён матч GRAND FINAL",
-      "meta": {},
-      "createdAt": "2026-08-09T10:58:11.719Z"
-    },
-    {
-      "id": 7,
-      "type": "player",
-      "text": "Удалён игрок WEST 1991",
-      "meta": {},
-      "createdAt": "2026-08-09T10:57:38.690Z"
-    },
-    {
-      "id": 6,
-      "type": "player",
-      "text": "Удалён игрок LAVENDER",
-      "meta": {},
-      "createdAt": "2026-08-09T10:57:36.050Z"
-    },
-    {
-      "id": 5,
-      "type": "player",
-      "text": "Удалён игрок AMAHЁ",
-      "meta": {},
-      "createdAt": "2026-08-09T10:57:33.434Z"
-    },
-    {
-      "id": 4,
-      "type": "player",
-      "text": "Удалён игрок Veyron",
-      "meta": {},
-      "createdAt": "2026-08-09T10:57:30.754Z"
-    },
-    {
-      "id": 3,
-      "type": "player",
-      "text": "Удалён игрок RAVENGAR",
-      "meta": {},
-      "createdAt": "2026-08-09T10:57:27.994Z"
-    },
-    {
-      "id": 2,
-      "type": "guild",
-      "text": "Удалена гильдия AMAHЁ",
-      "meta": {},
-      "createdAt": "2026-08-09T10:57:23.026Z"
-    },
-    {
-      "id": 1,
-      "type": "guild",
-      "text": "Удалена гильдия WEST",
-      "meta": {},
-      "createdAt": "2026-08-09T10:57:20.242Z"
-    }
-  ]
+  "activity": []
 }
