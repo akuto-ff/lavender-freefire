@@ -8,7 +8,7 @@ const { promisify } = require("util");
 const { Server } = require("socket.io");
 
 const scryptAsync = promisify(crypto.scrypt);
-const APP_VERSION = "7.2.0";
+const APP_VERSION = "7.3.0";
 const PORT = Number(process.env.PORT || 3000);
 const ROOT = __dirname;
 const DATA_FILE = path.join(ROOT, "data.json");
@@ -60,6 +60,28 @@ function atomicWrite(d){
 }
 function nextId(arr){return arr.length?Math.max(...arr.map(x=>Number(x.id)||0))+1:1}
 function rankForElo(elo){const e=Number(elo)||0;return e>=2000?"S":e>=1800?"A":e>=1600?"B":e>=1400?"C":e>=1200?"D":e>=1000?"E":"F"}
+function eloExpected(rA,rB){ return 1/(1+Math.pow(10,(rB-rA)/400)); }
+function eloDelta(rA,rB,scoreA,k=32){ return Math.round(k*(scoreA-eloExpected(rA,rB))); }
+function applyMatchElo(d,m){
+  if(m.eloApplied) return null;
+  const a=d.players.find(p=>Number(p.id)===Number(m.playerAId));
+  const b=d.players.find(p=>Number(p.id)===Number(m.playerBId));
+  if(!a||!b) return null;
+  const sa=Number(m.scoreA), sb=Number(m.scoreB);
+  if(sa===sb) return null;
+  const oldA=Number(a.elo)||1200, oldB=Number(b.elo)||1200;
+  const scoreA=sa>sb?1:0;
+  const delta=eloDelta(oldA,oldB,scoreA,32);
+  a.elo=Math.max(0,oldA+delta);
+  b.elo=Math.max(0,oldB-delta);
+  if(scoreA===1){a.wins=(Number(a.wins)||0)+1;b.losses=(Number(b.losses)||0)+1}
+  else{b.wins=(Number(b.wins)||0)+1;a.losses=(Number(a.losses)||0)+1}
+  a.updatedAt=b.updatedAt=new Date().toISOString();
+  m.eloApplied=true;
+  m.eloChange={playerAId:a.id,playerBId:b.id,beforeA:oldA,beforeB:oldB,afterA:a.elo,afterB:b.elo,deltaA:delta,deltaB:-delta,appliedAt:new Date().toISOString()};
+  return m.eloChange;
+}
+
 function cleanText(v,max=120){return String(v??"").trim().slice(0,max)}
 function cleanImage(v,fallback){v=String(v||"").trim();if(!v)return fallback;if(v.startsWith("data:image/"))return v.length<=3_000_000?v:fallback;return v.slice(0,64)}
 function parseCookies(req){const out={};String(req.headers.cookie||"").split(";").forEach(part=>{const i=part.indexOf("=");if(i>0)out[part.slice(0,i).trim()]=decodeURIComponent(part.slice(i+1).trim())});return out}
@@ -152,7 +174,14 @@ function streamerOverlayState(streamerId){
   const streamer=d.streamers.find(s=>Number(s.id)===Number(streamerId));
   if(!streamer)return null;
   const st=streamer.stream||{};
-  const m=d.matches.find(x=>Number(x.id)===Number(st.matchId))||d.matches[0]||null;
+  const baseMatch=d.matches.find(x=>Number(x.id)===Number(st.matchId))||d.matches[0]||null;
+  let m=baseMatch?{...baseMatch}:null;
+  if(m){
+    const pA=d.players.find(p=>Number(p.id)===Number(st.playerAId));
+    const pB=d.players.find(p=>Number(p.id)===Number(st.playerBId));
+    if(pA){m.playerAId=pA.id;m.playerA=pA}
+    if(pB){m.playerBId=pB.id;m.playerB=pB}
+  }
   return {
     streamer,
     overlay:{
@@ -214,7 +243,7 @@ app.post("/api/admin/streamers",requireAdmin,async(req,res)=>{
   if(d.streamers.some(s=>String(s.username).toLowerCase()===username.toLowerCase()))return fail(res,"Такой логин уже существует");
   const s={id:nextId(d.streamers),username,displayName,avatar:cleanImage(b.avatar,"🎥"),active:true,passwordHash:await hashPassword(password),createdAt:new Date().toISOString()};
   d.streamers.push(s);
-  d.streamerStreams.push({id:nextId(d.streamerStreams),streamerId:s.id,status:"OFFLINE",title:"Мой стрим",platform:"YouTube",streamUrl:"",matchId:d.matches[0]?.id||null,accent:d.settings.accent||"#b46cff",position:"bottom",showPlayers:true,showStats:true,customText:`${displayName} • LIVE`,updatedAt:new Date().toISOString()});
+  d.streamerStreams.push({id:nextId(d.streamerStreams),streamerId:s.id,status:"OFFLINE",title:"Мой стрим",platform:"YouTube",streamUrl:"",matchId:d.matches[0]?.id||null,playerAId:d.matches[0]?.playerAId||null,playerBId:d.matches[0]?.playerBId||null,accent:d.settings.accent||"#b46cff",position:"bottom",showPlayers:true,showStats:true,customText:`${displayName} • LIVE`,updatedAt:new Date().toISOString()});
   atomicWrite(d);broadcastStreamer(s.id);ok(res,{id:s.id,username:s.username,displayName:s.displayName,avatar:s.avatar,active:s.active});
 });
 app.patch("/api/admin/streamers/:id",requireAdmin,async(req,res)=>{
@@ -237,17 +266,17 @@ app.delete("/api/admin/streamers/:id",requireAdmin,(req,res)=>{
 // STREAMER own zone
 app.get("/api/streamer/me",requireStreamer,(req,res)=>{
   const d=readData(),st=d.streamerStreams.find(x=>Number(x.streamerId)===Number(req.streamer.id))||null;
-  ok(res,{streamer:{id:req.streamer.id,username:req.streamer.username,displayName:req.streamer.displayName,avatar:req.streamer.avatar},stream:st,matches:publicData(d).matches});
+  const pub=publicData(d);ok(res,{streamer:{id:req.streamer.id,username:req.streamer.username,displayName:req.streamer.displayName,avatar:req.streamer.avatar},stream:st,matches:pub.matches,players:pub.players,guilds:pub.guilds});
 });
 app.patch("/api/streamer/me",requireStreamer,(req,res)=>{
   const d=readData(),b=req.body||{};
   let st=d.streamerStreams.find(x=>Number(x.streamerId)===Number(req.streamer.id));
-  if(!st){st={id:nextId(d.streamerStreams),streamerId:req.streamer.id,status:"OFFLINE",title:"Мой стрим",platform:"YouTube",streamUrl:"",matchId:d.matches[0]?.id||null,accent:d.settings.accent||"#b46cff",position:"bottom",showPlayers:true,showStats:true,customText:`${req.streamer.displayName||req.streamer.username} • LIVE`};d.streamerStreams.push(st)}
+  if(!st){st={id:nextId(d.streamerStreams),streamerId:req.streamer.id,status:"OFFLINE",title:"Мой стрим",platform:"YouTube",streamUrl:"",matchId:d.matches[0]?.id||null,playerAId:d.matches[0]?.playerAId||null,playerBId:d.matches[0]?.playerBId||null,accent:d.settings.accent||"#b46cff",position:"bottom",showPlayers:true,showStats:true,customText:`${req.streamer.displayName||req.streamer.username} • LIVE`};d.streamerStreams.push(st)}
   if("status"in b)st.status=["LIVE","OFFLINE","PAUSED"].includes(String(b.status).toUpperCase())?String(b.status).toUpperCase():st.status;
   if("title"in b)st.title=cleanText(b.title,100);
   if("platform"in b)st.platform=cleanText(b.platform,30);
   if("streamUrl"in b)st.streamUrl=cleanText(b.streamUrl,300);
-  if("matchId"in b)st.matchId=b.matchId?Number(b.matchId):null;
+  if("matchId"in b)st.matchId=b.matchId?Number(b.matchId):null;if("playerAId"in b)st.playerAId=b.playerAId?Number(b.playerAId):null;if("playerBId"in b)st.playerBId=b.playerBId?Number(b.playerBId):null;
   if("accent"in b&&/^#[0-9a-f]{6}$/i.test(b.accent))st.accent=b.accent;
   if("position"in b)st.position=b.position==="top"?"top":"bottom";
   if("showPlayers"in b)st.showPlayers=!!b.showPlayers;
@@ -265,8 +294,8 @@ app.delete("/api/guilds/:id",requireEditor,(req,res)=>{const d=readData(),gid=Nu
 app.post("/api/players",requireEditor,(req,res)=>{const d=readData(),b=req.body||{},nickname=cleanText(b.nickname,50);if(!nickname)return fail(res,"Укажи ник игрока");const p={id:nextId(d.players),nickname,gameId:cleanText(b.gameId,40),avatar:cleanImage(b.avatar,"👤"),guildId:b.guildId?Number(b.guildId):null,elo:Number(b.elo)||1200,wins:Number(b.wins)||0,losses:Number(b.losses)||0,kills:Number(b.kills)||0,deaths:Number(b.deaths)||0,role:cleanText(b.role||"Player",30),country:cleanText(b.country||"Кыргызстан",40),createdByRole:req.editor.role,createdById:req.editor.id,createdByName:req.editor.name,createdAt:new Date().toISOString()};d.players.push(p);atomicWrite(d);broadcastGlobal();ok(res,p)});
 app.patch("/api/players/:id",requireEditor,(req,res)=>{const d=readData(),p=d.players.find(x=>Number(x.id)===Number(req.params.id));if(!p)return fail(res,"Игрок не найден",404);const b=req.body||{};if("nickname"in b)p.nickname=cleanText(b.nickname,50);if("gameId"in b)p.gameId=cleanText(b.gameId,40);if("avatar"in b)p.avatar=cleanImage(b.avatar,p.avatar||"👤");if("guildId"in b)p.guildId=b.guildId?Number(b.guildId):null;for(const k of ["elo","wins","losses","kills","deaths"])if(k in b)p[k]=Number(b[k])||0;p.updatedByRole=req.editor.role;p.updatedById=req.editor.id;p.updatedByName=req.editor.name;p.updatedAt=new Date().toISOString();atomicWrite(d);broadcastGlobal();ok(res,p)});
 app.delete("/api/players/:id",requireEditor,(req,res)=>{const d=readData(),pid=Number(req.params.id);d.players=d.players.filter(p=>Number(p.id)!==pid);d.matches.forEach(m=>{if(Number(m.playerAId)===pid)m.playerAId=null;if(Number(m.playerBId)===pid)m.playerBId=null});atomicWrite(d);broadcastGlobal();ok(res,{ok:true})});
-app.post("/api/matches",requireEditor,(req,res)=>{const d=readData(),b=req.body||{};const m={id:nextId(d.matches),tournament:cleanText(b.tournament||"LAVENDER CUP",80),title:cleanText(b.title||"LIVE MATCH",80),subtitle:cleanText(b.subtitle||"FREE FIRE",80),guildAId:b.guildAId?Number(b.guildAId):null,guildBId:b.guildBId?Number(b.guildBId):null,scoreA:Number(b.scoreA)||0,scoreB:Number(b.scoreB)||0,roundText:cleanText(b.roundText||"ROUND 1",30),status:cleanText(b.status||"SCHEDULED",20).toUpperCase(),format:cleanText(b.format||"BO7",20),playerAId:b.playerAId?Number(b.playerAId):null,playerBId:b.playerBId?Number(b.playerBId):null,createdByRole:req.editor.role,createdById:req.editor.id,createdByName:req.editor.name,createdAt:new Date().toISOString()};d.matches.push(m);d.overlay.activeMatchId=m.id;atomicWrite(d);broadcastGlobal();ok(res,m)});
-app.patch("/api/matches/:id",requireEditor,(req,res)=>{const d=readData(),m=d.matches.find(x=>Number(x.id)===Number(req.params.id));if(!m)return fail(res,"Матч не найден",404);const b=req.body||{};for(const k of ["tournament","title","subtitle","roundText","status","format"])if(k in b)m[k]=cleanText(b[k],80);for(const k of ["guildAId","guildBId","playerAId","playerBId"])if(k in b)m[k]=b[k]?Number(b[k]):null;if("scoreA"in b)m.scoreA=Math.max(0,Number(b.scoreA)||0);if("scoreB"in b)m.scoreB=Math.max(0,Number(b.scoreB)||0);m.status=String(m.status||"LIVE").toUpperCase();m.updatedByRole=req.editor.role;m.updatedById=req.editor.id;m.updatedByName=req.editor.name;m.updatedAt=new Date().toISOString();atomicWrite(d);broadcastGlobal();d.streamers.forEach(s=>broadcastStreamer(s.id));ok(res,m)});
+app.post("/api/matches",requireEditor,(req,res)=>{const d=readData(),b=req.body||{};const m={id:nextId(d.matches),tournament:cleanText(b.tournament||"LAVENDER CUP",80),title:cleanText(b.title||"LIVE MATCH",80),subtitle:cleanText(b.subtitle||"FREE FIRE",80),guildAId:b.guildAId?Number(b.guildAId):null,guildBId:b.guildBId?Number(b.guildBId):null,scoreA:Number(b.scoreA)||0,scoreB:Number(b.scoreB)||0,roundText:cleanText(b.roundText||"ROUND 1",30),status:cleanText(b.status||"SCHEDULED",20).toUpperCase(),format:cleanText(b.format||"BO7",20),playerAId:b.playerAId?Number(b.playerAId):null,playerBId:b.playerBId?Number(b.playerBId):null,createdByRole:req.editor.role,createdById:req.editor.id,createdByName:req.editor.name,createdAt:new Date().toISOString()};d.matches.push(m);d.overlay.activeMatchId=m.id;if(m.status==="FINAL")applyMatchElo(d,m);atomicWrite(d);broadcastGlobal();ok(res,m)});
+app.patch("/api/matches/:id",requireEditor,(req,res)=>{const d=readData(),m=d.matches.find(x=>Number(x.id)===Number(req.params.id));if(!m)return fail(res,"Матч не найден",404);const b=req.body||{};for(const k of ["tournament","title","subtitle","roundText","status","format"])if(k in b)m[k]=cleanText(b[k],80);for(const k of ["guildAId","guildBId","playerAId","playerBId"])if(k in b)m[k]=b[k]?Number(b[k]):null;if("scoreA"in b)m.scoreA=Math.max(0,Number(b.scoreA)||0);if("scoreB"in b)m.scoreB=Math.max(0,Number(b.scoreB)||0);m.status=String(m.status||"LIVE").toUpperCase();m.updatedByRole=req.editor.role;m.updatedById=req.editor.id;m.updatedByName=req.editor.name;m.updatedAt=new Date().toISOString();if(m.status==="FINAL")applyMatchElo(d,m);atomicWrite(d);broadcastGlobal();d.streamers.forEach(s=>broadcastStreamer(s.id));ok(res,m)});
 app.delete("/api/matches/:id",requireEditor,(req,res)=>{const d=readData(),mid=Number(req.params.id);d.matches=d.matches.filter(m=>Number(m.id)!==mid);if(Number(d.overlay.activeMatchId)===mid)d.overlay.activeMatchId=d.matches[0]?.id||null;d.streamerStreams.forEach(st=>{if(Number(st.matchId)===mid)st.matchId=d.matches[0]?.id||null});atomicWrite(d);broadcastGlobal();ok(res,{ok:true})});
 app.post("/api/tournaments",requireAdmin,(req,res)=>{const d=readData(),b=req.body||{},name=cleanText(b.name,80);if(!name)return fail(res,"Укажи название турнира");const t={id:nextId(d.tournaments),name,status:cleanText(b.status||"UPCOMING",20).toUpperCase(),date:cleanText(b.date,30),format:cleanText(b.format||"BO7",20),prize:cleanText(b.prize,80),description:cleanText(b.description,500),guildIds:Array.isArray(b.guildIds)?b.guildIds.map(Number):[]};d.tournaments.push(t);atomicWrite(d);broadcastGlobal();ok(res,t)});
 app.patch("/api/tournaments/:id",requireAdmin,(req,res)=>{const d=readData(),t=d.tournaments.find(x=>Number(x.id)===Number(req.params.id));if(!t)return fail(res,"Турнир не найден",404);Object.assign(t,req.body||{});t.guildIds=Array.isArray(t.guildIds)?t.guildIds.map(Number):[];t.status=String(t.status||"UPCOMING").toUpperCase();atomicWrite(d);broadcastGlobal();ok(res,t)});
