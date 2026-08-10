@@ -11,9 +11,15 @@ const { Pool } = require("pg");
 
 const scryptAsync = promisify(crypto.scrypt);
 
-const APP_VERSION = "8.0.0-postgres";
+/* =========================================================
+   CONFIG
+========================================================= */
+
+const APP_VERSION = "8.1.0-postgres-stable";
+
 const PORT = Number(process.env.PORT || 3000);
 const ROOT = __dirname;
+
 const DATA_FILE = path.join(ROOT, "data.json");
 
 const ADMIN_USER = String(
@@ -39,9 +45,9 @@ const COOKIE_SECURE =
 const TOKEN_TTL =
   12 * 60 * 60 * 1000;
 
-let DB = null;
-let DATA_CACHE = null;
-let WRITE_CHAIN = Promise.resolve();
+/* =========================================================
+   APP
+========================================================= */
 
 const app = express();
 const server = http.createServer(app);
@@ -64,16 +70,17 @@ app.use(
   express.static(ROOT, {
     index: false,
     etag: true,
-    maxAge:
-      process.env.NODE_ENV === "production"
-        ? "5m"
-        : 0
+    maxAge: 0
   })
 );
 
-/* =========================================
-   DATA
-========================================= */
+/* =========================================================
+   POSTGRES
+========================================================= */
+
+let DB = null;
+let DATA_CACHE = null;
+let WRITE_CHAIN = Promise.resolve();
 
 function baseData() {
   return {
@@ -85,8 +92,8 @@ function baseData() {
       accent: "#b46cff"
     },
 
-    guilds: [],
     players: [],
+    guilds: [],
     matches: [],
     tournaments: [],
     news: [],
@@ -106,7 +113,7 @@ function baseData() {
   };
 }
 
-function normalize(data) {
+function normalizeData(data) {
   const base = baseData();
 
   if (!data || typeof data !== "object") {
@@ -121,17 +128,19 @@ function normalize(data) {
     ...(data.settings || {})
   };
 
-  for (const key of [
-    "guilds",
+  const arrays = [
     "players",
+    "guilds",
     "matches",
     "tournaments",
     "news",
     "streamers",
     "streamerStreams"
-  ]) {
-    if (!Array.isArray(data[key])) {
-      data[key] = [];
+  ];
+
+  for (const name of arrays) {
+    if (!Array.isArray(data[name])) {
+      data[name] = [];
     }
   }
 
@@ -146,14 +155,18 @@ function normalize(data) {
 function cloneData(data) {
   return JSON.parse(
     JSON.stringify(
-      normalize(data)
+      normalizeData(data)
     )
   );
 }
 
 function readSeedFile() {
   try {
-    return normalize(
+    if (!fs.existsSync(DATA_FILE)) {
+      return baseData();
+    }
+
+    return normalizeData(
       JSON.parse(
         fs.readFileSync(
           DATA_FILE,
@@ -161,7 +174,12 @@ function readSeedFile() {
         )
       )
     );
-  } catch {
+  } catch (error) {
+    console.error(
+      "Could not read data.json:",
+      error.message
+    );
+
     return baseData();
   }
 }
@@ -173,74 +191,67 @@ function readData() {
   );
 }
 
-function atomicWrite(data) {
+async function atomicWrite(data) {
   const next =
     cloneData(data);
 
   DATA_CACHE = next;
 
   WRITE_CHAIN =
-    WRITE_CHAIN
-      .then(() =>
-        DB.query(
-          `
-          INSERT INTO lavender_state
+    WRITE_CHAIN.then(async () => {
+      await DB.query(
+        `
+        INSERT INTO lavender_state
           (id, data, updated_at)
-
-          VALUES
+        VALUES
           (1, $1::jsonb, NOW())
 
-          ON CONFLICT (id)
-
-          DO UPDATE SET
+        ON CONFLICT (id)
+        DO UPDATE SET
           data = EXCLUDED.data,
           updated_at = NOW()
-          `,
-          [
-            JSON.stringify(next)
-          ]
-        )
-      )
-      .catch(error => {
-        console.error(
-          "PostgreSQL write error:",
-          error
-        );
-      });
+        `,
+        [
+          JSON.stringify(next)
+        ]
+      );
+    });
+
+  try {
+    await WRITE_CHAIN;
+  } catch (error) {
+    console.error(
+      "POSTGRES WRITE ERROR:",
+      error
+    );
+
+    throw error;
+  }
 }
 
 async function initDatabase() {
   if (!DATABASE_URL) {
     throw new Error(
-      "DATABASE_URL отсутствует в Render Environment"
+      "DATABASE_URL отсутствует в Environment"
     );
   }
 
   DB = new Pool({
-    connectionString:
-      DATABASE_URL,
+    connectionString: DATABASE_URL,
 
     ssl:
-      DATABASE_URL.includes(
-        "localhost"
-      )
+      DATABASE_URL.includes("localhost")
         ? false
         : {
             rejectUnauthorized: false
           },
 
     max: 5,
-
-    idleTimeoutMillis:
-      30000,
-
-    connectionTimeoutMillis:
-      10000
+    idleTimeoutMillis: 30000,
+    connectionTimeoutMillis: 10000
   });
 
-  await DB.query(
-    "SELECT 1"
-  );
+  await DB.query("SELECT 1");
 
   await DB.query(`
     CREATE TABLE IF NOT EXISTS lavender_state (
@@ -262,7 +273,7 @@ async function initDatabase() {
 
   if (result.rows.length) {
     DATA_CACHE =
-      normalize(
+      normalizeData(
         result.rows[0].data
       );
 
@@ -276,10 +287,9 @@ async function initDatabase() {
     await DB.query(
       `
       INSERT INTO lavender_state
-      (id, data, updated_at)
-
+        (id, data, updated_at)
       VALUES
-      (1, $1::jsonb, NOW())
+        (1, $1::jsonb, NOW())
       `,
       [
         JSON.stringify(seed)
@@ -294,20 +304,20 @@ async function initDatabase() {
   }
 }
 
-/* =========================================
+/* =========================================================
    HELPERS
-========================================= */
+========================================================= */
 
-function nextId(arr) {
-  if (!arr.length) {
+function nextId(items) {
+  if (!Array.isArray(items) || !items.length) {
     return 1;
   }
 
   return (
     Math.max(
-      ...arr.map(
-        x =>
-          Number(x.id) || 0
+      ...items.map(
+        item =>
+          Number(item.id) || 0
       )
     ) + 1
   );
@@ -326,51 +336,50 @@ function cleanText(
 
 function cleanImage(
   value,
-  fallback
+  fallback = "👤"
 ) {
-  value =
+  const input =
     String(
       value || ""
     ).trim();
 
-  if (!value) {
+  if (!input) {
     return fallback;
   }
 
   if (
-    value.startsWith(
+    input.startsWith(
       "data:image/"
     )
   ) {
-    return value.length <=
-      3000000
-      ? value
+    return input.length <= 3000000
+      ? input
       : fallback;
   }
 
-  return value.slice(
+  return input.slice(
     0,
-    64
+    3000000
   );
 }
 
-/* =========================================
-   RANK / ELO
-========================================= */
-
 function rankForElo(elo) {
-  const e =
+  const value =
     Number(elo) || 0;
 
-  if (e >= 2000) return "S";
-  if (e >= 1800) return "A";
-  if (e >= 1600) return "B";
-  if (e >= 1400) return "C";
-  if (e >= 1200) return "D";
-  if (e >= 1000) return "E";
+  if (value >= 2000) return "S";
+  if (value >= 1800) return "A";
+  if (value >= 1600) return "B";
+  if (value >= 1400) return "C";
+  if (value >= 1200) return "D";
+  if (value >= 1000) return "E";
 
   return "F";
 }
+
+/* =========================================================
+   ELO
+========================================================= */
 
 function expectedScore(
   ratingA,
@@ -414,8 +423,8 @@ function applyMatchElo(
   match
 ) {
   /*
-    Один матч не может
-    распределить ELO дважды
+    Один матч нельзя
+    начислить дважды
   */
 
   if (match.eloApplied) {
@@ -424,8 +433,8 @@ function applyMatchElo(
 
   const playerA =
     data.players.find(
-      p =>
-        Number(p.id) ===
+      player =>
+        Number(player.id) ===
         Number(
           match.playerAId
         )
@@ -433,8 +442,8 @@ function applyMatchElo(
 
   const playerB =
     data.players.find(
-      p =>
-        Number(p.id) ===
+      player =>
+        Number(player.id) ===
         Number(
           match.playerBId
         )
@@ -447,15 +456,22 @@ function applyMatchElo(
     return null;
   }
 
+  if (
+    Number(playerA.id) ===
+    Number(playerB.id)
+  ) {
+    return null;
+  }
+
   const scoreA =
     Number(
       match.scoreA
-    );
+    ) || 0;
 
   const scoreB =
     Number(
       match.scoreB
-    );
+    ) || 0;
 
   if (
     scoreA === scoreB
@@ -501,43 +517,36 @@ function applyMatchElo(
   if (resultA === 1) {
     playerA.wins =
       (
-        Number(
-          playerA.wins
-        ) || 0
+        Number(playerA.wins) ||
+        0
       ) + 1;
 
     playerB.losses =
       (
-        Number(
-          playerB.losses
-        ) || 0
+        Number(playerB.losses) ||
+        0
       ) + 1;
   } else {
     playerB.wins =
       (
-        Number(
-          playerB.wins
-        ) || 0
+        Number(playerB.wins) ||
+        0
       ) + 1;
 
     playerA.losses =
       (
-        Number(
-          playerA.losses
-        ) || 0
+        Number(playerA.losses) ||
+        0
       ) + 1;
   }
 
-  playerA.updatedAt =
-    new Date()
-      .toISOString();
+  const now =
+    new Date().toISOString();
 
-  playerB.updatedAt =
-    new Date()
-      .toISOString();
+  playerA.updatedAt = now;
+  playerB.updatedAt = now;
 
-  match.eloApplied =
-    true;
+  match.eloApplied = true;
 
   match.eloChange = {
     playerAId:
@@ -565,19 +574,90 @@ function applyMatchElo(
       -delta,
 
     appliedAt:
-      new Date()
-        .toISOString()
+      now
   };
 
   return match.eloChange;
 }
 
-/* =========================================
-   AUTH
-========================================= */
+/* =========================================================
+   PASSWORD
+========================================================= */
+
+async function hashPassword(
+  password
+) {
+  const salt =
+    crypto
+      .randomBytes(16)
+      .toString("hex");
+
+  const key =
+    await scryptAsync(
+      String(password),
+      salt,
+      64
+    );
+
+  return (
+    salt +
+    ":" +
+    key.toString("hex")
+  );
+}
+
+async function verifyPassword(
+  password,
+  stored
+) {
+  try {
+    const [
+      salt,
+      keyHex
+    ] =
+      String(
+        stored || ""
+      ).split(":");
+
+    if (
+      !salt ||
+      !keyHex
+    ) {
+      return false;
+    }
+
+    const key =
+      await scryptAsync(
+        String(password),
+        salt,
+        64
+      );
+
+    const saved =
+      Buffer.from(
+        keyHex,
+        "hex"
+      );
+
+    return (
+      saved.length ===
+        key.length &&
+      crypto.timingSafeEqual(
+        saved,
+        key
+      )
+    );
+  } catch {
+    return false;
+  }
+}
+
+/* =========================================================
+   COOKIE AUTH
+========================================================= */
 
 function parseCookies(req) {
-  const result = {};
+  const out = {};
 
   String(
     req.headers.cookie ||
@@ -588,29 +668,32 @@ function parseCookies(req) {
       const index =
         part.indexOf("=");
 
-      if (index > 0) {
-        result[
-          part
-            .slice(
-              0,
-              index
-            )
-            .trim()
-        ] =
-          decodeURIComponent(
-            part
-              .slice(
-                index + 1
-              )
-              .trim()
-          );
+      if (index <= 0) {
+        return;
       }
+
+      const key =
+        part
+          .slice(0, index)
+          .trim();
+
+      const value =
+        part
+          .slice(index + 1)
+          .trim();
+
+      out[key] =
+        decodeURIComponent(
+          value
+        );
     });
 
-  return result;
+  return out;
 }
 
-function sign(value) {
+function signTokenPayload(
+  value
+) {
   return crypto
     .createHmac(
       "sha256",
@@ -622,23 +705,24 @@ function sign(value) {
     );
 }
 
-function createToken(
+function makeToken(
   payload
 ) {
-  const encoded =
+  const data =
     Buffer.from(
       JSON.stringify({
         ...payload,
-        t: Date.now()
-      })
+        time: Date.now()
+      }),
+      "utf8"
     ).toString(
       "base64url"
     );
 
   return (
-    encoded +
+    data +
     "." +
-    sign(encoded)
+    signTokenPayload(data)
   );
 }
 
@@ -646,23 +730,26 @@ function verifyToken(
   token
 ) {
   try {
-    const [
-      payload,
-      signature
-    ] =
+    const parts =
       String(
         token || ""
       ).split(".");
 
     if (
-      !payload ||
-      !signature
+      parts.length !== 2
     ) {
       return null;
     }
 
+    const [
+      payload,
+      signature
+    ] = parts;
+
     const expected =
-      sign(payload);
+      signTokenPayload(
+        payload
+      );
 
     const a =
       Buffer.from(
@@ -676,7 +763,12 @@ function verifyToken(
 
     if (
       a.length !==
-        b.length ||
+      b.length
+    ) {
+      return null;
+    }
+
+    if (
       !crypto.timingSafeEqual(
         a,
         b
@@ -685,19 +777,17 @@ function verifyToken(
       return null;
     }
 
-    const decoded =
+    const result =
       JSON.parse(
         Buffer.from(
           payload,
           "base64url"
-        ).toString(
-          "utf8"
-        )
+        ).toString("utf8")
       );
 
     if (
       !Number.isFinite(
-        decoded.t
+        result.time
       )
     ) {
       return null;
@@ -705,25 +795,58 @@ function verifyToken(
 
     if (
       Date.now() -
-        decoded.t >
+        result.time >
       TOKEN_TTL
     ) {
       return null;
     }
 
-    return decoded;
+    return result;
   } catch {
     return null;
   }
 }
 
 function authInfo(req) {
+  const cookies =
+    parseCookies(req);
+
   return verifyToken(
-    parseCookies(req)
-      .lavender_session ||
+    cookies.lavender_session ||
     ""
   );
 }
+
+function setLoginCookie(
+  res,
+  token
+) {
+  res.setHeader(
+    "Set-Cookie",
+    `lavender_session=${token}; HttpOnly; SameSite=Lax; Path=/; Max-Age=43200${
+      COOKIE_SECURE
+        ? "; Secure"
+        : ""
+    }`
+  );
+}
+
+function clearLoginCookie(
+  res
+) {
+  res.setHeader(
+    "Set-Cookie",
+    `lavender_session=; HttpOnly; SameSite=Lax; Path=/; Max-Age=0${
+      COOKIE_SECURE
+        ? "; Secure"
+        : ""
+    }`
+  );
+}
+
+/* =========================================================
+   PERMISSIONS
+========================================================= */
 
 function requireAdmin(
   req,
@@ -744,6 +867,9 @@ function requireAdmin(
           "Нужен вход администратора"
       });
   }
+
+  req.admin =
+    auth;
 
   next();
 }
@@ -774,12 +900,12 @@ function requireStreamer(
 
   const streamer =
     data.streamers.find(
-      s =>
-        Number(s.id) ===
+      item =>
+        Number(item.id) ===
           Number(
             auth.streamerId
           ) &&
-        s.active !== false
+        item.active !== false
     );
 
   if (!streamer) {
@@ -787,7 +913,7 @@ function requireStreamer(
       .status(401)
       .json({
         error:
-          "Аккаунт стримера отключён"
+          "Аккаунт стримера отключён или удалён"
       });
   }
 
@@ -821,7 +947,8 @@ function requireEditor(
     req.editor = {
       role: "admin",
       id: null,
-      name: ADMIN_USER
+      name:
+        ADMIN_USER
     };
 
     return next();
@@ -836,12 +963,12 @@ function requireEditor(
 
     const streamer =
       data.streamers.find(
-        s =>
-          Number(s.id) ===
+        item =>
+          Number(item.id) ===
             Number(
               auth.streamerId
             ) &&
-          s.active !== false
+          item.active !== false
       );
 
     if (!streamer) {
@@ -872,92 +999,27 @@ function requireEditor(
     .status(403)
     .json({
       error:
-        "Нет доступа"
+        "Недостаточно прав"
     });
 }
 
-async function hashPassword(
-  password
-) {
-  const salt =
-    crypto
-      .randomBytes(16)
-      .toString("hex");
-
-  const key =
-    await scryptAsync(
-      String(password),
-      salt,
-      64
-    );
-
-  return (
-    salt +
-    ":" +
-    key.toString("hex")
-  );
-}
-
-async function verifyPassword(
-  password,
-  saved
-) {
-  try {
-    const [
-      salt,
-      keyHex
-    ] =
-      String(
-        saved || ""
-      ).split(":");
-
-    if (
-      !salt ||
-      !keyHex
-    ) {
-      return false;
-    }
-
-    const key =
-      await scryptAsync(
-        String(password),
-        salt,
-        64
-      );
-
-    const stored =
-      Buffer.from(
-        keyHex,
-        "hex"
-      );
-
-    return (
-      stored.length ===
-        key.length &&
-      crypto.timingSafeEqual(
-        stored,
-        key
-      )
-    );
-  } catch {
-    return false;
-  }
-}
-
-/* =========================================
+/* =========================================================
    PUBLIC DATA
-========================================= */
+========================================================= */
 
 function publicData(
-  data = readData()
+  source = readData()
 ) {
+  const data =
+    normalizeData(
+      cloneData(source)
+    );
+
   const guildMap =
     Object.fromEntries(
       data.guilds.map(
         guild => [
-          Number(
-            guild.id
-          ),
+          Number(guild.id),
           guild
         ]
       )
@@ -967,24 +1029,20 @@ function publicData(
     data.players
       .map(player => {
         const wins =
-          Number(
-            player.wins
-          ) || 0;
+          Number(player.wins) ||
+          0;
 
         const losses =
-          Number(
-            player.losses
-          ) || 0;
+          Number(player.losses) ||
+          0;
 
         const kills =
-          Number(
-            player.kills
-          ) || 0;
+          Number(player.kills) ||
+          0;
 
         const deaths =
-          Number(
-            player.deaths
-          ) || 0;
+          Number(player.deaths) ||
+          0;
 
         return {
           ...player,
@@ -1002,7 +1060,7 @@ function publicData(
             ),
 
           kd:
-            deaths
+            deaths > 0
               ? Number(
                   (
                     kills /
@@ -1012,35 +1070,29 @@ function publicData(
               : kills,
 
           winrate:
-            wins + losses
+            wins + losses > 0
               ? Math.round(
                   wins /
-                    (
-                      wins +
-                      losses
-                    ) *
-                    100
+                  (
+                    wins +
+                    losses
+                  ) *
+                  100
                 )
               : 0
         };
       })
       .sort(
         (a, b) =>
-          Number(
-            b.elo
-          ) -
-          Number(
-            a.elo
-          )
+          Number(b.elo || 0) -
+          Number(a.elo || 0)
       );
 
   const playerMap =
     Object.fromEntries(
       players.map(
         player => [
-          Number(
-            player.id
-          ),
+          Number(player.id),
           player
         ]
       )
@@ -1060,6 +1112,14 @@ function publicData(
               )
           );
 
+        const wins =
+          Number(guild.wins) ||
+          0;
+
+        const losses =
+          Number(guild.losses) ||
+          0;
+
         return {
           ...guild,
 
@@ -1068,20 +1128,28 @@ function publicData(
               guild.elo
             ),
 
+          roster,
+
           memberCount:
             roster.length,
 
-          roster
+          winrate:
+            wins + losses > 0
+              ? Math.round(
+                  wins /
+                  (
+                    wins +
+                    losses
+                  ) *
+                  100
+                )
+              : 0
         };
       })
       .sort(
         (a, b) =>
-          Number(
-            b.elo
-          ) -
-          Number(
-            a.elo
-          )
+          Number(b.elo || 0) -
+          Number(a.elo || 0)
       );
 
   const matches =
@@ -1123,19 +1191,54 @@ function publicData(
           Number(a.id)
       );
 
+  const tournaments =
+    data.tournaments
+      .map(tournament => ({
+        ...tournament,
+
+        guildIds:
+          Array.isArray(
+            tournament.guildIds
+          )
+            ? tournament.guildIds
+            : [],
+
+        participants:
+          (
+            Array.isArray(
+              tournament.guildIds
+            )
+              ? tournament.guildIds
+              : []
+          )
+            .map(
+              id =>
+                guildMap[
+                  Number(id)
+                ]
+            )
+            .filter(Boolean)
+      }))
+      .sort(
+        (a, b) =>
+          Number(b.id) -
+          Number(a.id)
+      );
+
   const streamers =
     data.streamers
       .filter(
         streamer =>
-          streamer.active !==
-          false
+          streamer.active !== false
       )
-      .map(
-        ({
+      .map(streamer => {
+        const {
           passwordHash,
-          ...streamer
-        }) => ({
-          ...streamer,
+          ...safe
+        } = streamer;
+
+        return {
+          ...safe,
 
           stream:
             data.streamerStreams.find(
@@ -1147,34 +1250,35 @@ function publicData(
                   streamer.id
                 )
             ) || null
-        })
-      );
+        };
+      });
 
   return {
     ...data,
+
     players,
     guilds,
     matches,
+    tournaments,
     streamers,
+
     streamerStreams:
       undefined
   };
 }
 
-/* =========================================
+/* =========================================================
    OVERLAY
-========================================= */
+========================================================= */
 
-function overlayState() {
+function globalOverlayState() {
   const data =
     publicData();
 
   const match =
     data.matches.find(
-      match =>
-        Number(
-          match.id
-        ) ===
+      item =>
+        Number(item.id) ===
         Number(
           data.overlay
             .activeMatchId
@@ -1197,10 +1301,130 @@ function overlayState() {
   };
 }
 
+function streamerOverlayState(
+  streamerId
+) {
+  const data =
+    publicData();
+
+  const streamer =
+    data.streamers.find(
+      item =>
+        Number(item.id) ===
+        Number(streamerId)
+    );
+
+  if (!streamer) {
+    return null;
+  }
+
+  const stream =
+    streamer.stream || {};
+
+  const match =
+    data.matches.find(
+      item =>
+        Number(item.id) ===
+        Number(
+          stream.matchId
+        )
+    ) ||
+    data.matches[0] ||
+    null;
+
+  const resultMatch =
+    match
+      ? { ...match }
+      : null;
+
+  if (resultMatch) {
+    const playerA =
+      data.players.find(
+        player =>
+          Number(player.id) ===
+          Number(
+            stream.playerAId
+          )
+      );
+
+    const playerB =
+      data.players.find(
+        player =>
+          Number(player.id) ===
+          Number(
+            stream.playerBId
+          )
+      );
+
+    if (playerA) {
+      resultMatch.playerA =
+        playerA;
+
+      resultMatch.playerAId =
+        playerA.id;
+    }
+
+    if (playerB) {
+      resultMatch.playerB =
+        playerB;
+
+      resultMatch.playerBId =
+        playerB.id;
+    }
+  }
+
+  return {
+    streamer,
+
+    overlay: {
+      visible:
+        stream.status ===
+        "LIVE",
+
+      accent:
+        stream.accent ||
+        data.settings.accent ||
+        "#b46cff",
+
+      position:
+        stream.position ||
+        "bottom",
+
+      showPlayers:
+        stream.showPlayers !==
+        false,
+
+      showStats:
+        stream.showStats !==
+        false,
+
+      customText:
+        stream.customText ||
+        `${
+          streamer.displayName ||
+          streamer.username
+        } • LIVE`
+    },
+
+    match:
+      resultMatch,
+
+    settings:
+      data.settings,
+
+    version:
+      APP_VERSION
+  };
+}
+
+/* =========================================================
+   SOCKET BROADCAST
+========================================================= */
+
 function broadcast() {
   io.emit(
     "overlay:update",
-    overlayState()
+    globalOverlayState()
   );
 
   io.emit(
@@ -1211,17 +1435,41 @@ function broadcast() {
   );
 }
 
-/* =========================================
+function broadcastStreamer(
+  streamerId
+) {
+  io
+    .to(
+      `streamer:${streamerId}`
+    )
+    .emit(
+      "streamer-overlay:update",
+      streamerOverlayState(
+        streamerId
+      )
+    );
+
+  io.emit(
+    "site:update",
+    {
+      at: Date.now()
+    }
+  );
+}
+
+/* =========================================================
    HEALTH
-========================================= */
+========================================================= */
 
 app.get(
   "/health",
   (req, res) => {
     res.json({
       ok: true,
+
       version:
         APP_VERSION,
+
       uptime:
         Math.round(
           process.uptime()
@@ -1238,18 +1486,23 @@ app.get(
   ) => {
     try {
       const result =
-        await DB.query(`
+        await DB.query(
+          `
           SELECT updated_at
           FROM lavender_state
           WHERE id = 1
-        `);
+          `
+        );
 
       res.json({
         ok: true,
+
         database:
           "postgresql",
+
         version:
           APP_VERSION,
+
         updatedAt:
           result.rows[0]
             ?.updated_at ||
@@ -1267,9 +1520,9 @@ app.get(
   }
 );
 
-/* =========================================
-   AUTH API
-========================================= */
+/* =========================================================
+   AUTH
+========================================================= */
 
 app.get(
   "/api/auth/status",
@@ -1281,7 +1534,11 @@ app.get(
       return res.json({
         authenticated:
           false,
-        role: null
+
+        role: null,
+
+        version:
+          APP_VERSION
       });
     }
 
@@ -1292,49 +1549,79 @@ app.get(
       return res.json({
         authenticated:
           true,
-        role: "admin",
+
+        role:
+          "admin",
+
         user:
-          ADMIN_USER
+          ADMIN_USER,
+
+        version:
+          APP_VERSION
       });
     }
 
-    const data =
-      readData();
+    if (
+      auth.role ===
+      "streamer"
+    ) {
+      const data =
+        readData();
 
-    const streamer =
-      data.streamers.find(
-        s =>
-          Number(s.id) ===
-          Number(
-            auth.streamerId
-          )
-      );
+      const streamer =
+        data.streamers.find(
+          item =>
+            Number(item.id) ===
+              Number(
+                auth.streamerId
+              ) &&
+            item.active !== false
+        );
 
-    if (!streamer) {
+      if (!streamer) {
+        return res.json({
+          authenticated:
+            false,
+
+          role: null,
+
+          version:
+            APP_VERSION
+        });
+      }
+
       return res.json({
         authenticated:
-          false,
-        role: null
+          true,
+
+        role:
+          "streamer",
+
+        streamer: {
+          id:
+            streamer.id,
+
+          username:
+            streamer.username,
+
+          displayName:
+            streamer.displayName,
+
+          avatar:
+            streamer.avatar
+        },
+
+        version:
+          APP_VERSION
       });
     }
 
     res.json({
       authenticated:
-        true,
-
-      role:
-        "streamer",
-
-      streamer: {
-        id:
-          streamer.id,
-        username:
-          streamer.username,
-        displayName:
-          streamer.displayName,
-        avatar:
-          streamer.avatar
-      }
+        false,
+      role: null,
+      version:
+        APP_VERSION
     });
   }
 );
@@ -1347,17 +1634,19 @@ app.post(
   ) => {
     const username =
       String(
-        req.body
-          ?.username ||
+        req.body?.username ||
         ""
       ).trim();
 
     const password =
       String(
-        req.body
-          ?.password ||
+        req.body?.password ||
         ""
       );
+
+    /*
+      ADMIN
+    */
 
     if (
       username ===
@@ -1366,17 +1655,17 @@ app.post(
         ADMIN_PASSWORD
     ) {
       const token =
-        createToken({
-          role: "admin"
+        makeToken({
+          role:
+            "admin",
+
+          username:
+            ADMIN_USER
         });
 
-      res.setHeader(
-        "Set-Cookie",
-        `lavender_session=${token}; HttpOnly; SameSite=Lax; Path=/; Max-Age=43200${
-          COOKIE_SECURE
-            ? "; Secure"
-            : ""
-        }`
+      setLoginCookie(
+        res,
+        token
       );
 
       return res.json({
@@ -1386,17 +1675,22 @@ app.post(
       });
     }
 
+    /*
+      STREAMER
+    */
+
     const data =
       readData();
 
     const streamer =
       data.streamers.find(
-        s =>
-          s.active !== false &&
+        item =>
+          item.active !==
+            false &&
           String(
-            s.username
+            item.username
           ).toLowerCase() ===
-          username.toLowerCase()
+            username.toLowerCase()
       );
 
     if (
@@ -1415,26 +1709,28 @@ app.post(
     }
 
     const token =
-      createToken({
+      makeToken({
         role:
           "streamer",
+
         streamerId:
-          streamer.id
+          streamer.id,
+
+        username:
+          streamer.username
       });
 
-    res.setHeader(
-      "Set-Cookie",
-      `lavender_session=${token}; HttpOnly; SameSite=Lax; Path=/; Max-Age=43200${
-        COOKIE_SECURE
-          ? "; Secure"
-          : ""
-      }`
+    setLoginCookie(
+      res,
+      token
     );
 
     res.json({
       ok: true,
+
       role:
         "streamer",
+
       streamerId:
         streamer.id
     });
@@ -1444,14 +1740,7 @@ app.post(
 app.post(
   "/api/auth/logout",
   (req, res) => {
-    res.setHeader(
-      "Set-Cookie",
-      `lavender_session=; HttpOnly; SameSite=Lax; Path=/; Max-Age=0${
-        COOKIE_SECURE
-          ? "; Secure"
-          : ""
-      }`
-    );
+    clearLoginCookie(res);
 
     res.json({
       ok: true
@@ -1477,59 +1766,77 @@ app.get(
   (req, res) => {
     res.json({
       ok: true,
+
       streamerId:
-        req.streamer.id
+        req.streamer.id,
+
+      version:
+        APP_VERSION
     });
   }
 );
-/* =========================================
-   STREAMERS
-========================================= */
+
+/* =========================================================
+   ADMIN STREAMERS
+========================================================= */
 
 /*
-  Список стримеров для администратора
+  СПИСОК
 */
+
 app.get(
   "/api/admin/streamers",
   requireAdmin,
   (req, res) => {
-    const data = readData();
+    const data =
+      readData();
 
-    const list = data.streamers.map(streamer => {
-      const {
-        passwordHash,
-        ...safeStreamer
-      } = streamer;
+    const list =
+      data.streamers.map(
+        streamer => {
+          const {
+            passwordHash,
+            ...safe
+          } = streamer;
 
-      const stream =
-        data.streamerStreams.find(
-          item =>
-            Number(item.streamerId) ===
-            Number(streamer.id)
-        ) || null;
+          return {
+            ...safe,
 
-      return {
-        ...safeStreamer,
-        stream
-      };
-    });
+            stream:
+              data.streamerStreams.find(
+                item =>
+                  Number(
+                    item.streamerId
+                  ) ===
+                  Number(
+                    streamer.id
+                  )
+              ) || null
+          };
+        }
+      );
 
     res.json(list);
   }
 );
 
-
 /*
-  Создание стримера
+  ДОБАВЛЕНИЕ
 */
+
 app.post(
   "/api/admin/streamers",
   requireAdmin,
-  async (req, res) => {
+  async (
+    req,
+    res
+  ) => {
     try {
-      const data = readData();
+      const data =
+        readData();
 
-      const body = req.body || {};
+      const body =
+        req.body || {};
 
       const username =
         cleanText(
@@ -1539,13 +1846,15 @@ app.post(
 
       const displayName =
         cleanText(
-          body.displayName || username,
+          body.displayName ||
+          username,
           60
         );
 
       const password =
         String(
-          body.password || ""
+          body.password ||
+          ""
         );
 
       if (!username) {
@@ -1557,30 +1866,32 @@ app.post(
           });
       }
 
-      if (password.length < 4) {
+      if (
+        password.length < 4
+      ) {
         return res
           .status(400)
           .json({
             error:
-              "Пароль должен быть минимум 4 символа"
+              "Пароль минимум 4 символа"
           });
       }
 
-      const exists =
+      const duplicate =
         data.streamers.some(
-          streamer =>
+          item =>
             String(
-              streamer.username
+              item.username
             ).toLowerCase() ===
             username.toLowerCase()
         );
 
-      if (exists) {
+      if (duplicate) {
         return res
           .status(400)
           .json({
             error:
-              "Стример с таким логином уже существует"
+              "Такой логин уже существует"
           });
       }
 
@@ -1600,7 +1911,8 @@ app.post(
             "🎥"
           ),
 
-        active: true,
+        active:
+          true,
 
         passwordHash:
           await hashPassword(
@@ -1616,11 +1928,9 @@ app.post(
         streamer
       );
 
-      /*
-        Создаём личную стримерскую зону
-      */
       const firstMatch =
-        data.matches[0] || null;
+        data.matches[0] ||
+        null;
 
       const stream = {
         id:
@@ -1644,19 +1954,16 @@ app.post(
           "",
 
         matchId:
-          firstMatch
-            ? firstMatch.id
-            : null,
+          firstMatch?.id ||
+          null,
 
         playerAId:
-          firstMatch
-            ? firstMatch.playerAId || null
-            : null,
+          firstMatch?.playerAId ||
+          null,
 
         playerBId:
-          firstMatch
-            ? firstMatch.playerBId || null
-            : null,
+          firstMatch?.playerBId ||
+          null,
 
         accent:
           data.settings.accent ||
@@ -1683,9 +1990,12 @@ app.post(
         stream
       );
 
-      atomicWrite(data);
+      await atomicWrite(data);
 
       broadcast();
+      broadcastStreamer(
+        streamer.id
+      );
 
       res.json({
         id:
@@ -1715,22 +2025,26 @@ app.post(
         .status(500)
         .json({
           error:
-            "Не удалось создать стримера"
+            "Ошибка создания стримера"
         });
     }
   }
 );
 
-
 /*
-  Редактирование стримера
+  РЕДАКТИРОВАНИЕ
 */
+
 app.patch(
   "/api/admin/streamers/:id",
   requireAdmin,
-  async (req, res) => {
+  async (
+    req,
+    res
+  ) => {
     try {
-      const data = readData();
+      const data =
+        readData();
 
       const id =
         Number(
@@ -1777,11 +2091,12 @@ app.patch(
         const duplicate =
           data.streamers.some(
             item =>
-              Number(item.id) !== id &&
+              Number(item.id) !==
+                id &&
               String(
                 item.username
               ).toLowerCase() ===
-              username.toLowerCase()
+                username.toLowerCase()
           );
 
         if (duplicate) {
@@ -1825,20 +2140,16 @@ app.patch(
           !!body.active;
       }
 
-      /*
-        Если пароль пустой,
-        старый пароль не меняем
-      */
       if (
-        body.password &&
-        String(
-          body.password
-        ).length
+        body.password
       ) {
-        if (
+        const password =
           String(
             body.password
-          ).length < 4
+          );
+
+        if (
+          password.length < 4
         ) {
           return res
             .status(400)
@@ -1850,9 +2161,7 @@ app.patch(
 
         streamer.passwordHash =
           await hashPassword(
-            String(
-              body.password
-            )
+            password
           );
       }
 
@@ -1860,9 +2169,10 @@ app.patch(
         new Date()
           .toISOString();
 
-      atomicWrite(data);
+      await atomicWrite(data);
 
       broadcast();
+      broadcastStreamer(id);
 
       res.json({
         id:
@@ -1890,21 +2200,25 @@ app.patch(
         .status(500)
         .json({
           error:
-            "Не удалось обновить стримера"
+            "Ошибка обновления стримера"
         });
     }
   }
 );
 
-
 /*
-  Удаление стримера
+  УДАЛЕНИЕ
 */
+
 app.delete(
   "/api/admin/streamers/:id",
   requireAdmin,
-  (req, res) => {
-    const data = readData();
+  async (
+    req,
+    res
+  ) => {
+    const data =
+      readData();
 
     const id =
       Number(
@@ -1913,10 +2227,9 @@ app.delete(
 
     const exists =
       data.streamers.some(
-        streamer =>
-          Number(
-            streamer.id
-          ) === id
+        item =>
+          Number(item.id) ===
+          id
       );
 
     if (!exists) {
@@ -1930,21 +2243,28 @@ app.delete(
 
     data.streamers =
       data.streamers.filter(
-        streamer =>
-          Number(
-            streamer.id
-          ) !== id
+        item =>
+          Number(item.id) !==
+          id
       );
 
     data.streamerStreams =
       data.streamerStreams.filter(
-        stream =>
+        item =>
           Number(
-            stream.streamerId
+            item.streamerId
           ) !== id
       );
 
-    atomicWrite(data);
+    await atomicWrite(data);
+
+    io
+      .to(
+        `streamer:${id}`
+      )
+      .emit(
+        "streamer-removed"
+      );
 
     broadcast();
 
@@ -1954,18 +2274,17 @@ app.delete(
   }
 );
 
-
-/* =========================================
+/* =========================================================
    STREAMER ZONE
-========================================= */
+========================================================= */
 
-/*
-  Данные личной зоны стримера
-*/
 app.get(
   "/api/streamer/me",
   requireStreamer,
-  (req, res) => {
+  async (
+    req,
+    res
+  ) => {
     const data =
       readData();
 
@@ -1980,10 +2299,6 @@ app.get(
           )
       );
 
-    /*
-      Если у старого стримера
-      ещё нет streamerStreams
-    */
     if (!stream) {
       const firstMatch =
         data.matches[0] ||
@@ -2011,19 +2326,16 @@ app.get(
           "",
 
         matchId:
-          firstMatch
-            ? firstMatch.id
-            : null,
+          firstMatch?.id ||
+          null,
 
         playerAId:
-          firstMatch
-            ? firstMatch.playerAId || null
-            : null,
+          firstMatch?.playerAId ||
+          null,
 
         playerBId:
-          firstMatch
-            ? firstMatch.playerBId || null
-            : null,
+          firstMatch?.playerBId ||
+          null,
 
         accent:
           data.settings.accent ||
@@ -2053,10 +2365,10 @@ app.get(
         stream
       );
 
-      atomicWrite(data);
+      await atomicWrite(data);
     }
 
-    const pub =
+    const publicState =
       publicData(data);
 
     res.json({
@@ -2077,25 +2389,27 @@ app.get(
       stream,
 
       matches:
-        pub.matches || [],
+        publicState.matches ||
+        [],
 
       players:
-        pub.players || [],
+        publicState.players ||
+        [],
 
       guilds:
-        pub.guilds || []
+        publicState.guilds ||
+        []
     });
   }
 );
 
-
-/*
-  Сохранение Streamer Zone
-*/
 app.patch(
   "/api/streamer/me",
   requireStreamer,
-  (req, res) => {
+  async (
+    req,
+    res
+  ) => {
     const data =
       readData();
 
@@ -2263,16 +2577,45 @@ app.patch(
       new Date()
         .toISOString();
 
-    atomicWrite(data);
+    await atomicWrite(data);
 
     broadcast();
+    broadcastStreamer(
+      req.streamer.id
+    );
 
     res.json(stream);
   }
 );
-/* =========================================
-   MAIN DATA API
-========================================= */
+
+/* =========================================================
+   STREAMER OVERLAY
+========================================================= */
+
+app.get(
+  "/api/streamer-overlay/:id",
+  (req, res) => {
+    const state =
+      streamerOverlayState(
+        req.params.id
+      );
+
+    if (!state) {
+      return res
+        .status(404)
+        .json({
+          error:
+            "Стример не найден"
+        });
+    }
+
+    res.json(state);
+  }
+);
+
+/* =========================================================
+   ALL DATA
+========================================================= */
 
 app.get(
   "/api/all",
@@ -2287,19 +2630,22 @@ app.get(
   "/api/overlay",
   (req, res) => {
     res.json(
-      overlayState()
+      globalOverlayState()
     );
   }
 );
 
-/* =========================================
+/* =========================================================
    PLAYERS
-========================================= */
+========================================================= */
 
 app.post(
   "/api/players",
   requireEditor,
-  (req, res) => {
+  async (
+    req,
+    res
+  ) => {
     const data =
       readData();
 
@@ -2332,7 +2678,7 @@ app.post(
       gameId:
         cleanText(
           body.gameId,
-          40
+          50
         ),
 
       avatar:
@@ -2373,6 +2719,20 @@ app.post(
           body.deaths
         ) || 0,
 
+      role:
+        cleanText(
+          body.role ||
+          "Player",
+          30
+        ),
+
+      country:
+        cleanText(
+          body.country ||
+          "Кыргызстан",
+          40
+        ),
+
       createdByRole:
         req.editor.role,
 
@@ -2391,7 +2751,7 @@ app.post(
       player
     );
 
-    atomicWrite(data);
+    await atomicWrite(data);
 
     broadcast();
 
@@ -2402,14 +2762,17 @@ app.post(
 app.patch(
   "/api/players/:id",
   requireEditor,
-  (req, res) => {
+  async (
+    req,
+    res
+  ) => {
     const data =
       readData();
 
     const player =
       data.players.find(
-        p =>
-          Number(p.id) ===
+        item =>
+          Number(item.id) ===
           Number(
             req.params.id
           )
@@ -2443,7 +2806,7 @@ app.patch(
       player.gameId =
         cleanText(
           body.gameId,
-          40
+          50
         );
     }
 
@@ -2469,13 +2832,15 @@ app.patch(
           : null;
     }
 
-    for (const key of [
-      "elo",
-      "wins",
-      "losses",
-      "kills",
-      "deaths"
-    ]) {
+    for (
+      const key of [
+        "elo",
+        "wins",
+        "losses",
+        "kills",
+        "deaths"
+      ]
+    ) {
       if (key in body) {
         player[key] =
           Number(
@@ -2488,7 +2853,7 @@ app.patch(
       new Date()
         .toISOString();
 
-    atomicWrite(data);
+    await atomicWrite(data);
 
     broadcast();
 
@@ -2499,7 +2864,10 @@ app.patch(
 app.delete(
   "/api/players/:id",
   requireEditor,
-  (req, res) => {
+  async (
+    req,
+    res
+  ) => {
     const data =
       readData();
 
@@ -2510,34 +2878,35 @@ app.delete(
 
     data.players =
       data.players.filter(
-        p =>
-          Number(p.id) !==
+        item =>
+          Number(item.id) !==
           id
       );
 
-    data.matches.forEach(
-      match => {
-        if (
-          Number(
-            match.playerAId
-          ) === id
-        ) {
-          match.playerAId =
-            null;
-        }
-
-        if (
-          Number(
-            match.playerBId
-          ) === id
-        ) {
-          match.playerBId =
-            null;
-        }
+    for (
+      const match of
+      data.matches
+    ) {
+      if (
+        Number(
+          match.playerAId
+        ) === id
+      ) {
+        match.playerAId =
+          null;
       }
-    );
 
-    atomicWrite(data);
+      if (
+        Number(
+          match.playerBId
+        ) === id
+      ) {
+        match.playerBId =
+          null;
+      }
+    }
+
+    await atomicWrite(data);
 
     broadcast();
 
@@ -2547,14 +2916,17 @@ app.delete(
   }
 );
 
-/* =========================================
+/* =========================================================
    GUILDS
-========================================= */
+========================================================= */
 
 app.post(
   "/api/guilds",
   requireEditor,
-  (req, res) => {
+  async (
+    req,
+    res
+  ) => {
     const data =
       readData();
 
@@ -2585,6 +2957,23 @@ app.post(
         });
     }
 
+    if (
+      data.guilds.some(
+        item =>
+          String(
+            item.tag
+          ).toUpperCase() ===
+          tag
+      )
+    ) {
+      return res
+        .status(400)
+        .json({
+          error:
+            "Такой тег уже существует"
+        });
+    }
+
     const guild = {
       id:
         nextId(
@@ -2607,6 +2996,18 @@ app.post(
           40
         ),
 
+      description:
+        cleanText(
+          body.description,
+          400
+        ),
+
+      captain:
+        cleanText(
+          body.captain,
+          50
+        ),
+
       elo:
         Number(
           body.elo
@@ -2622,20 +3023,11 @@ app.post(
           body.losses
         ) || 0,
 
-      captain:
-        cleanText(
-          body.captain,
-          50
-        ),
-
-      description:
-        cleanText(
-          body.description,
-          400
-        ),
-
       createdByRole:
         req.editor.role,
+
+      createdById:
+        req.editor.id,
 
       createdByName:
         req.editor.name,
@@ -2649,7 +3041,7 @@ app.post(
       guild
     );
 
-    atomicWrite(data);
+    await atomicWrite(data);
 
     broadcast();
 
@@ -2660,14 +3052,17 @@ app.post(
 app.patch(
   "/api/guilds/:id",
   requireEditor,
-  (req, res) => {
+  async (
+    req,
+    res
+  ) => {
     const data =
       readData();
 
     const guild =
       data.guilds.find(
-        g =>
-          Number(g.id) ===
+        item =>
+          Number(item.id) ===
           Number(
             req.params.id
           )
@@ -2685,58 +3080,87 @@ app.patch(
     const body =
       req.body || {};
 
-    if ("name" in body)
+    if (
+      "name" in body
+    ) {
       guild.name =
         cleanText(
           body.name,
           50
         );
+    }
 
-    if ("tag" in body)
+    if (
+      "tag" in body
+    ) {
       guild.tag =
         cleanText(
           body.tag,
           12
         ).toUpperCase();
+    }
 
-    if ("logo" in body)
+    if (
+      "logo" in body
+    ) {
       guild.logo =
         cleanImage(
           body.logo,
           guild.logo ||
           "🪻"
         );
+    }
 
-    if ("region" in body)
+    if (
+      "region" in body
+    ) {
       guild.region =
         cleanText(
           body.region,
           40
         );
+    }
 
-    if ("elo" in body)
-      guild.elo =
-        Number(
-          body.elo
-        ) || 0;
+    if (
+      "description" in body
+    ) {
+      guild.description =
+        cleanText(
+          body.description,
+          400
+        );
+    }
 
-    if ("wins" in body)
-      guild.wins =
-        Number(
-          body.wins
-        ) || 0;
+    if (
+      "captain" in body
+    ) {
+      guild.captain =
+        cleanText(
+          body.captain,
+          50
+        );
+    }
 
-    if ("losses" in body)
-      guild.losses =
-        Number(
-          body.losses
-        ) || 0;
+    for (
+      const key of [
+        "elo",
+        "wins",
+        "losses"
+      ]
+    ) {
+      if (key in body) {
+        guild[key] =
+          Number(
+            body[key]
+          ) || 0;
+      }
+    }
 
     guild.updatedAt =
       new Date()
         .toISOString();
 
-    atomicWrite(data);
+    await atomicWrite(data);
 
     broadcast();
 
@@ -2747,7 +3171,10 @@ app.patch(
 app.delete(
   "/api/guilds/:id",
   requireEditor,
-  (req, res) => {
+  async (
+    req,
+    res
+  ) => {
     const data =
       readData();
 
@@ -2758,26 +3185,49 @@ app.delete(
 
     data.guilds =
       data.guilds.filter(
-        guild =>
-          Number(
-            guild.id
-          ) !== id
+        item =>
+          Number(item.id) !==
+          id
       );
 
-    data.players.forEach(
-      player => {
-        if (
-          Number(
-            player.guildId
-          ) === id
-        ) {
-          player.guildId =
-            null;
-        }
+    for (
+      const player of
+      data.players
+    ) {
+      if (
+        Number(
+          player.guildId
+        ) === id
+      ) {
+        player.guildId =
+          null;
       }
-    );
+    }
 
-    atomicWrite(data);
+    for (
+      const match of
+      data.matches
+    ) {
+      if (
+        Number(
+          match.guildAId
+        ) === id
+      ) {
+        match.guildAId =
+          null;
+      }
+
+      if (
+        Number(
+          match.guildBId
+        ) === id
+      ) {
+        match.guildBId =
+          null;
+      }
+    }
+
+    await atomicWrite(data);
 
     broadcast();
 
@@ -2787,14 +3237,17 @@ app.delete(
   }
 );
 
-/* =========================================
+/* =========================================================
    MATCHES
-========================================= */
+========================================================= */
 
 app.post(
   "/api/matches",
   requireEditor,
-  (req, res) => {
+  async (
+    req,
+    res
+  ) => {
     const data =
       readData();
 
@@ -2818,6 +3271,13 @@ app.post(
         cleanText(
           body.tournament ||
           "LAVENDER CUP",
+          80
+        ),
+
+      subtitle:
+        cleanText(
+          body.subtitle ||
+          "FREE FIRE",
           80
         ),
 
@@ -2880,6 +3340,18 @@ app.post(
           20
         ).toUpperCase(),
 
+      eloApplied:
+        false,
+
+      createdByRole:
+        req.editor.role,
+
+      createdById:
+        req.editor.id,
+
+      createdByName:
+        req.editor.name,
+
       createdAt:
         new Date()
           .toISOString()
@@ -2893,7 +3365,7 @@ app.post(
       .activeMatchId =
       match.id;
 
-    atomicWrite(data);
+    await atomicWrite(data);
 
     broadcast();
 
@@ -2904,14 +3376,17 @@ app.post(
 app.patch(
   "/api/matches/:id",
   requireEditor,
-  (req, res) => {
+  async (
+    req,
+    res
+  ) => {
     const data =
       readData();
 
     const match =
       data.matches.find(
-        m =>
-          Number(m.id) ===
+        item =>
+          Number(item.id) ===
           Number(
             req.params.id
           )
@@ -2929,13 +3404,16 @@ app.patch(
     const body =
       req.body || {};
 
-    for (const key of [
-      "title",
-      "tournament",
-      "roundText",
-      "format",
-      "status"
-    ]) {
+    for (
+      const key of [
+        "title",
+        "tournament",
+        "subtitle",
+        "roundText",
+        "format",
+        "status"
+      ]
+    ) {
       if (key in body) {
         match[key] =
           cleanText(
@@ -2945,12 +3423,14 @@ app.patch(
       }
     }
 
-    for (const key of [
-      "guildAId",
-      "guildBId",
-      "playerAId",
-      "playerBId"
-    ]) {
+    for (
+      const key of [
+        "guildAId",
+        "guildBId",
+        "playerAId",
+        "playerBId"
+      ]
+    ) {
       if (key in body) {
         match[key] =
           body[key]
@@ -2991,23 +3471,11 @@ app.patch(
         "LIVE"
       ).toUpperCase();
 
-    /*
-      Если поставили FINAL,
-      ELO распределяется
-      автоматически
-    */
+    match.updatedAt =
+      new Date()
+        .toISOString();
 
-    if (
-      match.status ===
-      "FINAL"
-    ) {
-      applyMatchElo(
-        data,
-        match
-      );
-    }
-
-    atomicWrite(data);
+    await atomicWrite(data);
 
     broadcast();
 
@@ -3015,21 +3483,204 @@ app.patch(
   }
 );
 
-/* =========================================
-   ВЫБРАТЬ ПОБЕДИТЕЛЯ -> ELO
-========================================= */
+/* =========================================================
+   FINISH MATCH + ELO
+========================================================= */
 
 app.post(
-  "/api/matches/:id/set-winner",
+  "/api/matches/:id/finish",
   requireEditor,
-  (req, res) => {
+  async (
+    req,
+    res
+  ) => {
     const data =
       readData();
 
     const match =
       data.matches.find(
-        m =>
-          Number(m.id) ===
+        item =>
+          Number(item.id) ===
+          Number(
+            req.params.id
+          )
+      );
+
+    if (!match) {
+      return res
+        .status(404)
+        .json({
+          error:
+            "Матч не найден"
+        });
+    }
+
+    if (
+      "scoreA" in req.body
+    ) {
+      match.scoreA =
+        Number(
+          req.body.scoreA
+        ) || 0;
+    }
+
+    if (
+      "scoreB" in req.body
+    ) {
+      match.scoreB =
+        Number(
+          req.body.scoreB
+        ) || 0;
+    }
+
+    if (
+      "playerAId" in
+      req.body
+    ) {
+      match.playerAId =
+        Number(
+          req.body.playerAId
+        ) || null;
+    }
+
+    if (
+      "playerBId" in
+      req.body
+    ) {
+      match.playerBId =
+        Number(
+          req.body.playerBId
+        ) || null;
+    }
+
+    if (
+      Number(match.scoreA) ===
+      Number(match.scoreB)
+    ) {
+      return res
+        .status(400)
+        .json({
+          error:
+            "Ничья не подходит для ELO"
+        });
+    }
+
+    if (
+      !match.playerAId ||
+      !match.playerBId
+    ) {
+      return res
+        .status(400)
+        .json({
+          error:
+            "Выбери двух игроков"
+        });
+    }
+
+    match.status =
+      "FINAL";
+
+    match.updatedAt =
+      new Date()
+        .toISOString();
+
+    const change =
+      applyMatchElo(
+        data,
+        match
+      );
+
+    await atomicWrite(data);
+
+    broadcast();
+
+    const playerA =
+      data.players.find(
+        player =>
+          Number(player.id) ===
+          Number(
+            match.playerAId
+          )
+      );
+
+    const playerB =
+      data.players.find(
+        player =>
+          Number(player.id) ===
+          Number(
+            match.playerBId
+          )
+      );
+
+    res.json({
+      ok: true,
+
+      match,
+
+      eloChange:
+        change ||
+        match.eloChange ||
+        null,
+
+      players: {
+        A: playerA
+          ? {
+              id:
+                playerA.id,
+
+              nickname:
+                playerA.nickname,
+
+              elo:
+                playerA.elo,
+
+              rank:
+                rankForElo(
+                  playerA.elo
+                )
+            }
+          : null,
+
+        B: playerB
+          ? {
+              id:
+                playerB.id,
+
+              nickname:
+                playerB.nickname,
+
+              elo:
+                playerB.elo,
+
+              rank:
+                rankForElo(
+                  playerB.elo
+                )
+            }
+          : null
+      }
+    });
+  }
+);
+
+/* =========================================================
+   SELECT WINNER + AUTO ELO
+========================================================= */
+
+app.post(
+  "/api/matches/:id/set-winner",
+  requireEditor,
+  async (
+    req,
+    res
+  ) => {
+    const data =
+      readData();
+
+    const match =
+      data.matches.find(
+        item =>
+          Number(item.id) ===
           Number(
             req.params.id
           )
@@ -3057,22 +3708,19 @@ app.post(
 
     const playerAId =
       Number(
-        req.body
-          ?.playerAId ||
+        req.body?.playerAId ||
         match.playerAId
       );
 
     const playerBId =
       Number(
-        req.body
-          ?.playerBId ||
+        req.body?.playerBId ||
         match.playerBId
       );
 
     const winnerId =
       Number(
-        req.body
-          ?.winnerId
+        req.body?.winnerId
       );
 
     if (
@@ -3119,11 +3767,6 @@ app.post(
     match.playerBId =
       playerBId;
 
-    /*
-      Нам достаточно результата 1:0,
-      чтобы определить победителя.
-    */
-
     match.scoreA =
       winnerId ===
         playerAId
@@ -3139,51 +3782,51 @@ app.post(
     match.status =
       "FINAL";
 
-    const eloChange =
+    const change =
       applyMatchElo(
         data,
         match
       );
 
-    atomicWrite(data);
+    await atomicWrite(data);
 
     broadcast();
 
     const playerA =
       data.players.find(
         player =>
-          Number(
-            player.id
-          ) ===
+          Number(player.id) ===
           playerAId
       );
 
     const playerB =
       data.players.find(
         player =>
-          Number(
-            player.id
-          ) ===
+          Number(player.id) ===
           playerBId
       );
 
     res.json({
       ok: true,
 
-      match,
-
       winnerId,
 
-      eloChange,
+      match,
+
+      eloChange:
+        change,
 
       players: {
         A: {
           id:
             playerA.id,
+
           nickname:
             playerA.nickname,
+
           elo:
             playerA.elo,
+
           rank:
             rankForElo(
               playerA.elo
@@ -3193,10 +3836,13 @@ app.post(
         B: {
           id:
             playerB.id,
+
           nickname:
             playerB.nickname,
+
           elo:
             playerB.elo,
+
           rank:
             rankForElo(
               playerB.elo
@@ -3210,7 +3856,10 @@ app.post(
 app.delete(
   "/api/matches/:id",
   requireEditor,
-  (req, res) => {
+  async (
+    req,
+    res
+  ) => {
     const data =
       readData();
 
@@ -3221,13 +3870,39 @@ app.delete(
 
     data.matches =
       data.matches.filter(
-        match =>
-          Number(
-            match.id
-          ) !== id
+        item =>
+          Number(item.id) !==
+          id
       );
 
-    atomicWrite(data);
+    if (
+      Number(
+        data.overlay
+          .activeMatchId
+      ) === id
+    ) {
+      data.overlay
+        .activeMatchId =
+        data.matches[0]?.id ||
+        null;
+    }
+
+    for (
+      const stream of
+      data.streamerStreams
+    ) {
+      if (
+        Number(
+          stream.matchId
+        ) === id
+      ) {
+        stream.matchId =
+          data.matches[0]?.id ||
+          null;
+      }
+    }
+
+    await atomicWrite(data);
 
     broadcast();
 
@@ -3237,14 +3912,449 @@ app.delete(
   }
 );
 
-/* =========================================
-   OVERLAY UPDATE
-========================================= */
+/* =========================================================
+   TOURNAMENTS
+========================================================= */
+
+app.post(
+  "/api/tournaments",
+  requireAdmin,
+  async (
+    req,
+    res
+  ) => {
+    const data =
+      readData();
+
+    const body =
+      req.body || {};
+
+    const name =
+      cleanText(
+        body.name,
+        80
+      );
+
+    if (!name) {
+      return res
+        .status(400)
+        .json({
+          error:
+            "Укажи название турнира"
+        });
+    }
+
+    const tournament = {
+      id:
+        nextId(
+          data.tournaments
+        ),
+
+      name,
+
+      status:
+        cleanText(
+          body.status ||
+          "UPCOMING",
+          20
+        ).toUpperCase(),
+
+      date:
+        cleanText(
+          body.date,
+          30
+        ),
+
+      format:
+        cleanText(
+          body.format ||
+          "BO7",
+          20
+        ),
+
+      prize:
+        cleanText(
+          body.prize,
+          80
+        ),
+
+      description:
+        cleanText(
+          body.description,
+          500
+        ),
+
+      guildIds:
+        Array.isArray(
+          body.guildIds
+        )
+          ? body.guildIds.map(
+              Number
+            )
+          : [],
+
+      createdAt:
+        new Date()
+          .toISOString()
+    };
+
+    data.tournaments.push(
+      tournament
+    );
+
+    await atomicWrite(data);
+
+    broadcast();
+
+    res.json(tournament);
+  }
+);
+
+app.patch(
+  "/api/tournaments/:id",
+  requireAdmin,
+  async (
+    req,
+    res
+  ) => {
+    const data =
+      readData();
+
+    const tournament =
+      data.tournaments.find(
+        item =>
+          Number(item.id) ===
+          Number(
+            req.params.id
+          )
+      );
+
+    if (!tournament) {
+      return res
+        .status(404)
+        .json({
+          error:
+            "Турнир не найден"
+        });
+    }
+
+    const body =
+      req.body || {};
+
+    for (
+      const key of [
+        "name",
+        "status",
+        "date",
+        "format",
+        "prize",
+        "description"
+      ]
+    ) {
+      if (
+        key in body
+      ) {
+        tournament[key] =
+          cleanText(
+            body[key],
+            key ===
+              "description"
+              ? 500
+              : 100
+          );
+      }
+    }
+
+    if (
+      "guildIds" in body
+    ) {
+      tournament.guildIds =
+        Array.isArray(
+          body.guildIds
+        )
+          ? body.guildIds.map(
+              Number
+            )
+          : [];
+    }
+
+    tournament.status =
+      String(
+        tournament.status ||
+        "UPCOMING"
+      ).toUpperCase();
+
+    await atomicWrite(data);
+
+    broadcast();
+
+    res.json(tournament);
+  }
+);
+
+app.delete(
+  "/api/tournaments/:id",
+  requireAdmin,
+  async (
+    req,
+    res
+  ) => {
+    const data =
+      readData();
+
+    const id =
+      Number(
+        req.params.id
+      );
+
+    data.tournaments =
+      data.tournaments.filter(
+        item =>
+          Number(item.id) !==
+          id
+      );
+
+    await atomicWrite(data);
+
+    broadcast();
+
+    res.json({
+      ok: true
+    });
+  }
+);
+
+/* =========================================================
+   NEWS
+========================================================= */
+
+app.post(
+  "/api/news",
+  requireAdmin,
+  async (
+    req,
+    res
+  ) => {
+    const data =
+      readData();
+
+    const body =
+      req.body || {};
+
+    const title =
+      cleanText(
+        body.title,
+        120
+      );
+
+    if (!title) {
+      return res
+        .status(400)
+        .json({
+          error:
+            "Укажи заголовок"
+        });
+    }
+
+    const news = {
+      id:
+        nextId(
+          data.news
+        ),
+
+      title,
+
+      body:
+        cleanText(
+          body.body,
+          1500
+        ),
+
+      pinned:
+        !!body.pinned,
+
+      createdAt:
+        new Date()
+          .toISOString()
+    };
+
+    data.news.unshift(
+      news
+    );
+
+    await atomicWrite(data);
+
+    broadcast();
+
+    res.json(news);
+  }
+);
+
+app.patch(
+  "/api/news/:id",
+  requireAdmin,
+  async (
+    req,
+    res
+  ) => {
+    const data =
+      readData();
+
+    const news =
+      data.news.find(
+        item =>
+          Number(item.id) ===
+          Number(
+            req.params.id
+          )
+      );
+
+    if (!news) {
+      return res
+        .status(404)
+        .json({
+          error:
+            "Новость не найдена"
+        });
+    }
+
+    if (
+      "title" in
+      req.body
+    ) {
+      news.title =
+        cleanText(
+          req.body.title,
+          120
+        );
+    }
+
+    if (
+      "body" in
+      req.body
+    ) {
+      news.body =
+        cleanText(
+          req.body.body,
+          1500
+        );
+    }
+
+    if (
+      "pinned" in
+      req.body
+    ) {
+      news.pinned =
+        !!req.body.pinned;
+    }
+
+    await atomicWrite(data);
+
+    broadcast();
+
+    res.json(news);
+  }
+);
+
+app.delete(
+  "/api/news/:id",
+  requireAdmin,
+  async (
+    req,
+    res
+  ) => {
+    const data =
+      readData();
+
+    const id =
+      Number(
+        req.params.id
+      );
+
+    data.news =
+      data.news.filter(
+        item =>
+          Number(item.id) !==
+          id
+      );
+
+    await atomicWrite(data);
+
+    broadcast();
+
+    res.json({
+      ok: true
+    });
+  }
+);
+
+/* =========================================================
+   SETTINGS
+========================================================= */
+
+app.patch(
+  "/api/settings",
+  requireAdmin,
+  async (
+    req,
+    res
+  ) => {
+    const data =
+      readData();
+
+    if (
+      "siteName" in
+      req.body
+    ) {
+      data.settings.siteName =
+        cleanText(
+          req.body.siteName,
+          40
+        );
+    }
+
+    if (
+      "tagline" in
+      req.body
+    ) {
+      data.settings.tagline =
+        cleanText(
+          req.body.tagline,
+          100
+        );
+    }
+
+    if (
+      /^#[0-9a-f]{6}$/i.test(
+        req.body?.accent ||
+        ""
+      )
+    ) {
+      data.settings.accent =
+        req.body.accent;
+    }
+
+    await atomicWrite(data);
+
+    broadcast();
+
+    res.json(
+      data.settings
+    );
+  }
+);
+
+/* =========================================================
+   GLOBAL OVERLAY
+========================================================= */
 
 app.patch(
   "/api/overlay",
   requireAdmin,
-  (req, res) => {
+  async (
+    req,
+    res
+  ) => {
     const data =
       readData();
 
@@ -3272,16 +4382,6 @@ app.patch(
     }
 
     if (
-      "customText" in body
-    ) {
-      data.overlay.customText =
-        cleanText(
-          body.customText,
-          80
-        );
-    }
-
-    if (
       "accent" in body &&
       /^#[0-9a-f]{6}$/i.test(
         body.accent
@@ -3291,19 +4391,54 @@ app.patch(
         body.accent;
     }
 
-    atomicWrite(data);
+    if (
+      "position" in body
+    ) {
+      data.overlay.position =
+        body.position ===
+        "top"
+          ? "top"
+          : "bottom";
+    }
+
+    if (
+      "showPlayers" in
+      body
+    ) {
+      data.overlay.showPlayers =
+        !!body.showPlayers;
+    }
+
+    if (
+      "showStats" in body
+    ) {
+      data.overlay.showStats =
+        !!body.showStats;
+    }
+
+    if (
+      "customText" in body
+    ) {
+      data.overlay.customText =
+        cleanText(
+          body.customText,
+          80
+        );
+    }
+
+    await atomicWrite(data);
 
     broadcast();
 
     res.json(
-      overlayState()
+      globalOverlayState()
     );
   }
 );
 
-/* =========================================
+/* =========================================================
    BACKUP
-========================================= */
+========================================================= */
 
 app.get(
   "/api/admin/export",
@@ -3331,13 +4466,16 @@ app.get(
 app.post(
   "/api/admin/import",
   requireAdmin,
-  (req, res) => {
+  async (
+    req,
+    res
+  ) => {
     const data =
-      normalize(
+      normalizeData(
         req.body
       );
 
-    atomicWrite(data);
+    await atomicWrite(data);
 
     broadcast();
 
@@ -3347,23 +4485,46 @@ app.post(
   }
 );
 
-/* =========================================
+/* =========================================================
    SOCKET.IO
-========================================= */
+========================================================= */
 
 io.on(
   "connection",
   socket => {
     socket.emit(
       "overlay:update",
-      overlayState()
+      globalOverlayState()
+    );
+
+    socket.on(
+      "watch-streamer",
+      id => {
+        const streamerId =
+          Number(id);
+
+        if (!streamerId) {
+          return;
+        }
+
+        socket.join(
+          `streamer:${streamerId}`
+        );
+
+        socket.emit(
+          "streamer-overlay:update",
+          streamerOverlayState(
+            streamerId
+          )
+        );
+      }
     );
   }
 );
 
-/* =========================================
+/* =========================================================
    PAGES
-========================================= */
+========================================================= */
 
 app.get(
   "/",
@@ -3389,6 +4550,15 @@ app.get(
   }
 );
 
+/*
+  Любая неизвестная страница ->
+  index.html
+
+  ВАЖНО:
+  API маршруты находятся выше,
+  поэтому они сюда не попадут.
+*/
+
 app.get(
   "*",
   (req, res) => {
@@ -3401,9 +4571,9 @@ app.get(
   }
 );
 
-/* =========================================
+/* =========================================================
    START
-========================================= */
+========================================================= */
 
 async function start() {
   try {
@@ -3420,7 +4590,7 @@ async function start() {
     );
   } catch (error) {
     console.error(
-      "DATABASE START ERROR:",
+      "SERVER START ERROR:",
       error
     );
 
@@ -3437,7 +4607,9 @@ process.on(
       if (DB) {
         await DB.end();
       }
-    } catch {}
+    } catch (error) {
+      console.error(error);
+    }
 
     process.exit(0);
   }
