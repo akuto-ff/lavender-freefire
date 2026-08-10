@@ -7,28 +7,46 @@ const fs = require("fs");
 const crypto = require("crypto");
 const { promisify } = require("util");
 const { Server } = require("socket.io");
+const { Pool } = require("pg");
 
 const scryptAsync = promisify(crypto.scrypt);
 
-const APP_VERSION = "7.3.5";
+const APP_VERSION = "8.0.0-postgres";
 const PORT = Number(process.env.PORT || 3000);
 const ROOT = __dirname;
 const DATA_FILE = path.join(ROOT, "data.json");
 
-const ADMIN_USER = String(process.env.LAVENDER_ADMIN_USER || "admin");
-const ADMIN_PASSWORD = String(process.env.LAVENDER_ADMIN_PASSWORD || "lavender123");
-const AUTH_SECRET = String(
-  process.env.LAVENDER_SESSION_SECRET ||
-    ADMIN_USER + ":" + ADMIN_PASSWORD + ":lavender-v7"
+const ADMIN_USER = String(
+  process.env.LAVENDER_ADMIN_USER || "admin"
 );
 
-const COOKIE_SECURE = process.env.NODE_ENV === "production";
-const TOKEN_TTL = 12 * 60 * 60 * 1000;
+const ADMIN_PASSWORD = String(
+  process.env.LAVENDER_ADMIN_PASSWORD || "lavender123"
+);
+
+const AUTH_SECRET = String(
+  process.env.LAVENDER_SESSION_SECRET ||
+  `${ADMIN_USER}:${ADMIN_PASSWORD}:lavender-v8`
+);
+
+const DATABASE_URL = String(
+  process.env.DATABASE_URL || ""
+);
+
+const COOKIE_SECURE =
+  process.env.NODE_ENV === "production";
+
+const TOKEN_TTL =
+  12 * 60 * 60 * 1000;
+
+let DB = null;
+let DATA_CACHE = null;
+let WRITE_CHAIN = Promise.resolve();
 
 const app = express();
-const httpServer = http.createServer(app);
+const server = http.createServer(app);
 
-const io = new Server(httpServer, {
+const io = new Server(server, {
   transports: ["websocket", "polling"],
   pingInterval: 25000,
   pingTimeout: 20000
@@ -36,15 +54,26 @@ const io = new Server(httpServer, {
 
 app.disable("x-powered-by");
 
-app.use(express.json({ limit: "4mb" }));
+app.use(
+  express.json({
+    limit: "4mb"
+  })
+);
 
 app.use(
   express.static(ROOT, {
     index: false,
     etag: true,
-    maxAge: process.env.NODE_ENV === "production" ? "5m" : 0
+    maxAge:
+      process.env.NODE_ENV === "production"
+        ? "5m"
+        : 0
   })
 );
+
+/* =========================================
+   DATA
+========================================= */
 
 function baseData() {
   return {
@@ -77,21 +106,22 @@ function baseData() {
   };
 }
 
-function normalize(d) {
-  const b = baseData();
+function normalize(data) {
+  const base = baseData();
 
-  if (!d || typeof d !== "object") {
-    d = {};
+  if (!data || typeof data !== "object") {
+    data = {};
   }
 
-  d.version = Number(d.version) || 1;
+  data.version =
+    Number(data.version) || 1;
 
-  d.settings = {
-    ...b.settings,
-    ...(d.settings || {})
+  data.settings = {
+    ...base.settings,
+    ...(data.settings || {})
   };
 
-  for (const k of [
+  for (const key of [
     "guilds",
     "players",
     "matches",
@@ -100,59 +130,237 @@ function normalize(d) {
     "streamers",
     "streamerStreams"
   ]) {
-    if (!Array.isArray(d[k])) {
-      d[k] = [];
+    if (!Array.isArray(data[key])) {
+      data[key] = [];
     }
   }
 
-  d.overlay = {
-    ...b.overlay,
-    ...(d.overlay || {})
+  data.overlay = {
+    ...base.overlay,
+    ...(data.overlay || {})
   };
 
-  return d;
+  return data;
 }
 
-function readData() {
+function cloneData(data) {
+  return JSON.parse(
+    JSON.stringify(
+      normalize(data)
+    )
+  );
+}
+
+function readSeedFile() {
   try {
     return normalize(
       JSON.parse(
-        fs.readFileSync(DATA_FILE, "utf8")
+        fs.readFileSync(
+          DATA_FILE,
+          "utf8"
+        )
       )
     );
-  } catch (err) {
-    console.error("DATA read failed:", err.message);
-
-    const d = baseData();
-
-    atomicWrite(d);
-
-    return d;
+  } catch {
+    return baseData();
   }
 }
 
-function atomicWrite(d) {
-  const tmp = DATA_FILE + ".tmp";
+function readData() {
+  return cloneData(
+    DATA_CACHE ||
+    baseData()
+  );
+}
 
-  fs.writeFileSync(
-    tmp,
-    JSON.stringify(normalize(d), null, 2),
-    "utf8"
+function atomicWrite(data) {
+  const next =
+    cloneData(data);
+
+  DATA_CACHE = next;
+
+  WRITE_CHAIN =
+    WRITE_CHAIN
+      .then(() =>
+        DB.query(
+          `
+          INSERT INTO lavender_state
+          (id, data, updated_at)
+
+          VALUES
+          (1, $1::jsonb, NOW())
+
+          ON CONFLICT (id)
+
+          DO UPDATE SET
+          data = EXCLUDED.data,
+          updated_at = NOW()
+          `,
+          [
+            JSON.stringify(next)
+          ]
+        )
+      )
+      .catch(error => {
+        console.error(
+          "PostgreSQL write error:",
+          error
+        );
+      });
+}
+
+async function initDatabase() {
+  if (!DATABASE_URL) {
+    throw new Error(
+      "DATABASE_URL отсутствует в Render Environment"
+    );
+  }
+
+  DB = new Pool({
+    connectionString:
+      DATABASE_URL,
+
+    ssl:
+      DATABASE_URL.includes(
+        "localhost"
+      )
+        ? false
+        : {
+            rejectUnauthorized: false
+          },
+
+    max: 5,
+
+    idleTimeoutMillis:
+      30000,
+
+    connectionTimeoutMillis:
+      10000
+  });
+
+  await DB.query(
+    "SELECT 1"
   );
 
-  fs.renameSync(tmp, DATA_FILE);
+  await DB.query(`
+    CREATE TABLE IF NOT EXISTS lavender_state (
+      id INTEGER PRIMARY KEY,
+      data JSONB NOT NULL,
+      updated_at TIMESTAMPTZ
+      NOT NULL DEFAULT NOW()
+    )
+  `);
+
+  const result =
+    await DB.query(
+      `
+      SELECT data
+      FROM lavender_state
+      WHERE id = 1
+      `
+    );
+
+  if (result.rows.length) {
+    DATA_CACHE =
+      normalize(
+        result.rows[0].data
+      );
+
+    console.log(
+      "LAVENDER data loaded from PostgreSQL"
+    );
+  } else {
+    const seed =
+      readSeedFile();
+
+    await DB.query(
+      `
+      INSERT INTO lavender_state
+      (id, data, updated_at)
+
+      VALUES
+      (1, $1::jsonb, NOW())
+      `,
+      [
+        JSON.stringify(seed)
+      ]
+    );
+
+    DATA_CACHE = seed;
+
+    console.log(
+      "Initial LAVENDER data imported into PostgreSQL"
+    );
+  }
 }
+
+/* =========================================
+   HELPERS
+========================================= */
 
 function nextId(arr) {
-  return arr.length
-    ? Math.max(
-        ...arr.map(x => Number(x.id) || 0)
-      ) + 1
-    : 1;
+  if (!arr.length) {
+    return 1;
+  }
+
+  return (
+    Math.max(
+      ...arr.map(
+        x =>
+          Number(x.id) || 0
+      )
+    ) + 1
+  );
 }
 
+function cleanText(
+  value,
+  max = 120
+) {
+  return String(
+    value ?? ""
+  )
+    .trim()
+    .slice(0, max);
+}
+
+function cleanImage(
+  value,
+  fallback
+) {
+  value =
+    String(
+      value || ""
+    ).trim();
+
+  if (!value) {
+    return fallback;
+  }
+
+  if (
+    value.startsWith(
+      "data:image/"
+    )
+  ) {
+    return value.length <=
+      3000000
+      ? value
+      : fallback;
+  }
+
+  return value.slice(
+    0,
+    64
+  );
+}
+
+/* =========================================
+   RANK / ELO
+========================================= */
+
 function rankForElo(elo) {
-  const e = Number(elo) || 0;
+  const e =
+    Number(elo) || 0;
 
   if (e >= 2000) return "S";
   if (e >= 1800) return "A";
@@ -164,200 +372,243 @@ function rankForElo(elo) {
   return "F";
 }
 
-/* ================================
-   ELO
-================================ */
-
-function eloExpected(rA, rB) {
-  return 1 / (
-    1 +
-    Math.pow(
-      10,
-      (rB - rA) / 400
+function expectedScore(
+  ratingA,
+  ratingB
+) {
+  return (
+    1 /
+    (
+      1 +
+      Math.pow(
+        10,
+        (
+          ratingB -
+          ratingA
+        ) / 400
+      )
     )
   );
 }
 
-function eloDelta(
-  rA,
-  rB,
-  scoreA,
+function calculateEloDelta(
+  ratingA,
+  ratingB,
+  resultA,
   k = 32
 ) {
   return Math.round(
     k *
-      (
-        scoreA -
-        eloExpected(rA, rB)
+    (
+      resultA -
+      expectedScore(
+        ratingA,
+        ratingB
       )
+    )
   );
 }
 
-function applyMatchElo(d, m) {
-  // чтобы один матч нельзя было посчитать два раза
-  if (m.eloApplied) {
+function applyMatchElo(
+  data,
+  match
+) {
+  /*
+    Один матч не может
+    распределить ELO дважды
+  */
+
+  if (match.eloApplied) {
     return null;
   }
 
-  const a = d.players.find(
-    p =>
-      Number(p.id) ===
-      Number(m.playerAId)
-  );
+  const playerA =
+    data.players.find(
+      p =>
+        Number(p.id) ===
+        Number(
+          match.playerAId
+        )
+    );
 
-  const b = d.players.find(
-    p =>
-      Number(p.id) ===
-      Number(m.playerBId)
-  );
+  const playerB =
+    data.players.find(
+      p =>
+        Number(p.id) ===
+        Number(
+          match.playerBId
+        )
+    );
 
-  if (!a || !b) {
+  if (
+    !playerA ||
+    !playerB
+  ) {
     return null;
   }
 
-  const sa = Number(m.scoreA);
-  const sb = Number(m.scoreB);
+  const scoreA =
+    Number(
+      match.scoreA
+    );
 
-  if (sa === sb) {
+  const scoreB =
+    Number(
+      match.scoreB
+    );
+
+  if (
+    scoreA === scoreB
+  ) {
     return null;
   }
 
   const oldA =
-    Number(a.elo) || 1200;
+    Number(
+      playerA.elo
+    ) || 1200;
 
   const oldB =
-    Number(b.elo) || 1200;
+    Number(
+      playerB.elo
+    ) || 1200;
 
-  const scoreA =
-    sa > sb ? 1 : 0;
+  const resultA =
+    scoreA > scoreB
+      ? 1
+      : 0;
 
   const delta =
-    eloDelta(
+    calculateEloDelta(
       oldA,
       oldB,
-      scoreA,
+      resultA,
       32
     );
 
-  a.elo =
+  playerA.elo =
     Math.max(
       0,
       oldA + delta
     );
 
-  b.elo =
+  playerB.elo =
     Math.max(
       0,
       oldB - delta
     );
 
-  if (scoreA === 1) {
-    a.wins =
-      (Number(a.wins) || 0) + 1;
+  if (resultA === 1) {
+    playerA.wins =
+      (
+        Number(
+          playerA.wins
+        ) || 0
+      ) + 1;
 
-    b.losses =
-      (Number(b.losses) || 0) + 1;
+    playerB.losses =
+      (
+        Number(
+          playerB.losses
+        ) || 0
+      ) + 1;
   } else {
-    b.wins =
-      (Number(b.wins) || 0) + 1;
+    playerB.wins =
+      (
+        Number(
+          playerB.wins
+        ) || 0
+      ) + 1;
 
-    a.losses =
-      (Number(a.losses) || 0) + 1;
+    playerA.losses =
+      (
+        Number(
+          playerA.losses
+        ) || 0
+      ) + 1;
   }
 
-  a.updatedAt =
-    new Date().toISOString();
+  playerA.updatedAt =
+    new Date()
+      .toISOString();
 
-  b.updatedAt =
-    new Date().toISOString();
+  playerB.updatedAt =
+    new Date()
+      .toISOString();
 
-  m.eloApplied = true;
+  match.eloApplied =
+    true;
 
-  m.eloChange = {
-    playerAId: a.id,
-    playerBId: b.id,
+  match.eloChange = {
+    playerAId:
+      playerA.id,
 
-    beforeA: oldA,
-    beforeB: oldB,
+    playerBId:
+      playerB.id,
 
-    afterA: a.elo,
-    afterB: b.elo,
+    beforeA:
+      oldA,
 
-    deltaA: delta,
-    deltaB: -delta,
+    beforeB:
+      oldB,
+
+    afterA:
+      playerA.elo,
+
+    afterB:
+      playerB.elo,
+
+    deltaA:
+      delta,
+
+    deltaB:
+      -delta,
 
     appliedAt:
-      new Date().toISOString()
+      new Date()
+        .toISOString()
   };
 
-  return m.eloChange;
+  return match.eloChange;
 }
 
-/* ================================
-   HELPERS
-================================ */
-
-function cleanText(
-  v,
-  max = 120
-) {
-  return String(v ?? "")
-    .trim()
-    .slice(0, max);
-}
-
-function cleanImage(
-  v,
-  fallback
-) {
-  v = String(v || "").trim();
-
-  if (!v) {
-    return fallback;
-  }
-
-  if (
-    v.startsWith("data:image/")
-  ) {
-    return v.length <= 3000000
-      ? v
-      : fallback;
-  }
-
-  return v.slice(0, 64);
-}
+/* =========================================
+   AUTH
+========================================= */
 
 function parseCookies(req) {
-  const out = {};
+  const result = {};
 
   String(
-    req.headers.cookie || ""
+    req.headers.cookie ||
+    ""
   )
     .split(";")
     .forEach(part => {
-      const i =
+      const index =
         part.indexOf("=");
 
-      if (i > 0) {
-        out[
+      if (index > 0) {
+        result[
           part
-            .slice(0, i)
+            .slice(
+              0,
+              index
+            )
             .trim()
         ] =
           decodeURIComponent(
             part
-              .slice(i + 1)
+              .slice(
+                index + 1
+              )
               .trim()
           );
       }
     });
 
-  return out;
+  return result;
 }
-
-/* ================================
-   AUTH
-================================ */
 
 function sign(value) {
   return crypto
@@ -366,33 +617,47 @@ function sign(value) {
       AUTH_SECRET
     )
     .update(value)
-    .digest("base64url");
+    .digest(
+      "base64url"
+    );
 }
 
-function makeToken(payloadObj) {
-  const payload =
+function createToken(
+  payload
+) {
+  const encoded =
     Buffer.from(
       JSON.stringify({
-        ...payloadObj,
+        ...payload,
         t: Date.now()
-      }),
-      "utf8"
-    ).toString("base64url");
+      })
+    ).toString(
+      "base64url"
+    );
 
   return (
-    payload +
+    encoded +
     "." +
-    sign(payload)
+    sign(encoded)
   );
 }
 
-function verifyToken(token) {
+function verifyToken(
+  token
+) {
   try {
-    const [payload, sig] =
-      String(token || "")
-        .split(".");
+    const [
+      payload,
+      signature
+    ] =
+      String(
+        token || ""
+      ).split(".");
 
-    if (!payload || !sig) {
+    if (
+      !payload ||
+      !signature
+    ) {
       return null;
     }
 
@@ -400,13 +665,18 @@ function verifyToken(token) {
       sign(payload);
 
     const a =
-      Buffer.from(sig);
+      Buffer.from(
+        signature
+      );
 
     const b =
-      Buffer.from(expected);
+      Buffer.from(
+        expected
+      );
 
     if (
-      a.length !== b.length ||
+      a.length !==
+        b.length ||
       !crypto.timingSafeEqual(
         a,
         b
@@ -415,23 +685,33 @@ function verifyToken(token) {
       return null;
     }
 
-    const obj =
+    const decoded =
       JSON.parse(
         Buffer.from(
           payload,
           "base64url"
-        ).toString("utf8")
+        ).toString(
+          "utf8"
+        )
       );
 
     if (
-      !Number.isFinite(obj.t) ||
-      Date.now() - obj.t >
-        TOKEN_TTL
+      !Number.isFinite(
+        decoded.t
+      )
     ) {
       return null;
     }
 
-    return obj;
+    if (
+      Date.now() -
+        decoded.t >
+      TOKEN_TTL
+    ) {
+      return null;
+    }
+
+    return decoded;
   } catch {
     return null;
   }
@@ -440,14 +720,8 @@ function verifyToken(token) {
 function authInfo(req) {
   return verifyToken(
     parseCookies(req)
-      .lavender_session || ""
-  );
-}
-
-function isAdmin(req) {
-  return (
-    authInfo(req)?.role ===
-    "admin"
+      .lavender_session ||
+    ""
   );
 }
 
@@ -456,7 +730,13 @@ function requireAdmin(
   res,
   next
 ) {
-  if (!isAdmin(req)) {
+  const auth =
+    authInfo(req);
+
+  if (
+    !auth ||
+    auth.role !== "admin"
+  ) {
     return res
       .status(401)
       .json({
@@ -473,12 +753,13 @@ function requireStreamer(
   res,
   next
 ) {
-  const a =
+  const auth =
     authInfo(req);
 
   if (
-    !a ||
-    a.role !== "streamer"
+    !auth ||
+    auth.role !==
+      "streamer"
   ) {
     return res
       .status(401)
@@ -488,16 +769,17 @@ function requireStreamer(
       });
   }
 
-  const d = readData();
+  const data =
+    readData();
 
   const streamer =
-    d.streamers.find(
-      x =>
-        Number(x.id) ===
+    data.streamers.find(
+      s =>
+        Number(s.id) ===
           Number(
-            a.streamerId
+            auth.streamerId
           ) &&
-        x.active !== false
+        s.active !== false
     );
 
   if (!streamer) {
@@ -520,10 +802,10 @@ function requireEditor(
   res,
   next
 ) {
-  const a =
+  const auth =
     authInfo(req);
 
-  if (!a) {
+  if (!auth) {
     return res
       .status(401)
       .json({
@@ -533,7 +815,8 @@ function requireEditor(
   }
 
   if (
-    a.role === "admin"
+    auth.role ===
+    "admin"
   ) {
     req.editor = {
       role: "admin",
@@ -545,37 +828,41 @@ function requireEditor(
   }
 
   if (
-    a.role ===
+    auth.role ===
     "streamer"
   ) {
-    const d =
+    const data =
       readData();
 
-    const st =
-      d.streamers.find(
-        x =>
-          Number(x.id) ===
+    const streamer =
+      data.streamers.find(
+        s =>
+          Number(s.id) ===
             Number(
-              a.streamerId
+              auth.streamerId
             ) &&
-          x.active !== false
+          s.active !== false
       );
 
-    if (!st) {
+    if (!streamer) {
       return res
         .status(401)
         .json({
           error:
-            "Аккаунт стримера отключён"
+            "Стример отключён"
         });
     }
 
     req.editor = {
-      role: "streamer",
-      id: st.id,
+      role:
+        "streamer",
+
+      id:
+        streamer.id,
+
       name:
-        st.displayName ||
-        st.username
+        streamer.displayName ||
+        streamer.username
     };
 
     return next();
@@ -585,7 +872,7 @@ function requireEditor(
     .status(403)
     .json({
       error:
-        "Нет прав редактора"
+        "Нет доступа"
     });
 }
 
@@ -597,7 +884,7 @@ async function hashPassword(
       .randomBytes(16)
       .toString("hex");
 
-  const derived =
+  const key =
     await scryptAsync(
       String(password),
       salt,
@@ -607,21 +894,22 @@ async function hashPassword(
   return (
     salt +
     ":" +
-    derived.toString("hex")
+    key.toString("hex")
   );
 }
 
 async function verifyPassword(
   password,
-  stored
+  saved
 ) {
   try {
     const [
       salt,
       keyHex
     ] =
-      String(stored || "")
-        .split(":");
+      String(
+        saved || ""
+      ).split(":");
 
     if (
       !salt ||
@@ -630,25 +918,25 @@ async function verifyPassword(
       return false;
     }
 
-    const derived =
+    const key =
       await scryptAsync(
         String(password),
         salt,
         64
       );
 
-    const key =
+    const stored =
       Buffer.from(
         keyHex,
         "hex"
       );
 
     return (
-      key.length ===
-        derived.length &&
+      stored.length ===
+        key.length &&
       crypto.timingSafeEqual(
-        key,
-        derived
+        stored,
+        key
       )
     );
   } catch {
@@ -656,51 +944,61 @@ async function verifyPassword(
   }
 }
 
-/* ================================
+/* =========================================
    PUBLIC DATA
-================================ */
+========================================= */
 
 function publicData(
-  d = readData()
+  data = readData()
 ) {
   const guildMap =
     Object.fromEntries(
-      d.guilds.map(
-        g => [
-          Number(g.id),
-          g
+      data.guilds.map(
+        guild => [
+          Number(
+            guild.id
+          ),
+          guild
         ]
       )
     );
 
   const players =
-    d.players
-      .map(p => {
+    data.players
+      .map(player => {
         const wins =
-          Number(p.wins) || 0;
+          Number(
+            player.wins
+          ) || 0;
 
         const losses =
-          Number(p.losses) || 0;
+          Number(
+            player.losses
+          ) || 0;
 
         const kills =
-          Number(p.kills) || 0;
+          Number(
+            player.kills
+          ) || 0;
 
         const deaths =
-          Number(p.deaths) || 0;
+          Number(
+            player.deaths
+          ) || 0;
 
         return {
-          ...p,
+          ...player,
 
           guild:
             guildMap[
               Number(
-                p.guildId
+                player.guildId
               )
             ] || null,
 
           rank:
             rankForElo(
-              p.elo
+              player.elo
             ),
 
           kd:
@@ -728,107 +1026,94 @@ function publicData(
       })
       .sort(
         (a, b) =>
-          (Number(b.elo) ||
-            0) -
-          (Number(a.elo) ||
-            0)
+          Number(
+            b.elo
+          ) -
+          Number(
+            a.elo
+          )
       );
 
   const playerMap =
     Object.fromEntries(
       players.map(
-        p => [
-          Number(p.id),
-          p
+        player => [
+          Number(
+            player.id
+          ),
+          player
         ]
       )
     );
 
   const guilds =
-    d.guilds
-      .map(g => {
+    data.guilds
+      .map(guild => {
         const roster =
           players.filter(
-            p =>
+            player =>
               Number(
-                p.guildId
+                player.guildId
               ) ===
-              Number(g.id)
+              Number(
+                guild.id
+              )
           );
 
-        const wins =
-          Number(g.wins) ||
-          0;
-
-        const losses =
-          Number(
-            g.losses
-          ) || 0;
-
         return {
-          ...g,
+          ...guild,
 
           rank:
             rankForElo(
-              g.elo
+              guild.elo
             ),
 
           memberCount:
             roster.length,
 
-          roster,
-
-          winrate:
-            wins + losses
-              ? Math.round(
-                  wins /
-                    (
-                      wins +
-                      losses
-                    ) *
-                    100
-                )
-              : 0
+          roster
         };
       })
       .sort(
         (a, b) =>
-          (Number(b.elo) ||
-            0) -
-          (Number(a.elo) ||
-            0)
+          Number(
+            b.elo
+          ) -
+          Number(
+            a.elo
+          )
       );
 
   const matches =
-    d.matches
-      .map(m => ({
-        ...m,
+    data.matches
+      .map(match => ({
+        ...match,
 
         guildA:
           guildMap[
             Number(
-              m.guildAId
+              match.guildAId
             )
           ] || null,
 
         guildB:
           guildMap[
             Number(
-              m.guildBId
+              match.guildBId
             )
           ] || null,
 
         playerA:
           playerMap[
             Number(
-              m.playerAId
+              match.playerAId
             )
           ] || null,
 
         playerB:
           playerMap[
             Number(
-              m.playerBId
+              match.playerBId
             )
           ] || null
       }))
@@ -838,211 +1123,84 @@ function publicData(
           Number(a.id)
       );
 
-  const tournaments =
-    d.tournaments
-      .map(t => ({
-        ...t,
-
-        participants:
-          (t.guildIds || [])
-            .map(
-              x =>
-                guildMap[
-                  Number(x)
-                ]
-            )
-            .filter(Boolean)
-      }))
-      .sort(
-        (a, b) =>
-          Number(b.id) -
-          Number(a.id)
-      );
-
-  const publicStreamers =
-    d.streamers
+  const streamers =
+    data.streamers
       .filter(
-        s =>
-          s.active !== false
+        streamer =>
+          streamer.active !==
+          false
       )
       .map(
         ({
           passwordHash,
-          ...s
-        }) => {
-          const stream =
-            d.streamerStreams.find(
-              x =>
-                Number(
-                  x.streamerId
-                ) ===
-                Number(s.id)
-            ) || null;
+          ...streamer
+        }) => ({
+          ...streamer,
 
-          return {
-            ...s,
-            stream
-          };
-        }
+          stream:
+            data.streamerStreams.find(
+              stream =>
+                Number(
+                  stream.streamerId
+                ) ===
+                Number(
+                  streamer.id
+                )
+            ) || null
+        })
       );
 
   return {
-    ...d,
+    ...data,
     players,
     guilds,
     matches,
-    tournaments,
-    streamers:
-      publicStreamers,
+    streamers,
     streamerStreams:
       undefined
   };
 }
 
-function globalOverlayState() {
-  const d =
+/* =========================================
+   OVERLAY
+========================================= */
+
+function overlayState() {
+  const data =
     publicData();
 
-  const m =
-    d.matches.find(
-      x =>
-        Number(x.id) ===
+  const match =
+    data.matches.find(
+      match =>
         Number(
-          d.overlay
+          match.id
+        ) ===
+        Number(
+          data.overlay
             .activeMatchId
         )
     ) ||
-    d.matches[0] ||
+    data.matches[0] ||
     null;
 
   return {
     overlay:
-      d.overlay,
-    match: m,
-    settings:
-      d.settings,
-    version:
-      APP_VERSION
-  };
-}
+      data.overlay,
 
-function streamerOverlayState(
-  streamerId
-) {
-  const d =
-    publicData();
-
-  const streamer =
-    d.streamers.find(
-      s =>
-        Number(s.id) ===
-        Number(streamerId)
-    );
-
-  if (!streamer) {
-    return null;
-  }
-
-  const st =
-    streamer.stream || {};
-
-  const baseMatch =
-    d.matches.find(
-      x =>
-        Number(x.id) ===
-        Number(st.matchId)
-    ) ||
-    d.matches[0] ||
-    null;
-
-  let m =
-    baseMatch
-      ? { ...baseMatch }
-      : null;
-
-  if (m) {
-    const pA =
-      d.players.find(
-        p =>
-          Number(p.id) ===
-          Number(
-            st.playerAId
-          )
-      );
-
-    const pB =
-      d.players.find(
-        p =>
-          Number(p.id) ===
-          Number(
-            st.playerBId
-          )
-      );
-
-    if (pA) {
-      m.playerAId =
-        pA.id;
-
-      m.playerA =
-        pA;
-    }
-
-    if (pB) {
-      m.playerBId =
-        pB.id;
-
-      m.playerB =
-        pB;
-    }
-  }
-
-  return {
-    streamer,
-
-    overlay: {
-      visible:
-        st.status ===
-        "LIVE",
-
-      accent:
-        st.accent ||
-        d.settings.accent ||
-        "#b46cff",
-
-      position:
-        st.position ||
-        "bottom",
-
-      showPlayers:
-        st.showPlayers !==
-        false,
-
-      showStats:
-        st.showStats !==
-        false,
-
-      customText:
-        st.customText ||
-        `${
-          streamer.displayName ||
-          streamer.username
-        } • LIVE`
-    },
-
-    match: m,
+    match,
 
     settings:
-      d.settings,
+      data.settings,
 
     version:
       APP_VERSION
   };
 }
 
-function broadcastGlobal() {
+function broadcast() {
   io.emit(
     "overlay:update",
-    globalOverlayState()
+    overlayState()
   );
 
   io.emit(
@@ -1053,51 +1211,14 @@ function broadcastGlobal() {
   );
 }
 
-function broadcastStreamer(id) {
-  io
-    .to(
-      "streamer:" + id
-    )
-    .emit(
-      "streamer-overlay:update",
-      streamerOverlayState(id)
-    );
-
-  io.emit(
-    "site:update",
-    {
-      at: Date.now()
-    }
-  );
-}
-
-function ok(
-  res,
-  data
-) {
-  res.json(data);
-}
-
-function fail(
-  res,
-  msg,
-  code = 400
-) {
-  res
-    .status(code)
-    .json({
-      error: msg
-    });
-}
-
-/* ================================
-   BASIC API
-================================ */
+/* =========================================
+   HEALTH
+========================================= */
 
 app.get(
   "/health",
-  (req, res) =>
-    ok(res, {
+  (req, res) => {
+    res.json({
       ok: true,
       version:
         APP_VERSION,
@@ -1105,116 +1226,99 @@ app.get(
         Math.round(
           process.uptime()
         )
-    })
-);
-
-app.get(
-  "/api/all",
-  (req, res) =>
-    ok(
-      res,
-      publicData()
-    )
-);
-
-app.get(
-  "/api/overlay",
-  (req, res) =>
-    ok(
-      res,
-      globalOverlayState()
-    )
-);
-
-app.get(
-  "/api/streamer-overlay/:id",
-  (req, res) => {
-    const x =
-      streamerOverlayState(
-        req.params.id
-      );
-
-    if (!x) {
-      return fail(
-        res,
-        "Стример не найден",
-        404
-      );
-    }
-
-    ok(res, x);
+    });
   }
 );
 
-/* ================================
-   LOGIN
-================================ */
+app.get(
+  "/db-health",
+  async (
+    req,
+    res
+  ) => {
+    try {
+      const result =
+        await DB.query(`
+          SELECT updated_at
+          FROM lavender_state
+          WHERE id = 1
+        `);
+
+      res.json({
+        ok: true,
+        database:
+          "postgresql",
+        version:
+          APP_VERSION,
+        updatedAt:
+          result.rows[0]
+            ?.updated_at ||
+          null
+      });
+    } catch (error) {
+      res
+        .status(500)
+        .json({
+          ok: false,
+          error:
+            error.message
+        });
+    }
+  }
+);
+
+/* =========================================
+   AUTH API
+========================================= */
 
 app.get(
   "/api/auth/status",
   (req, res) => {
-    const a =
+    const auth =
       authInfo(req);
 
-    if (!a) {
-      return ok(
-        res,
-        {
-          authenticated:
-            false,
-          role: null,
-          version:
-            APP_VERSION
-        }
-      );
+    if (!auth) {
+      return res.json({
+        authenticated:
+          false,
+        role: null
+      });
     }
 
     if (
-      a.role ===
+      auth.role ===
       "admin"
     ) {
-      return ok(
-        res,
-        {
-          authenticated:
-            true,
-          role:
-            "admin",
-          user:
-            ADMIN_USER,
-          version:
-            APP_VERSION
-        }
-      );
+      return res.json({
+        authenticated:
+          true,
+        role: "admin",
+        user:
+          ADMIN_USER
+      });
     }
 
-    const d =
+    const data =
       readData();
 
-    const s =
-      d.streamers.find(
-        x =>
-          Number(x.id) ===
-            Number(
-              a.streamerId
-            ) &&
-          x.active !== false
+    const streamer =
+      data.streamers.find(
+        s =>
+          Number(s.id) ===
+          Number(
+            auth.streamerId
+          )
       );
 
-    if (!s) {
-      return ok(
-        res,
-        {
-          authenticated:
-            false,
-          role: null,
-          version:
-            APP_VERSION
-        }
-      );
+    if (!streamer) {
+      return res.json({
+        authenticated:
+          false,
+        role: null
+      });
     }
 
-    ok(res, {
+    res.json({
       authenticated:
         true,
 
@@ -1222,17 +1326,15 @@ app.get(
         "streamer",
 
       streamer: {
-        id: s.id,
+        id:
+          streamer.id,
         username:
-          s.username,
+          streamer.username,
         displayName:
-          s.displayName,
+          streamer.displayName,
         avatar:
-          s.avatar
-      },
-
-      version:
-        APP_VERSION
+          streamer.avatar
+      }
     });
   }
 );
@@ -1247,14 +1349,14 @@ app.post(
       String(
         req.body
           ?.username ||
-          ""
+        ""
       ).trim();
 
     const password =
       String(
         req.body
           ?.password ||
-          ""
+        ""
       );
 
     if (
@@ -1264,9 +1366,8 @@ app.post(
         ADMIN_PASSWORD
     ) {
       const token =
-        makeToken({
-          role: "admin",
-          u: ADMIN_USER
+        createToken({
+          role: "admin"
         });
 
       res.setHeader(
@@ -1278,54 +1379,47 @@ app.post(
         }`
       );
 
-      return ok(
-        res,
-        {
-          ok: true,
-          role:
-            "admin"
-        }
-      );
+      return res.json({
+        ok: true,
+        role:
+          "admin"
+      });
     }
 
-    const d =
+    const data =
       readData();
 
-    const s =
-      d.streamers.find(
-        x =>
-          x.active !==
-            false &&
+    const streamer =
+      data.streamers.find(
+        s =>
+          s.active !== false &&
           String(
-            x.username
+            s.username
           ).toLowerCase() ===
-            username.toLowerCase()
+          username.toLowerCase()
       );
 
     if (
-      !s ||
-      !(await verifyPassword(
+      !streamer ||
+      !await verifyPassword(
         password,
-        s.passwordHash
-      ))
+        streamer.passwordHash
+      )
     ) {
-      return fail(
-        res,
-        "Неверный логин или пароль",
-        401
-      );
+      return res
+        .status(401)
+        .json({
+          error:
+            "Неверный логин или пароль"
+        });
     }
 
     const token =
-      makeToken({
+      createToken({
         role:
           "streamer",
-
         streamerId:
-          s.id,
-
-        u:
-          s.username
+          streamer.id
       });
 
     res.setHeader(
@@ -1337,12 +1431,12 @@ app.post(
       }`
     );
 
-    ok(res, {
+    res.json({
       ok: true,
       role:
         "streamer",
       streamerId:
-        s.id
+        streamer.id
     });
   }
 );
@@ -1359,7 +1453,7 @@ app.post(
       }`
     );
 
-    ok(res, {
+    res.json({
       ok: true
     });
   }
@@ -1368,329 +1462,258 @@ app.post(
 app.get(
   "/api/admin/ping",
   requireAdmin,
-  (req, res) =>
-    ok(res, {
+  (req, res) => {
+    res.json({
       ok: true,
       version:
         APP_VERSION
-    })
+    });
+  }
 );
 
 app.get(
   "/api/streamer/ping",
   requireStreamer,
-  (req, res) =>
-    ok(res, {
+  (req, res) => {
+    res.json({
       ok: true,
       streamerId:
-        req.streamer.id,
-      version:
-        APP_VERSION
-    })
+        req.streamer.id
+    });
+  }
 );
 
-/* ================================
-   STREAMER MANAGEMENT
-================================ */
+/* =========================================
+   MAIN DATA API
+========================================= */
 
 app.get(
-  "/api/admin/streamers",
-  requireAdmin,
+  "/api/all",
   (req, res) => {
-    const d =
-      readData();
-
-    ok(
-      res,
-      d.streamers.map(
-        ({
-          passwordHash,
-          ...s
-        }) => ({
-          ...s,
-
-          stream:
-            d.streamerStreams.find(
-              x =>
-                Number(
-                  x.streamerId
-                ) ===
-                Number(s.id)
-            ) || null
-        })
-      )
+    res.json(
+      publicData()
     );
   }
 );
 
+app.get(
+  "/api/overlay",
+  (req, res) => {
+    res.json(
+      overlayState()
+    );
+  }
+);
+
+/* =========================================
+   PLAYERS
+========================================= */
+
 app.post(
-  "/api/admin/streamers",
-  requireAdmin,
-  async (
-    req,
-    res
-  ) => {
-    const d =
+  "/api/players",
+  requireEditor,
+  (req, res) => {
+    const data =
       readData();
 
-    const b =
+    const body =
       req.body || {};
 
-    const username =
+    const nickname =
       cleanText(
-        b.username,
-        40
+        body.nickname,
+        50
       );
 
-    const displayName =
-      cleanText(
-        b.displayName ||
-          username,
-        60
-      );
-
-    const password =
-      String(
-        b.password || ""
-      );
-
-    if (
-      !username ||
-      password.length < 4
-    ) {
-      return fail(
-        res,
-        "Укажи логин и пароль минимум 4 символа"
-      );
+    if (!nickname) {
+      return res
+        .status(400)
+        .json({
+          error:
+            "Укажи ник игрока"
+        });
     }
 
-    if (
-      d.streamers.some(
-        s =>
-          String(
-            s.username
-          ).toLowerCase() ===
-          username.toLowerCase()
-      )
-    ) {
-      return fail(
-        res,
-        "Такой логин уже существует"
-      );
-    }
-
-    const streamer = {
+    const player = {
       id:
         nextId(
-          d.streamers
+          data.players
         ),
 
-      username,
+      nickname,
 
-      displayName,
+      gameId:
+        cleanText(
+          body.gameId,
+          40
+        ),
 
       avatar:
         cleanImage(
-          b.avatar,
-          "🎥"
+          body.avatar,
+          "👤"
         ),
 
-      active: true,
+      guildId:
+        body.guildId
+          ? Number(
+              body.guildId
+            )
+          : null,
 
-      passwordHash:
-        await hashPassword(
-          password
-        ),
+      elo:
+        Number(
+          body.elo
+        ) || 1200,
+
+      wins:
+        Number(
+          body.wins
+        ) || 0,
+
+      losses:
+        Number(
+          body.losses
+        ) || 0,
+
+      kills:
+        Number(
+          body.kills
+        ) || 0,
+
+      deaths:
+        Number(
+          body.deaths
+        ) || 0,
+
+      createdByRole:
+        req.editor.role,
+
+      createdById:
+        req.editor.id,
+
+      createdByName:
+        req.editor.name,
 
       createdAt:
         new Date()
           .toISOString()
     };
 
-    d.streamers.push(
-      streamer
+    data.players.push(
+      player
     );
 
-    d.streamerStreams.push({
-      id:
-        nextId(
-          d.streamerStreams
-        ),
+    atomicWrite(data);
 
-      streamerId:
-        streamer.id,
+    broadcast();
 
-      status:
-        "OFFLINE",
-
-      title:
-        "Мой стрим",
-
-      platform:
-        "YouTube",
-
-      streamUrl:
-        "",
-
-      matchId:
-        d.matches[0]?.id ||
-        null,
-
-      playerAId:
-        d.matches[0]
-          ?.playerAId ||
-        null,
-
-      playerBId:
-        d.matches[0]
-          ?.playerBId ||
-        null,
-
-      accent:
-        d.settings.accent ||
-        "#b46cff",
-
-      position:
-        "bottom",
-
-      showPlayers:
-        true,
-
-      showStats:
-        true,
-
-      customText:
-        `${displayName} • LIVE`,
-
-      updatedAt:
-        new Date()
-          .toISOString()
-    });
-
-    atomicWrite(d);
-
-    broadcastStreamer(
-      streamer.id
-    );
-
-    ok(res, {
-      id:
-        streamer.id,
-      username:
-        streamer.username,
-      displayName:
-        streamer.displayName,
-      avatar:
-        streamer.avatar,
-      active:
-        streamer.active
-    });
+    res.json(player);
   }
 );
 
 app.patch(
-  "/api/admin/streamers/:id",
-  requireAdmin,
-  async (
-    req,
-    res
-  ) => {
-    const d =
+  "/api/players/:id",
+  requireEditor,
+  (req, res) => {
+    const data =
       readData();
 
-    const streamer =
-      d.streamers.find(
-        x =>
-          Number(x.id) ===
+    const player =
+      data.players.find(
+        p =>
+          Number(p.id) ===
           Number(
             req.params.id
           )
       );
 
-    if (!streamer) {
-      return fail(
-        res,
-        "Стример не найден",
-        404
-      );
+    if (!player) {
+      return res
+        .status(404)
+        .json({
+          error:
+            "Игрок не найден"
+        });
     }
 
-    const b =
+    const body =
       req.body || {};
 
     if (
-      "username" in b
+      "nickname" in body
     ) {
-      streamer.username =
+      player.nickname =
         cleanText(
-          b.username,
+          body.nickname,
+          50
+        );
+    }
+
+    if (
+      "gameId" in body
+    ) {
+      player.gameId =
+        cleanText(
+          body.gameId,
           40
         );
     }
 
     if (
-      "displayName" in b
+      "avatar" in body
     ) {
-      streamer.displayName =
-        cleanText(
-          b.displayName,
-          60
-        );
-    }
-
-    if (
-      "avatar" in b
-    ) {
-      streamer.avatar =
+      player.avatar =
         cleanImage(
-          b.avatar,
-          streamer.avatar ||
-            "🎥"
+          body.avatar,
+          player.avatar ||
+          "👤"
         );
     }
 
     if (
-      "active" in b
+      "guildId" in body
     ) {
-      streamer.active =
-        !!b.active;
+      player.guildId =
+        body.guildId
+          ? Number(
+              body.guildId
+            )
+          : null;
     }
 
-    if (b.password) {
-      streamer.passwordHash =
-        await hashPassword(
-          String(
-            b.password
-          )
-        );
+    for (const key of [
+      "elo",
+      "wins",
+      "losses",
+      "kills",
+      "deaths"
+    ]) {
+      if (key in body) {
+        player[key] =
+          Number(
+            body[key]
+          ) || 0;
+      }
     }
 
-    atomicWrite(d);
+    player.updatedAt =
+      new Date()
+        .toISOString();
 
-    broadcastStreamer(
-      streamer.id
-    );
+    atomicWrite(data);
 
-    ok(res, {
-      id:
-        streamer.id,
-      username:
-        streamer.username,
-      displayName:
-        streamer.displayName,
-      avatar:
-        streamer.avatar,
-      active:
-        streamer.active
-    });
+    broadcast();
+
+    res.json(player);
   }
 );
 
 app.delete(
-  "/api/admin/streamers/:id",
-  requireAdmin,
+  "/api/players/:id",
+  requireEditor,
   (req, res) => {
-    const d =
+    const data =
       readData();
 
     const id =
@@ -1698,398 +1721,68 @@ app.delete(
         req.params.id
       );
 
-    d.streamers =
-      d.streamers.filter(
-        s =>
-          Number(s.id) !==
+    data.players =
+      data.players.filter(
+        p =>
+          Number(p.id) !==
           id
       );
 
-    d.streamerStreams =
-      d.streamerStreams.filter(
-        s =>
+    data.matches.forEach(
+      match => {
+        if (
           Number(
-            s.streamerId
-          ) !== id
-      );
+            match.playerAId
+          ) === id
+        ) {
+          match.playerAId =
+            null;
+        }
 
-    atomicWrite(d);
-
-    io
-      .to(
-        "streamer:" + id
-      )
-      .emit(
-        "streamer-removed"
-      );
-
-    io.emit(
-      "site:update",
-      {
-        at: Date.now()
+        if (
+          Number(
+            match.playerBId
+          ) === id
+        ) {
+          match.playerBId =
+            null;
+        }
       }
     );
 
-    ok(res, {
+    atomicWrite(data);
+
+    broadcast();
+
+    res.json({
       ok: true
     });
   }
 );
 
-/* ================================
-   STREAMER ZONE
-================================ */
-
-app.get(
-  "/api/streamer/me",
-  requireStreamer,
-  (req, res) => {
-    const d =
-      readData();
-
-    const st =
-      d.streamerStreams.find(
-        x =>
-          Number(
-            x.streamerId
-          ) ===
-          Number(
-            req.streamer.id
-          )
-      ) || null;
-
-    const pub =
-      publicData(d);
-
-    ok(res, {
-      streamer: {
-        id:
-          req.streamer.id,
-
-        username:
-          req.streamer
-            .username,
-
-        displayName:
-          req.streamer
-            .displayName,
-
-        avatar:
-          req.streamer
-            .avatar
-      },
-
-      stream: st,
-
-      matches:
-        pub.matches,
-
-      players:
-        pub.players,
-
-      guilds:
-        pub.guilds
-    });
-  }
-);
-
-app.patch(
-  "/api/streamer/me",
-  requireStreamer,
-  (req, res) => {
-    const d =
-      readData();
-
-    const b =
-      req.body || {};
-
-    let st =
-      d.streamerStreams.find(
-        x =>
-          Number(
-            x.streamerId
-          ) ===
-          Number(
-            req.streamer.id
-          )
-      );
-
-    if (!st) {
-      st = {
-        id:
-          nextId(
-            d.streamerStreams
-          ),
-
-        streamerId:
-          req.streamer.id,
-
-        status:
-          "OFFLINE",
-
-        title:
-          "Мой стрим",
-
-        platform:
-          "YouTube",
-
-        streamUrl:
-          "",
-
-        matchId:
-          d.matches[0]?.id ||
-          null,
-
-        playerAId:
-          d.matches[0]
-            ?.playerAId ||
-          null,
-
-        playerBId:
-          d.matches[0]
-            ?.playerBId ||
-          null,
-
-        accent:
-          d.settings
-            .accent ||
-          "#b46cff",
-
-        position:
-          "bottom",
-
-        showPlayers:
-          true,
-
-        showStats:
-          true,
-
-        customText:
-          `${
-            req.streamer
-              .displayName ||
-            req.streamer
-              .username
-          } • LIVE`
-      };
-
-      d.streamerStreams.push(
-        st
-      );
-    }
-
-    if (
-      "status" in b
-    ) {
-      st.status =
-        [
-          "LIVE",
-          "OFFLINE",
-          "PAUSED"
-        ].includes(
-          String(
-            b.status
-          ).toUpperCase()
-        )
-          ? String(
-              b.status
-            ).toUpperCase()
-          : st.status;
-    }
-
-    if (
-      "title" in b
-    ) {
-      st.title =
-        cleanText(
-          b.title,
-          100
-        );
-    }
-
-    if (
-      "platform" in b
-    ) {
-      st.platform =
-        cleanText(
-          b.platform,
-          30
-        );
-    }
-
-    if (
-      "streamUrl" in b
-    ) {
-      st.streamUrl =
-        cleanText(
-          b.streamUrl,
-          300
-        );
-    }
-
-    if (
-      "matchId" in b
-    ) {
-      st.matchId =
-        b.matchId
-          ? Number(
-              b.matchId
-            )
-          : null;
-    }
-
-    if (
-      "playerAId" in b
-    ) {
-      st.playerAId =
-        b.playerAId
-          ? Number(
-              b.playerAId
-            )
-          : null;
-    }
-
-    if (
-      "playerBId" in b
-    ) {
-      st.playerBId =
-        b.playerBId
-          ? Number(
-              b.playerBId
-            )
-          : null;
-    }
-
-    if (
-      "accent" in b &&
-      /^#[0-9a-f]{6}$/i.test(
-        b.accent
-      )
-    ) {
-      st.accent =
-        b.accent;
-    }
-
-    if (
-      "position" in b
-    ) {
-      st.position =
-        b.position === "top"
-          ? "top"
-          : "bottom";
-    }
-
-    if (
-      "showPlayers" in b
-    ) {
-      st.showPlayers =
-        !!b.showPlayers;
-    }
-
-    if (
-      "showStats" in b
-    ) {
-      st.showStats =
-        !!b.showStats;
-    }
-
-    if (
-      "customText" in b
-    ) {
-      st.customText =
-        cleanText(
-          b.customText,
-          80
-        );
-    }
-
-    st.updatedAt =
-      new Date()
-        .toISOString();
-
-    atomicWrite(d);
-
-    broadcastStreamer(
-      req.streamer.id
-    );
-
-    ok(res, st);
-  }
-);
-
-/* ================================
-   SETTINGS
-================================ */
-
-app.patch(
-  "/api/settings",
-  requireAdmin,
-  (req, res) => {
-    const d =
-      readData();
-
-    d.settings.siteName =
-      cleanText(
-        req.body
-          ?.siteName ||
-          d.settings.siteName,
-        40
-      ) ||
-      "LAVENDER";
-
-    d.settings.tagline =
-      cleanText(
-        req.body
-          ?.tagline ||
-          d.settings.tagline,
-        100
-      );
-
-    if (
-      /^#[0-9a-f]{6}$/i.test(
-        req.body
-          ?.accent ||
-          ""
-      )
-    ) {
-      d.settings.accent =
-        req.body.accent;
-    }
-
-    atomicWrite(d);
-
-    broadcastGlobal();
-
-    ok(
-      res,
-      d.settings
-    );
-  }
-);
-
-/* ================================
+/* =========================================
    GUILDS
-================================ */
+========================================= */
 
 app.post(
   "/api/guilds",
   requireEditor,
   (req, res) => {
-    const d =
+    const data =
       readData();
 
-    const b =
+    const body =
       req.body || {};
 
     const name =
       cleanText(
-        b.name,
+        body.name,
         50
       );
 
     const tag =
       cleanText(
-        b.tag,
+        body.tag,
         12
       ).toUpperCase();
 
@@ -2097,31 +1790,18 @@ app.post(
       !name ||
       !tag
     ) {
-      return fail(
-        res,
-        "Укажи название и тег"
-      );
+      return res
+        .status(400)
+        .json({
+          error:
+            "Укажи название и тег"
+        });
     }
 
-    if (
-      d.guilds.some(
-        g =>
-          String(
-            g.tag
-          ).toUpperCase() ===
-          tag
-      )
-    ) {
-      return fail(
-        res,
-        "Такой тег уже существует"
-      );
-    }
-
-    const g = {
+    const guild = {
       id:
         nextId(
-          d.guilds
+          data.guilds
         ),
 
       name,
@@ -2129,47 +1809,46 @@ app.post(
 
       logo:
         cleanImage(
-          b.logo,
+          body.logo,
           "🪻"
         ),
 
       region:
         cleanText(
-          b.region ||
-            "Кыргызстан",
+          body.region ||
+          "Кыргызстан",
           40
         ),
 
       elo:
-        Number(b.elo) ||
-        1200,
+        Number(
+          body.elo
+        ) || 1200,
 
       wins:
-        Number(b.wins) ||
-        0,
+        Number(
+          body.wins
+        ) || 0,
 
       losses:
         Number(
-          b.losses
+          body.losses
         ) || 0,
-
-      description:
-        cleanText(
-          b.description,
-          400
-        ),
 
       captain:
         cleanText(
-          b.captain,
+          body.captain,
           50
+        ),
+
+      description:
+        cleanText(
+          body.description,
+          400
         ),
 
       createdByRole:
         req.editor.role,
-
-      createdById:
-        req.editor.id,
 
       createdByName:
         req.editor.name,
@@ -2179,13 +1858,15 @@ app.post(
           .toISOString()
     };
 
-    d.guilds.push(g);
+    data.guilds.push(
+      guild
+    );
 
-    atomicWrite(d);
+    atomicWrite(data);
 
-    broadcastGlobal();
+    broadcast();
 
-    ok(res, g);
+    res.json(guild);
   }
 );
 
@@ -2193,135 +1874,86 @@ app.patch(
   "/api/guilds/:id",
   requireEditor,
   (req, res) => {
-    const d =
+    const data =
       readData();
 
-    const g =
-      d.guilds.find(
-        x =>
-          Number(x.id) ===
+    const guild =
+      data.guilds.find(
+        g =>
+          Number(g.id) ===
           Number(
             req.params.id
           )
       );
 
-    if (!g) {
-      return fail(
-        res,
-        "Гильдия не найдена",
-        404
-      );
+    if (!guild) {
+      return res
+        .status(404)
+        .json({
+          error:
+            "Гильдия не найдена"
+        });
     }
 
-    const b =
+    const body =
       req.body || {};
 
-    if (
-      "name" in b
-    ) {
-      g.name =
+    if ("name" in body)
+      guild.name =
         cleanText(
-          b.name,
+          body.name,
           50
         );
-    }
 
-    if (
-      "tag" in b
-    ) {
-      g.tag =
+    if ("tag" in body)
+      guild.tag =
         cleanText(
-          b.tag,
+          body.tag,
           12
         ).toUpperCase();
-    }
 
-    if (
-      "logo" in b
-    ) {
-      g.logo =
+    if ("logo" in body)
+      guild.logo =
         cleanImage(
-          b.logo,
-          g.logo ||
-            "🪻"
+          body.logo,
+          guild.logo ||
+          "🪻"
         );
-    }
 
-    if (
-      "region" in b
-    ) {
-      g.region =
+    if ("region" in body)
+      guild.region =
         cleanText(
-          b.region,
+          body.region,
           40
         );
-    }
 
-    if (
-      "elo" in b
-    ) {
-      g.elo =
+    if ("elo" in body)
+      guild.elo =
         Number(
-          b.elo
+          body.elo
         ) || 0;
-    }
 
-    if (
-      "wins" in b
-    ) {
-      g.wins =
+    if ("wins" in body)
+      guild.wins =
         Number(
-          b.wins
+          body.wins
         ) || 0;
-    }
 
-    if (
-      "losses" in b
-    ) {
-      g.losses =
+    if ("losses" in body)
+      guild.losses =
         Number(
-          b.losses
+          body.losses
         ) || 0;
-    }
 
-    if (
-      "description" in b
-    ) {
-      g.description =
-        cleanText(
-          b.description,
-          400
-        );
-    }
-
-    if (
-      "captain" in b
-    ) {
-      g.captain =
-        cleanText(
-          b.captain,
-          50
-        );
-    }
-
-    g.updatedByRole =
-      req.editor.role;
-
-    g.updatedById =
-      req.editor.id;
-
-    g.updatedByName =
-      req.editor.name;
-
-    g.updatedAt =
+    guild.updatedAt =
       new Date()
         .toISOString();
 
-    atomicWrite(d);
+    atomicWrite(data);
 
-    broadcastGlobal();
+    broadcast();
 
-    ok(res, g);
+    res.json(guild);
   }
 );
 
@@ -2329,472 +1961,156 @@ app.delete(
   "/api/guilds/:id",
   requireEditor,
   (req, res) => {
-    const d =
+    const data =
       readData();
 
-    const gid =
+    const id =
       Number(
         req.params.id
       );
 
-    d.guilds =
-      d.guilds.filter(
-        g =>
-          Number(g.id) !==
-          gid
+    data.guilds =
+      data.guilds.filter(
+        guild =>
+          Number(
+            guild.id
+          ) !== id
       );
 
-    d.players.forEach(
-      p => {
+    data.players.forEach(
+      player => {
         if (
           Number(
-            p.guildId
-          ) === gid
+            player.guildId
+          ) === id
         ) {
-          p.guildId =
+          player.guildId =
             null;
         }
       }
     );
 
-    d.matches.forEach(
-      m => {
-        if (
-          Number(
-            m.guildAId
-          ) === gid
-        ) {
-          m.guildAId =
-            null;
-        }
+    atomicWrite(data);
 
-        if (
-          Number(
-            m.guildBId
-          ) === gid
-        ) {
-          m.guildBId =
-            null;
-        }
-      }
-    );
+    broadcast();
 
-    atomicWrite(d);
-
-    broadcastGlobal();
-
-    ok(res, {
+    res.json({
       ok: true
     });
   }
 );
 
-/* ================================
-   PLAYERS
-================================ */
-
-app.post(
-  "/api/players",
-  requireEditor,
-  (req, res) => {
-    const d =
-      readData();
-
-    const b =
-      req.body || {};
-
-    const nickname =
-      cleanText(
-        b.nickname,
-        50
-      );
-
-    if (!nickname) {
-      return fail(
-        res,
-        "Укажи ник игрока"
-      );
-    }
-
-    const p = {
-      id:
-        nextId(
-          d.players
-        ),
-
-      nickname,
-
-      gameId:
-        cleanText(
-          b.gameId,
-          40
-        ),
-
-      avatar:
-        cleanImage(
-          b.avatar,
-          "👤"
-        ),
-
-      guildId:
-        b.guildId
-          ? Number(
-              b.guildId
-            )
-          : null,
-
-      elo:
-        Number(b.elo) ||
-        1200,
-
-      wins:
-        Number(b.wins) ||
-        0,
-
-      losses:
-        Number(
-          b.losses
-        ) || 0,
-
-      kills:
-        Number(
-          b.kills
-        ) || 0,
-
-      deaths:
-        Number(
-          b.deaths
-        ) || 0,
-
-      role:
-        cleanText(
-          b.role ||
-            "Player",
-          30
-        ),
-
-      country:
-        cleanText(
-          b.country ||
-            "Кыргызстан",
-          40
-        ),
-
-      createdByRole:
-        req.editor.role,
-
-      createdById:
-        req.editor.id,
-
-      createdByName:
-        req.editor.name,
-
-      createdAt:
-        new Date()
-          .toISOString()
-    };
-
-    d.players.push(p);
-
-    atomicWrite(d);
-
-    broadcastGlobal();
-
-    ok(res, p);
-  }
-);
-
-app.patch(
-  "/api/players/:id",
-  requireEditor,
-  (req, res) => {
-    const d =
-      readData();
-
-    const p =
-      d.players.find(
-        x =>
-          Number(x.id) ===
-          Number(
-            req.params.id
-          )
-      );
-
-    if (!p) {
-      return fail(
-        res,
-        "Игрок не найден",
-        404
-      );
-    }
-
-    const b =
-      req.body || {};
-
-    if (
-      "nickname" in b
-    ) {
-      p.nickname =
-        cleanText(
-          b.nickname,
-          50
-        );
-    }
-
-    if (
-      "gameId" in b
-    ) {
-      p.gameId =
-        cleanText(
-          b.gameId,
-          40
-        );
-    }
-
-    if (
-      "avatar" in b
-    ) {
-      p.avatar =
-        cleanImage(
-          b.avatar,
-          p.avatar ||
-            "👤"
-        );
-    }
-
-    if (
-      "guildId" in b
-    ) {
-      p.guildId =
-        b.guildId
-          ? Number(
-              b.guildId
-            )
-          : null;
-    }
-
-    for (const k of [
-      "elo",
-      "wins",
-      "losses",
-      "kills",
-      "deaths"
-    ]) {
-      if (
-        k in b
-      ) {
-        p[k] =
-          Number(b[k]) ||
-          0;
-      }
-    }
-
-    p.updatedByRole =
-      req.editor.role;
-
-    p.updatedById =
-      req.editor.id;
-
-    p.updatedByName =
-      req.editor.name;
-
-    p.updatedAt =
-      new Date()
-        .toISOString();
-
-    atomicWrite(d);
-
-    broadcastGlobal();
-
-    ok(res, p);
-  }
-);
-
-app.delete(
-  "/api/players/:id",
-  requireEditor,
-  (req, res) => {
-    const d =
-      readData();
-
-    const pid =
-      Number(
-        req.params.id
-      );
-
-    d.players =
-      d.players.filter(
-        p =>
-          Number(p.id) !==
-          pid
-      );
-
-    d.matches.forEach(
-      m => {
-        if (
-          Number(
-            m.playerAId
-          ) === pid
-        ) {
-          m.playerAId =
-            null;
-        }
-
-        if (
-          Number(
-            m.playerBId
-          ) === pid
-        ) {
-          m.playerBId =
-            null;
-        }
-      }
-    );
-
-    atomicWrite(d);
-
-    broadcastGlobal();
-
-    ok(res, {
-      ok: true
-    });
-  }
-);
-
-/* ================================
+/* =========================================
    MATCHES
-================================ */
+========================================= */
 
 app.post(
   "/api/matches",
   requireEditor,
   (req, res) => {
-    const d =
+    const data =
       readData();
 
-    const b =
+    const body =
       req.body || {};
 
-    const m = {
+    const match = {
       id:
         nextId(
-          d.matches
-        ),
-
-      tournament:
-        cleanText(
-          b.tournament ||
-            "LAVENDER CUP",
-          80
+          data.matches
         ),
 
       title:
         cleanText(
-          b.title ||
-            "LIVE MATCH",
+          body.title ||
+          "LIVE MATCH",
           80
         ),
 
-      subtitle:
+      tournament:
         cleanText(
-          b.subtitle ||
-            "FREE FIRE",
+          body.tournament ||
+          "LAVENDER CUP",
           80
         ),
 
       guildAId:
-        b.guildAId
+        body.guildAId
           ? Number(
-              b.guildAId
+              body.guildAId
             )
           : null,
 
       guildBId:
-        b.guildBId
+        body.guildBId
           ? Number(
-              b.guildBId
+              body.guildBId
+            )
+          : null,
+
+      playerAId:
+        body.playerAId
+          ? Number(
+              body.playerAId
+            )
+          : null,
+
+      playerBId:
+        body.playerBId
+          ? Number(
+              body.playerBId
             )
           : null,
 
       scoreA:
         Number(
-          b.scoreA
+          body.scoreA
         ) || 0,
 
       scoreB:
         Number(
-          b.scoreB
+          body.scoreB
         ) || 0,
 
       roundText:
         cleanText(
-          b.roundText ||
-            "ROUND 1",
+          body.roundText ||
+          "ROUND 1",
           30
+        ),
+
+      format:
+        cleanText(
+          body.format ||
+          "BO7",
+          20
         ),
 
       status:
         cleanText(
-          b.status ||
-            "SCHEDULED",
+          body.status ||
+          "SCHEDULED",
           20
         ).toUpperCase(),
-
-      format:
-        cleanText(
-          b.format ||
-            "BO7",
-          20
-        ),
-
-      playerAId:
-        b.playerAId
-          ? Number(
-              b.playerAId
-            )
-          : null,
-
-      playerBId:
-        b.playerBId
-          ? Number(
-              b.playerBId
-            )
-          : null,
-
-      createdByRole:
-        req.editor.role,
-
-      createdById:
-        req.editor.id,
-
-      createdByName:
-        req.editor.name,
 
       createdAt:
         new Date()
           .toISOString()
     };
 
-    d.matches.push(m);
+    data.matches.push(
+      match
+    );
 
-    d.overlay.activeMatchId =
-      m.id;
+    data.overlay
+      .activeMatchId =
+      match.id;
 
-    if (
-      m.status ===
-      "FINAL"
-    ) {
-      applyMatchElo(
-        d,
-        m
-      );
-    }
+    atomicWrite(data);
 
-    atomicWrite(d);
+    broadcast();
 
-    broadcastGlobal();
-
-    ok(res, m);
+    res.json(match);
   }
 );
 
@@ -2802,384 +2118,169 @@ app.patch(
   "/api/matches/:id",
   requireEditor,
   (req, res) => {
-    const d =
+    const data =
       readData();
 
-    const m =
-      d.matches.find(
-        x =>
-          Number(x.id) ===
+    const match =
+      data.matches.find(
+        m =>
+          Number(m.id) ===
           Number(
             req.params.id
           )
       );
 
-    if (!m) {
-      return fail(
-        res,
-        "Матч не найден",
-        404
-      );
+    if (!match) {
+      return res
+        .status(404)
+        .json({
+          error:
+            "Матч не найден"
+        });
     }
 
-    const b =
+    const body =
       req.body || {};
 
-    for (const k of [
-      "tournament",
+    for (const key of [
       "title",
-      "subtitle",
+      "tournament",
       "roundText",
-      "status",
-      "format"
+      "format",
+      "status"
     ]) {
-      if (
-        k in b
-      ) {
-        m[k] =
+      if (key in body) {
+        match[key] =
           cleanText(
-            b[k],
+            body[key],
             80
           );
       }
     }
 
-    for (const k of [
+    for (const key of [
       "guildAId",
       "guildBId",
       "playerAId",
       "playerBId"
     ]) {
-      if (
-        k in b
-      ) {
-        m[k] =
-          b[k]
+      if (key in body) {
+        match[key] =
+          body[key]
             ? Number(
-                b[k]
+                body[key]
               )
             : null;
       }
     }
 
     if (
-      "scoreA" in b
+      "scoreA" in body
     ) {
-      m.scoreA =
+      match.scoreA =
         Math.max(
           0,
           Number(
-            b.scoreA
+            body.scoreA
           ) || 0
         );
     }
 
     if (
-      "scoreB" in b
+      "scoreB" in body
     ) {
-      m.scoreB =
+      match.scoreB =
         Math.max(
           0,
           Number(
-            b.scoreB
+            body.scoreB
           ) || 0
         );
     }
 
-    m.status =
+    match.status =
       String(
-        m.status ||
-          "LIVE"
+        match.status ||
+        "LIVE"
       ).toUpperCase();
 
-    m.updatedByRole =
-      req.editor.role;
-
-    m.updatedById =
-      req.editor.id;
-
-    m.updatedByName =
-      req.editor.name;
-
-    m.updatedAt =
-      new Date()
-        .toISOString();
+    /*
+      Если поставили FINAL,
+      ELO распределяется
+      автоматически
+    */
 
     if (
-      m.status ===
+      match.status ===
       "FINAL"
     ) {
       applyMatchElo(
-        d,
-        m
+        data,
+        match
       );
     }
 
-    atomicWrite(d);
+    atomicWrite(data);
 
-    broadcastGlobal();
+    broadcast();
 
-    d.streamers.forEach(
-      streamer =>
-        broadcastStreamer(
-          streamer.id
-        )
-    );
-
-    ok(res, m);
+    res.json(match);
   }
 );
 
-/* ================================
-   FINISH BY SCORE
-================================ */
-
-app.post(
-  "/api/matches/:id/finish",
-  requireEditor,
-  (req, res) => {
-    const d =
-      readData();
-
-    const m =
-      d.matches.find(
-        x =>
-          Number(x.id) ===
-          Number(
-            req.params.id
-          )
-      );
-
-    if (!m) {
-      return fail(
-        res,
-        "Матч не найден",
-        404
-      );
-    }
-
-    const b =
-      req.body || {};
-
-    if (
-      "scoreA" in b
-    ) {
-      m.scoreA =
-        Math.max(
-          0,
-          Number(
-            b.scoreA
-          ) || 0
-        );
-    }
-
-    if (
-      "scoreB" in b
-    ) {
-      m.scoreB =
-        Math.max(
-          0,
-          Number(
-            b.scoreB
-          ) || 0
-        );
-    }
-
-    if (
-      "playerAId" in b
-    ) {
-      m.playerAId =
-        b.playerAId
-          ? Number(
-              b.playerAId
-            )
-          : null;
-    }
-
-    if (
-      "playerBId" in b
-    ) {
-      m.playerBId =
-        b.playerBId
-          ? Number(
-              b.playerBId
-            )
-          : null;
-    }
-
-    if (
-      "roundText" in b
-    ) {
-      m.roundText =
-        cleanText(
-          b.roundText,
-          30
-        );
-    }
-
-    if (
-      "format" in b
-    ) {
-      m.format =
-        cleanText(
-          b.format,
-          20
-        );
-    }
-
-    if (
-      Number(
-        m.scoreA
-      ) ===
-      Number(
-        m.scoreB
-      )
-    ) {
-      return fail(
-        res,
-        "Нельзя завершить матч при равном счёте"
-      );
-    }
-
-    if (
-      !m.playerAId ||
-      !m.playerBId
-    ) {
-      return fail(
-        res,
-        "Выбери двух игроков перед завершением матча"
-      );
-    }
-
-    const pA =
-      d.players.find(
-        p =>
-          Number(p.id) ===
-          Number(
-            m.playerAId
-          )
-      );
-
-    const pB =
-      d.players.find(
-        p =>
-          Number(p.id) ===
-          Number(
-            m.playerBId
-          )
-      );
-
-    if (
-      !pA ||
-      !pB
-    ) {
-      return fail(
-        res,
-        "Один из игроков не найден"
-      );
-    }
-
-    if (
-      Number(pA.id) ===
-      Number(pB.id)
-    ) {
-      return fail(
-        res,
-        "Нельзя выбрать одного игрока с двух сторон"
-      );
-    }
-
-    m.status =
-      "FINAL";
-
-    m.updatedByRole =
-      req.editor.role;
-
-    m.updatedById =
-      req.editor.id;
-
-    m.updatedByName =
-      req.editor.name;
-
-    m.updatedAt =
-      new Date()
-        .toISOString();
-
-    const change =
-      applyMatchElo(
-        d,
-        m
-      );
-
-    atomicWrite(d);
-
-    broadcastGlobal();
-
-    d.streamers.forEach(
-      st =>
-        broadcastStreamer(
-          st.id
-        )
-    );
-
-    ok(res, {
-      ok: true,
-
-      match: m,
-
-      eloChange:
-        change ||
-        m.eloChange ||
-        null,
-
-      players: {
-        A: {
-          id: pA.id,
-          nickname:
-            pA.nickname,
-          elo:
-            pA.elo
-        },
-
-        B: {
-          id: pB.id,
-          nickname:
-            pB.nickname,
-          elo:
-            pB.elo
-        }
-      }
-    });
-  }
-);
-
-/* ================================
-   CHOOSE WINNER -> AUTO ELO
-================================ */
+/* =========================================
+   ВЫБРАТЬ ПОБЕДИТЕЛЯ -> ELO
+========================================= */
 
 app.post(
   "/api/matches/:id/set-winner",
   requireEditor,
   (req, res) => {
-    const d =
+    const data =
       readData();
 
-    const m =
-      d.matches.find(
-        x =>
-          Number(x.id) ===
+    const match =
+      data.matches.find(
+        m =>
+          Number(m.id) ===
           Number(
             req.params.id
           )
       );
 
-    if (!m) {
-      return fail(
-        res,
-        "Матч не найден",
-        404
-      );
+    if (!match) {
+      return res
+        .status(404)
+        .json({
+          error:
+            "Матч не найден"
+        });
     }
+
+    if (
+      match.eloApplied
+    ) {
+      return res
+        .status(400)
+        .json({
+          error:
+            "ELO этого матча уже рассчитано"
+        });
+    }
+
+    const playerAId =
+      Number(
+        req.body
+          ?.playerAId ||
+        match.playerAId
+      );
+
+    const playerBId =
+      Number(
+        req.body
+          ?.playerBId ||
+        match.playerBId
+      );
 
     const winnerId =
       Number(
@@ -3187,38 +2288,28 @@ app.post(
           ?.winnerId
       );
 
-    const playerAId =
-      Number(
-        req.body
-          ?.playerAId ||
-          m.playerAId
-      );
-
-    const playerBId =
-      Number(
-        req.body
-          ?.playerBId ||
-          m.playerBId
-      );
-
     if (
       !playerAId ||
       !playerBId
     ) {
-      return fail(
-        res,
-        "Выбери двух игроков"
-      );
+      return res
+        .status(400)
+        .json({
+          error:
+            "Выбери двух игроков"
+        });
     }
 
     if (
       playerAId ===
       playerBId
     ) {
-      return fail(
-        res,
-        "Нельзя выбрать одного игрока дважды"
-      );
+      return res
+        .status(400)
+        .json({
+          error:
+            "Нельзя выбрать одного игрока дважды"
+        });
     }
 
     if (
@@ -3227,104 +2318,102 @@ app.post(
       winnerId !==
         playerBId
     ) {
-      return fail(
-        res,
-        "Выбери победителя из этих двух игроков"
-      );
+      return res
+        .status(400)
+        .json({
+          error:
+            "Выбери победителя"
+        });
     }
 
-    m.playerAId =
+    match.playerAId =
       playerAId;
 
-    m.playerBId =
+    match.playerBId =
       playerBId;
 
-    m.scoreA =
+    /*
+      Нам достаточно результата 1:0,
+      чтобы определить победителя.
+    */
+
+    match.scoreA =
       winnerId ===
-      playerAId
+        playerAId
         ? 1
         : 0;
 
-    m.scoreB =
+    match.scoreB =
       winnerId ===
-      playerBId
+        playerBId
         ? 1
         : 0;
 
-    m.status =
+    match.status =
       "FINAL";
 
-    m.updatedByRole =
-      req.editor.role;
-
-    m.updatedById =
-      req.editor.id;
-
-    m.updatedByName =
-      req.editor.name;
-
-    m.updatedAt =
-      new Date()
-        .toISOString();
-
-    const change =
+    const eloChange =
       applyMatchElo(
-        d,
-        m
+        data,
+        match
       );
 
-    atomicWrite(d);
+    atomicWrite(data);
 
-    broadcastGlobal();
+    broadcast();
 
-    d.streamers.forEach(
-      st =>
-        broadcastStreamer(
-          st.id
-        )
-    );
-
-    const pA =
-      d.players.find(
-        p =>
-          Number(p.id) ===
+    const playerA =
+      data.players.find(
+        player =>
+          Number(
+            player.id
+          ) ===
           playerAId
       );
 
-    const pB =
-      d.players.find(
-        p =>
-          Number(p.id) ===
+    const playerB =
+      data.players.find(
+        player =>
+          Number(
+            player.id
+          ) ===
           playerBId
       );
 
-    ok(res, {
+    res.json({
       ok: true,
 
-      match: m,
-
-      eloChange:
-        change ||
-        m.eloChange ||
-        null,
+      match,
 
       winnerId,
 
+      eloChange,
+
       players: {
         A: {
-          id: pA.id,
+          id:
+            playerA.id,
           nickname:
-            pA.nickname,
+            playerA.nickname,
           elo:
-            pA.elo
+            playerA.elo,
+          rank:
+            rankForElo(
+              playerA.elo
+            )
         },
 
         B: {
-          id: pB.id,
+          id:
+            playerB.id,
           nickname:
-            pB.nickname,
+            playerB.nickname,
           elo:
-            pB.elo
+            playerB.elo,
+          rank:
+            rankForElo(
+              playerB.elo
+            )
         }
       }
     });
@@ -3335,459 +2424,99 @@ app.delete(
   "/api/matches/:id",
   requireEditor,
   (req, res) => {
-    const d =
+    const data =
       readData();
 
-    const mid =
+    const id =
       Number(
         req.params.id
       );
 
-    d.matches =
-      d.matches.filter(
-        m =>
-          Number(m.id) !==
-          mid
+    data.matches =
+      data.matches.filter(
+        match =>
+          Number(
+            match.id
+          ) !== id
       );
 
-    if (
-      Number(
-        d.overlay
-          .activeMatchId
-      ) === mid
-    ) {
-      d.overlay.activeMatchId =
-        d.matches[0]?.id ||
-        null;
-    }
+    atomicWrite(data);
 
-    d.streamerStreams.forEach(
-      st => {
-        if (
-          Number(
-            st.matchId
-          ) === mid
-        ) {
-          st.matchId =
-            d.matches[0]?.id ||
-            null;
-        }
-      }
-    );
+    broadcast();
 
-    atomicWrite(d);
-
-    broadcastGlobal();
-
-    ok(res, {
+    res.json({
       ok: true
     });
   }
 );
 
-/* ================================
-   TOURNAMENTS
-================================ */
-
-app.post(
-  "/api/tournaments",
-  requireAdmin,
-  (req, res) => {
-    const d =
-      readData();
-
-    const b =
-      req.body || {};
-
-    const name =
-      cleanText(
-        b.name,
-        80
-      );
-
-    if (!name) {
-      return fail(
-        res,
-        "Укажи название турнира"
-      );
-    }
-
-    const t = {
-      id:
-        nextId(
-          d.tournaments
-        ),
-
-      name,
-
-      status:
-        cleanText(
-          b.status ||
-            "UPCOMING",
-          20
-        ).toUpperCase(),
-
-      date:
-        cleanText(
-          b.date,
-          30
-        ),
-
-      format:
-        cleanText(
-          b.format ||
-            "BO7",
-          20
-        ),
-
-      prize:
-        cleanText(
-          b.prize,
-          80
-        ),
-
-      description:
-        cleanText(
-          b.description,
-          500
-        ),
-
-      guildIds:
-        Array.isArray(
-          b.guildIds
-        )
-          ? b.guildIds.map(
-              Number
-            )
-          : []
-    };
-
-    d.tournaments.push(
-      t
-    );
-
-    atomicWrite(d);
-
-    broadcastGlobal();
-
-    ok(res, t);
-  }
-);
-
-app.patch(
-  "/api/tournaments/:id",
-  requireAdmin,
-  (req, res) => {
-    const d =
-      readData();
-
-    const t =
-      d.tournaments.find(
-        x =>
-          Number(x.id) ===
-          Number(
-            req.params.id
-          )
-      );
-
-    if (!t) {
-      return fail(
-        res,
-        "Турнир не найден",
-        404
-      );
-    }
-
-    Object.assign(
-      t,
-      req.body || {}
-    );
-
-    t.guildIds =
-      Array.isArray(
-        t.guildIds
-      )
-        ? t.guildIds.map(
-            Number
-          )
-        : [];
-
-    t.status =
-      String(
-        t.status ||
-          "UPCOMING"
-      ).toUpperCase();
-
-    atomicWrite(d);
-
-    broadcastGlobal();
-
-    ok(res, t);
-  }
-);
-
-app.delete(
-  "/api/tournaments/:id",
-  requireAdmin,
-  (req, res) => {
-    const d =
-      readData();
-
-    d.tournaments =
-      d.tournaments.filter(
-        t =>
-          Number(t.id) !==
-          Number(
-            req.params.id
-          )
-      );
-
-    atomicWrite(d);
-
-    broadcastGlobal();
-
-    ok(res, {
-      ok: true
-    });
-  }
-);
-
-/* ================================
-   NEWS
-================================ */
-
-app.post(
-  "/api/news",
-  requireAdmin,
-  (req, res) => {
-    const d =
-      readData();
-
-    const b =
-      req.body || {};
-
-    const title =
-      cleanText(
-        b.title,
-        120
-      );
-
-    if (!title) {
-      return fail(
-        res,
-        "Укажи заголовок"
-      );
-    }
-
-    const n = {
-      id:
-        nextId(
-          d.news
-        ),
-
-      title,
-
-      body:
-        cleanText(
-          b.body,
-          1500
-        ),
-
-      pinned:
-        !!b.pinned,
-
-      createdAt:
-        new Date()
-          .toISOString()
-    };
-
-    d.news.unshift(n);
-
-    atomicWrite(d);
-
-    broadcastGlobal();
-
-    ok(res, n);
-  }
-);
-
-app.patch(
-  "/api/news/:id",
-  requireAdmin,
-  (req, res) => {
-    const d =
-      readData();
-
-    const n =
-      d.news.find(
-        x =>
-          Number(x.id) ===
-          Number(
-            req.params.id
-          )
-      );
-
-    if (!n) {
-      return fail(
-        res,
-        "Новость не найдена",
-        404
-      );
-    }
-
-    if (
-      "title" in
-      (req.body || {})
-    ) {
-      n.title =
-        cleanText(
-          req.body.title,
-          120
-        );
-    }
-
-    if (
-      "body" in
-      (req.body || {})
-    ) {
-      n.body =
-        cleanText(
-          req.body.body,
-          1500
-        );
-    }
-
-    if (
-      "pinned" in
-      (req.body || {})
-    ) {
-      n.pinned =
-        !!req.body.pinned;
-    }
-
-    atomicWrite(d);
-
-    broadcastGlobal();
-
-    ok(res, n);
-  }
-);
-
-app.delete(
-  "/api/news/:id",
-  requireAdmin,
-  (req, res) => {
-    const d =
-      readData();
-
-    d.news =
-      d.news.filter(
-        n =>
-          Number(n.id) !==
-          Number(
-            req.params.id
-          )
-      );
-
-    atomicWrite(d);
-
-    broadcastGlobal();
-
-    ok(res, {
-      ok: true
-    });
-  }
-);
-
-/* ================================
-   OVERLAY
-================================ */
+/* =========================================
+   OVERLAY UPDATE
+========================================= */
 
 app.patch(
   "/api/overlay",
   requireAdmin,
   (req, res) => {
-    const d =
+    const data =
       readData();
 
-    const b =
+    const body =
       req.body || {};
 
     if (
-      "activeMatchId" in b
+      "activeMatchId" in
+      body
     ) {
-      d.overlay.activeMatchId =
-        b.activeMatchId
+      data.overlay
+        .activeMatchId =
+        body.activeMatchId
           ? Number(
-              b.activeMatchId
+              body.activeMatchId
             )
           : null;
     }
 
     if (
-      "visible" in b
+      "visible" in body
     ) {
-      d.overlay.visible =
-        !!b.visible;
+      data.overlay.visible =
+        !!body.visible;
     }
 
     if (
-      "accent" in b &&
-      /^#[0-9a-f]{6}$/i.test(
-        b.accent
-      )
+      "customText" in body
     ) {
-      d.overlay.accent =
-        b.accent;
-    }
-
-    if (
-      "position" in b
-    ) {
-      d.overlay.position =
-        b.position === "top"
-          ? "top"
-          : "bottom";
-    }
-
-    if (
-      "showPlayers" in b
-    ) {
-      d.overlay.showPlayers =
-        !!b.showPlayers;
-    }
-
-    if (
-      "showStats" in b
-    ) {
-      d.overlay.showStats =
-        !!b.showStats;
-    }
-
-    if (
-      "customText" in b
-    ) {
-      d.overlay.customText =
+      data.overlay.customText =
         cleanText(
-          b.customText,
+          body.customText,
           80
         );
     }
 
-    atomicWrite(d);
+    if (
+      "accent" in body &&
+      /^#[0-9a-f]{6}$/i.test(
+        body.accent
+      )
+    ) {
+      data.overlay.accent =
+        body.accent;
+    }
 
-    broadcastGlobal();
+    atomicWrite(data);
 
-    ok(
-      res,
-      globalOverlayState()
+    broadcast();
+
+    res.json(
+      overlayState()
     );
   }
 );
 
-/* ================================
+/* =========================================
    BACKUP
-================================ */
+========================================= */
 
 app.get(
   "/api/admin/export",
@@ -3816,102 +2545,115 @@ app.post(
   "/api/admin/import",
   requireAdmin,
   (req, res) => {
-    const d =
+    const data =
       normalize(
         req.body
       );
 
-    atomicWrite(d);
+    atomicWrite(data);
 
-    broadcastGlobal();
+    broadcast();
 
-    ok(res, {
+    res.json({
       ok: true
     });
   }
 );
 
-/* ================================
+/* =========================================
    SOCKET.IO
-================================ */
+========================================= */
 
 io.on(
   "connection",
   socket => {
     socket.emit(
       "overlay:update",
-      globalOverlayState()
-    );
-
-    socket.on(
-      "watch-streamer",
-      id => {
-        const sid =
-          Number(id);
-
-        if (!sid) {
-          return;
-        }
-
-        socket.join(
-          "streamer:" +
-            sid
-        );
-
-        socket.emit(
-          "streamer-overlay:update",
-          streamerOverlayState(
-            sid
-          )
-        );
-      }
+      overlayState()
     );
   }
 );
 
-/* ================================
+/* =========================================
    PAGES
-================================ */
+========================================= */
 
 app.get(
   "/",
-  (req, res) =>
+  (req, res) => {
     res.sendFile(
       path.join(
         ROOT,
         "index.html"
       )
-    )
+    );
+  }
 );
 
 app.get(
   "/overlay.html",
-  (req, res) =>
+  (req, res) => {
     res.sendFile(
       path.join(
         ROOT,
         "overlay.html"
       )
-    )
+    );
+  }
 );
 
 app.get(
   "*",
-  (req, res) =>
+  (req, res) => {
     res.sendFile(
       path.join(
         ROOT,
         "index.html"
       )
-    )
-);
-
-httpServer.listen(
-  PORT,
-  "0.0.0.0",
-  () => {
-    console.log(
-      `LAVENDER PRO ${APP_VERSION} listening on ${PORT}`
     );
   }
 );
+
+/* =========================================
+   START
+========================================= */
+
+async function start() {
+  try {
+    await initDatabase();
+
+    server.listen(
+      PORT,
+      "0.0.0.0",
+      () => {
+        console.log(
+          `LAVENDER ${APP_VERSION} running on ${PORT}`
+        );
+      }
+    );
+  } catch (error) {
+    console.error(
+      "DATABASE START ERROR:",
+      error
+    );
+
+    process.exit(1);
+  }
+}
+
+process.on(
+  "SIGTERM",
+  async () => {
+    try {
+      await WRITE_CHAIN;
+
+      if (DB) {
+        await DB.end();
+      }
+    } catch {}
+
+    process.exit(0);
+  }
+);
+
+start();
