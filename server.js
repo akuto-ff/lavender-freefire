@@ -1482,7 +1482,794 @@ app.get(
     });
   }
 );
+/* =========================================
+   STREAMERS
+========================================= */
 
+/*
+  Список стримеров для администратора
+*/
+app.get(
+  "/api/admin/streamers",
+  requireAdmin,
+  (req, res) => {
+    const data = readData();
+
+    const list = data.streamers.map(streamer => {
+      const {
+        passwordHash,
+        ...safeStreamer
+      } = streamer;
+
+      const stream =
+        data.streamerStreams.find(
+          item =>
+            Number(item.streamerId) ===
+            Number(streamer.id)
+        ) || null;
+
+      return {
+        ...safeStreamer,
+        stream
+      };
+    });
+
+    res.json(list);
+  }
+);
+
+
+/*
+  Создание стримера
+*/
+app.post(
+  "/api/admin/streamers",
+  requireAdmin,
+  async (req, res) => {
+    try {
+      const data = readData();
+
+      const body = req.body || {};
+
+      const username =
+        cleanText(
+          body.username,
+          40
+        );
+
+      const displayName =
+        cleanText(
+          body.displayName || username,
+          60
+        );
+
+      const password =
+        String(
+          body.password || ""
+        );
+
+      if (!username) {
+        return res
+          .status(400)
+          .json({
+            error:
+              "Укажи логин стримера"
+          });
+      }
+
+      if (password.length < 4) {
+        return res
+          .status(400)
+          .json({
+            error:
+              "Пароль должен быть минимум 4 символа"
+          });
+      }
+
+      const exists =
+        data.streamers.some(
+          streamer =>
+            String(
+              streamer.username
+            ).toLowerCase() ===
+            username.toLowerCase()
+        );
+
+      if (exists) {
+        return res
+          .status(400)
+          .json({
+            error:
+              "Стример с таким логином уже существует"
+          });
+      }
+
+      const streamer = {
+        id:
+          nextId(
+            data.streamers
+          ),
+
+        username,
+
+        displayName,
+
+        avatar:
+          cleanImage(
+            body.avatar,
+            "🎥"
+          ),
+
+        active: true,
+
+        passwordHash:
+          await hashPassword(
+            password
+          ),
+
+        createdAt:
+          new Date()
+            .toISOString()
+      };
+
+      data.streamers.push(
+        streamer
+      );
+
+      /*
+        Создаём личную стримерскую зону
+      */
+      const firstMatch =
+        data.matches[0] || null;
+
+      const stream = {
+        id:
+          nextId(
+            data.streamerStreams
+          ),
+
+        streamerId:
+          streamer.id,
+
+        status:
+          "OFFLINE",
+
+        title:
+          "Мой стрим",
+
+        platform:
+          "YouTube",
+
+        streamUrl:
+          "",
+
+        matchId:
+          firstMatch
+            ? firstMatch.id
+            : null,
+
+        playerAId:
+          firstMatch
+            ? firstMatch.playerAId || null
+            : null,
+
+        playerBId:
+          firstMatch
+            ? firstMatch.playerBId || null
+            : null,
+
+        accent:
+          data.settings.accent ||
+          "#b46cff",
+
+        position:
+          "bottom",
+
+        showPlayers:
+          true,
+
+        showStats:
+          true,
+
+        customText:
+          `${displayName} • LIVE`,
+
+        updatedAt:
+          new Date()
+            .toISOString()
+      };
+
+      data.streamerStreams.push(
+        stream
+      );
+
+      atomicWrite(data);
+
+      broadcast();
+
+      res.json({
+        id:
+          streamer.id,
+
+        username:
+          streamer.username,
+
+        displayName:
+          streamer.displayName,
+
+        avatar:
+          streamer.avatar,
+
+        active:
+          streamer.active,
+
+        stream
+      });
+    } catch (error) {
+      console.error(
+        "CREATE STREAMER ERROR:",
+        error
+      );
+
+      res
+        .status(500)
+        .json({
+          error:
+            "Не удалось создать стримера"
+        });
+    }
+  }
+);
+
+
+/*
+  Редактирование стримера
+*/
+app.patch(
+  "/api/admin/streamers/:id",
+  requireAdmin,
+  async (req, res) => {
+    try {
+      const data = readData();
+
+      const id =
+        Number(
+          req.params.id
+        );
+
+      const streamer =
+        data.streamers.find(
+          item =>
+            Number(item.id) ===
+            id
+        );
+
+      if (!streamer) {
+        return res
+          .status(404)
+          .json({
+            error:
+              "Стример не найден"
+          });
+      }
+
+      const body =
+        req.body || {};
+
+      if (
+        "username" in body
+      ) {
+        const username =
+          cleanText(
+            body.username,
+            40
+          );
+
+        if (!username) {
+          return res
+            .status(400)
+            .json({
+              error:
+                "Логин не может быть пустым"
+            });
+        }
+
+        const duplicate =
+          data.streamers.some(
+            item =>
+              Number(item.id) !== id &&
+              String(
+                item.username
+              ).toLowerCase() ===
+              username.toLowerCase()
+          );
+
+        if (duplicate) {
+          return res
+            .status(400)
+            .json({
+              error:
+                "Такой логин уже существует"
+            });
+        }
+
+        streamer.username =
+          username;
+      }
+
+      if (
+        "displayName" in body
+      ) {
+        streamer.displayName =
+          cleanText(
+            body.displayName,
+            60
+          );
+      }
+
+      if (
+        "avatar" in body
+      ) {
+        streamer.avatar =
+          cleanImage(
+            body.avatar,
+            streamer.avatar ||
+            "🎥"
+          );
+      }
+
+      if (
+        "active" in body
+      ) {
+        streamer.active =
+          !!body.active;
+      }
+
+      /*
+        Если пароль пустой,
+        старый пароль не меняем
+      */
+      if (
+        body.password &&
+        String(
+          body.password
+        ).length
+      ) {
+        if (
+          String(
+            body.password
+          ).length < 4
+        ) {
+          return res
+            .status(400)
+            .json({
+              error:
+                "Пароль минимум 4 символа"
+            });
+        }
+
+        streamer.passwordHash =
+          await hashPassword(
+            String(
+              body.password
+            )
+          );
+      }
+
+      streamer.updatedAt =
+        new Date()
+          .toISOString();
+
+      atomicWrite(data);
+
+      broadcast();
+
+      res.json({
+        id:
+          streamer.id,
+
+        username:
+          streamer.username,
+
+        displayName:
+          streamer.displayName,
+
+        avatar:
+          streamer.avatar,
+
+        active:
+          streamer.active
+      });
+    } catch (error) {
+      console.error(
+        "UPDATE STREAMER ERROR:",
+        error
+      );
+
+      res
+        .status(500)
+        .json({
+          error:
+            "Не удалось обновить стримера"
+        });
+    }
+  }
+);
+
+
+/*
+  Удаление стримера
+*/
+app.delete(
+  "/api/admin/streamers/:id",
+  requireAdmin,
+  (req, res) => {
+    const data = readData();
+
+    const id =
+      Number(
+        req.params.id
+      );
+
+    const exists =
+      data.streamers.some(
+        streamer =>
+          Number(
+            streamer.id
+          ) === id
+      );
+
+    if (!exists) {
+      return res
+        .status(404)
+        .json({
+          error:
+            "Стример не найден"
+        });
+    }
+
+    data.streamers =
+      data.streamers.filter(
+        streamer =>
+          Number(
+            streamer.id
+          ) !== id
+      );
+
+    data.streamerStreams =
+      data.streamerStreams.filter(
+        stream =>
+          Number(
+            stream.streamerId
+          ) !== id
+      );
+
+    atomicWrite(data);
+
+    broadcast();
+
+    res.json({
+      ok: true
+    });
+  }
+);
+
+
+/* =========================================
+   STREAMER ZONE
+========================================= */
+
+/*
+  Данные личной зоны стримера
+*/
+app.get(
+  "/api/streamer/me",
+  requireStreamer,
+  (req, res) => {
+    const data =
+      readData();
+
+    let stream =
+      data.streamerStreams.find(
+        item =>
+          Number(
+            item.streamerId
+          ) ===
+          Number(
+            req.streamer.id
+          )
+      );
+
+    /*
+      Если у старого стримера
+      ещё нет streamerStreams
+    */
+    if (!stream) {
+      const firstMatch =
+        data.matches[0] ||
+        null;
+
+      stream = {
+        id:
+          nextId(
+            data.streamerStreams
+          ),
+
+        streamerId:
+          req.streamer.id,
+
+        status:
+          "OFFLINE",
+
+        title:
+          "Мой стрим",
+
+        platform:
+          "YouTube",
+
+        streamUrl:
+          "",
+
+        matchId:
+          firstMatch
+            ? firstMatch.id
+            : null,
+
+        playerAId:
+          firstMatch
+            ? firstMatch.playerAId || null
+            : null,
+
+        playerBId:
+          firstMatch
+            ? firstMatch.playerBId || null
+            : null,
+
+        accent:
+          data.settings.accent ||
+          "#b46cff",
+
+        position:
+          "bottom",
+
+        showPlayers:
+          true,
+
+        showStats:
+          true,
+
+        customText:
+          `${
+            req.streamer.displayName ||
+            req.streamer.username
+          } • LIVE`,
+
+        updatedAt:
+          new Date()
+            .toISOString()
+      };
+
+      data.streamerStreams.push(
+        stream
+      );
+
+      atomicWrite(data);
+    }
+
+    const pub =
+      publicData(data);
+
+    res.json({
+      streamer: {
+        id:
+          req.streamer.id,
+
+        username:
+          req.streamer.username,
+
+        displayName:
+          req.streamer.displayName,
+
+        avatar:
+          req.streamer.avatar
+      },
+
+      stream,
+
+      matches:
+        pub.matches || [],
+
+      players:
+        pub.players || [],
+
+      guilds:
+        pub.guilds || []
+    });
+  }
+);
+
+
+/*
+  Сохранение Streamer Zone
+*/
+app.patch(
+  "/api/streamer/me",
+  requireStreamer,
+  (req, res) => {
+    const data =
+      readData();
+
+    const body =
+      req.body || {};
+
+    let stream =
+      data.streamerStreams.find(
+        item =>
+          Number(
+            item.streamerId
+          ) ===
+          Number(
+            req.streamer.id
+          )
+      );
+
+    if (!stream) {
+      stream = {
+        id:
+          nextId(
+            data.streamerStreams
+          ),
+
+        streamerId:
+          req.streamer.id,
+
+        status:
+          "OFFLINE"
+      };
+
+      data.streamerStreams.push(
+        stream
+      );
+    }
+
+    if (
+      "title" in body
+    ) {
+      stream.title =
+        cleanText(
+          body.title,
+          100
+        );
+    }
+
+    if (
+      "platform" in body
+    ) {
+      stream.platform =
+        cleanText(
+          body.platform,
+          30
+        );
+    }
+
+    if (
+      "streamUrl" in body
+    ) {
+      stream.streamUrl =
+        cleanText(
+          body.streamUrl,
+          300
+        );
+    }
+
+    if (
+      "matchId" in body
+    ) {
+      stream.matchId =
+        body.matchId
+          ? Number(
+              body.matchId
+            )
+          : null;
+    }
+
+    if (
+      "playerAId" in body
+    ) {
+      stream.playerAId =
+        body.playerAId
+          ? Number(
+              body.playerAId
+            )
+          : null;
+    }
+
+    if (
+      "playerBId" in body
+    ) {
+      stream.playerBId =
+        body.playerBId
+          ? Number(
+              body.playerBId
+            )
+          : null;
+    }
+
+    if (
+      "status" in body
+    ) {
+      const status =
+        String(
+          body.status
+        ).toUpperCase();
+
+      if (
+        [
+          "LIVE",
+          "OFFLINE",
+          "PAUSED"
+        ].includes(status)
+      ) {
+        stream.status =
+          status;
+      }
+    }
+
+    if (
+      "accent" in body &&
+      /^#[0-9a-f]{6}$/i.test(
+        body.accent
+      )
+    ) {
+      stream.accent =
+        body.accent;
+    }
+
+    if (
+      "position" in body
+    ) {
+      stream.position =
+        body.position ===
+        "top"
+          ? "top"
+          : "bottom";
+    }
+
+    if (
+      "showPlayers" in body
+    ) {
+      stream.showPlayers =
+        !!body.showPlayers;
+    }
+
+    if (
+      "showStats" in body
+    ) {
+      stream.showStats =
+        !!body.showStats;
+    }
+
+    if (
+      "customText" in body
+    ) {
+      stream.customText =
+        cleanText(
+          body.customText,
+          80
+        );
+    }
+
+    stream.updatedAt =
+      new Date()
+        .toISOString();
+
+    atomicWrite(data);
+
+    broadcast();
+
+    res.json(stream);
+  }
+);
 /* =========================================
    MAIN DATA API
 ========================================= */
