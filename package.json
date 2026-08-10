@@ -1,6 +1,6 @@
 {
-  "name": "lavender-pro-stable",
-  "version": "7.3.0",
+  "name": "lavender-pro-postgres",
+  "version": "8.0.0",
   "private": true,
   "main": "server.js",
   "scripts": {
@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "express": "^4.21.2",
-    "socket.io": "^4.8.1"
+    "socket.io": "^4.8.1",
+    "pg": "^8.16.3"
   }
 }
