@@ -26,10 +26,166 @@
 .search-player-item span{display:block;color:#9e92a8;font-size:11px;margin-top:2px}
 .search-player-empty{padding:12px;color:#9e92a8}
 
+
+/* LAVENDER NEON VISUAL UPGRADE */
+:root{--glow:rgba(180,108,255,.28)}
+body{background:radial-gradient(circle at 12% -8%,rgba(180,108,255,.20),transparent 28%),radial-gradient(circle at 88% 10%,rgba(109,40,217,.12),transparent 24%),linear-gradient(180deg,#08060d,#06050a);background-attachment:fixed}
+.top{box-shadow:0 10px 35px rgba(0,0,0,.34),0 1px 0 rgba(180,108,255,.08)}
+.brand{text-shadow:0 0 12px rgba(180,108,255,.6),0 0 30px rgba(180,108,255,.2)}
+.nav button,.btn,.card,.hero,.chip{transition:.2s ease}
+.nav button.on{background:linear-gradient(135deg,rgba(180,108,255,.20),rgba(139,92,246,.08));border:1px solid rgba(180,108,255,.35);box-shadow:0 0 20px rgba(180,108,255,.09)}
+.hero,.card{position:relative;box-shadow:0 16px 42px rgba(0,0,0,.22)}
+.card:hover{transform:translateY(-2px);border-color:rgba(180,108,255,.42);box-shadow:0 18px 46px rgba(0,0,0,.3),0 0 25px rgba(180,108,255,.08)}
+.hero{background:radial-gradient(circle at 85% 20%,rgba(180,108,255,.15),transparent 30%),linear-gradient(145deg,#17101f,#0d0a12);border-color:rgba(180,108,255,.27)}
+.hero h1{background:linear-gradient(90deg,#fff,#e6ccff 55%,#b46cff);-webkit-background-clip:text;background-clip:text;color:transparent}
+.btn{box-shadow:0 7px 20px rgba(139,92,246,.16)}
+.btn:hover{transform:translateY(-2px);filter:brightness(1.08);box-shadow:0 10px 28px rgba(180,108,255,.25)}
+.btn:active{transform:scale(.98)}
+.field input:focus,.field select:focus,.field textarea:focus,.toolbar input:focus,.toolbar select:focus,.search-player-input:focus{border-color:rgba(180,108,255,.72);box-shadow:0 0 0 3px rgba(180,108,255,.10),0 0 24px rgba(180,108,255,.08)}
+.rank{border:1px solid rgba(180,108,255,.22);box-shadow:inset 0 0 14px rgba(180,108,255,.08),0 0 12px rgba(180,108,255,.06)}
+.status.LIVE,.LIVE{box-shadow:0 0 16px rgba(97,228,164,.18);animation:lavLive 1.7s ease-in-out infinite}
+@keyframes lavLive{50%{box-shadow:0 0 27px rgba(97,228,164,.36);filter:brightness(1.12)}}
+.avatar,.avatarLg{transition:.2s ease}.card:hover .avatar,.card:hover .avatarLg{border-color:rgba(180,108,255,.75);box-shadow:0 0 20px rgba(180,108,255,.18)}
+.guildCard,.matchCard,.tourCard,.newsCard{background:linear-gradient(160deg,rgba(24,17,31,.96),rgba(13,10,18,.98))}
+.table tbody tr{transition:.16s ease}.table tbody tr:hover{background:rgba(180,108,255,.05);box-shadow:inset 3px 0 0 rgba(180,108,255,.5)}
+.modal{backdrop-filter:blur(9px)}.modalBox{box-shadow:0 25px 90px rgba(0,0,0,.6),0 0 50px rgba(180,108,255,.10);animation:lavModal .18s ease-out}
+@keyframes lavModal{from{opacity:0;transform:translateY(12px) scale(.985)}to{opacity:1;transform:none}}
+.overlayPreview{border:1px solid rgba(180,108,255,.24);box-shadow:inset 0 0 55px rgba(180,108,255,.09),0 15px 40px rgba(0,0,0,.25)}
+.obox{box-shadow:0 10px 35px rgba(0,0,0,.25),0 0 20px rgba(180,108,255,.09)}.oscore{text-shadow:0 0 22px rgba(180,108,255,.3)}
+.search-player-item:hover{background:linear-gradient(90deg,rgba(180,108,255,.14),rgba(180,108,255,.025))}
+::-webkit-scrollbar{width:10px;height:10px}::-webkit-scrollbar-track{background:#08060c}::-webkit-scrollbar-thumb{background:#392748;border:2px solid #08060c;border-radius:999px}
+::selection{background:rgba(180,108,255,.35);color:#fff}
+@media(max-width:900px){.card:hover{transform:none}}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important}}
+
+
+/* ===== LAVENDER V2 — brighter creative UI + mobile drawer ===== */
+:root{
+  --a:#c56cff;
+  --lav2:#7c3cff;
+  --lav3:#e6c6ff;
+  --cyan:#65d9ff;
+}
+body{
+  background:
+    radial-gradient(900px 520px at 8% -5%,rgba(197,108,255,.30),transparent 58%),
+    radial-gradient(720px 520px at 94% 16%,rgba(101,217,255,.13),transparent 58%),
+    radial-gradient(650px 520px at 52% 92%,rgba(124,60,255,.16),transparent 60%),
+    linear-gradient(135deg,#08050e 0%,#0c0713 42%,#07070e 100%) !important;
+}
+body:after{
+  content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:.32;
+  background:
+    linear-gradient(115deg,transparent 0 46%,rgba(197,108,255,.045) 47%,transparent 48%),
+    repeating-linear-gradient(135deg,rgba(255,255,255,.018) 0 1px,transparent 1px 22px);
+}
+.brand{
+  color:#f0d9ff !important;
+  text-shadow:0 0 10px rgba(214,154,255,.85),0 0 28px rgba(180,80,255,.5),0 0 55px rgba(124,60,255,.28) !important;
+}
+.hero{
+  background:
+    linear-gradient(120deg,rgba(197,108,255,.11),transparent 42%),
+    radial-gradient(circle at 88% 18%,rgba(101,217,255,.09),transparent 25%),
+    linear-gradient(145deg,rgba(27,16,38,.98),rgba(12,9,18,.98)) !important;
+  border-color:rgba(205,126,255,.42) !important;
+  box-shadow:0 18px 60px rgba(0,0,0,.32),0 0 34px rgba(180,76,255,.11) !important;
+}
+.card{
+  border-color:rgba(151,102,177,.32) !important;
+  background:linear-gradient(160deg,rgba(24,15,33,.94),rgba(11,9,16,.96)) !important;
+}
+.card:hover{
+  border-color:rgba(209,129,255,.62) !important;
+  box-shadow:0 20px 50px rgba(0,0,0,.34),0 0 34px rgba(191,83,255,.15) !important;
+}
+.btn:not(.dark):not(.red):not(.green){
+  background:linear-gradient(135deg,#d58aff,#9b4dff 58%,#783cff) !important;
+  box-shadow:0 8px 26px rgba(174,76,255,.28),inset 0 1px 0 rgba(255,255,255,.25) !important;
+}
+.rank{
+  color:#f1d8ff !important;
+  border-color:rgba(205,123,255,.44) !important;
+  background:linear-gradient(135deg,rgba(112,47,153,.55),rgba(63,29,85,.6)) !important;
+  box-shadow:0 0 18px rgba(192,91,255,.18) !important;
+}
+.status.LIVE,.LIVE{box-shadow:0 0 22px rgba(97,228,164,.32) !important}
+.overlayPreview{
+  background:
+    radial-gradient(circle at 50% 50%,rgba(112,48,143,.55),rgba(8,6,11,.96) 66%),
+    linear-gradient(135deg,rgba(101,217,255,.05),transparent) !important;
+}
+
+/* MOBILE: permanent slide-out curtain instead of stacked tabs */
+@media(max-width:900px){
+  .top{
+    min-height:62px !important;
+    flex-wrap:nowrap !important;
+    padding:9px 12px !important;
+    background:rgba(9,6,14,.88) !important;
+    border-bottom-color:rgba(197,108,255,.25) !important;
+  }
+  .brand{font-size:16px !important;letter-spacing:2.2px !important}
+  .menu{
+    display:block !important;
+    margin-left:auto !important;
+    z-index:302;
+    border-color:rgba(197,108,255,.45) !important;
+    background:linear-gradient(145deg,#24132f,#130b1b) !important;
+    box-shadow:0 0 20px rgba(180,76,255,.16);
+  }
+  .nav{
+    display:flex !important;
+    position:fixed !important;
+    top:0 !important;
+    right:0 !important;
+    bottom:0 !important;
+    width:min(82vw,330px) !important;
+    height:100dvh !important;
+    z-index:300 !important;
+    flex-direction:column !important;
+    flex-wrap:nowrap !important;
+    gap:7px !important;
+    padding:78px 14px 22px !important;
+    overflow-y:auto !important;
+    background:
+      radial-gradient(circle at 80% 5%,rgba(197,108,255,.20),transparent 30%),
+      linear-gradient(180deg,rgba(19,11,27,.985),rgba(8,6,12,.99)) !important;
+    border-left:1px solid rgba(197,108,255,.32) !important;
+    box-shadow:-22px 0 65px rgba(0,0,0,.58),-4px 0 30px rgba(157,55,225,.10) !important;
+    backdrop-filter:blur(22px) !important;
+    transform:translateX(104%) !important;
+    transition:transform .28s cubic-bezier(.2,.8,.2,1) !important;
+  }
+  .nav.open{transform:translateX(0) !important}
+  .nav:before{
+    content:"МЕНЮ";
+    position:absolute;top:28px;left:18px;
+    font-size:10px;font-weight:1000;letter-spacing:3px;color:#d8aaff;
+  }
+  .nav button{
+    flex:0 0 auto !important;
+    width:100% !important;
+    min-height:48px !important;
+    text-align:left !important;
+    padding:12px 14px !important;
+    border-radius:12px !important;
+    background:rgba(255,255,255,.025) !important;
+    border:1px solid rgba(197,108,255,.11) !important;
+  }
+  .nav button.on{
+    background:linear-gradient(90deg,rgba(197,108,255,.20),rgba(124,60,255,.07)) !important;
+    border-color:rgba(197,108,255,.42) !important;
+    box-shadow:inset 3px 0 0 #c56cff,0 0 18px rgba(197,108,255,.08) !important;
+  }
+  .wrap{margin-top:14px !important}
+  .hero{border-radius:18px !important}
+}
+
 </style></head><body>
 <header class="top"><div class="brand" id="brand">🪻 LAVENDER</div><button class="menu" onclick="nav.classList.toggle('open')">☰</button><nav class="nav" id="nav"></nav><div class="state" id="state">PUBLIC</div></header>
 <main class="wrap"><div class="banner" id="banner"></div>
-<section class="page on" id="home"><div class="hero"><div class="eyebrow" id="tagline">FREE FIRE COMMUNITY</div><h1>LAVENDER PRO 8.0.1 POSTGRES FIX</h1><div class="muted">Стабильная платформа: админ, игроки, матчи, гильдии и OBS.</div></div><div class="g4" id="stats"></div><div class="grid" style="margin-top:14px"><div class="card"><div class="head"><h2>LIVE / ближайший матч</h2></div><div class="body" id="liveBox"></div></div><div class="card"><div class="head"><h2>Новости</h2></div><div class="body" id="newsBox"></div></div></div><div class="grid" style="margin-top:14px"><div class="card"><div class="head"><h2>Топ игроков</h2></div><div class="table"><table><thead><tr><th>#</th><th>Игрок</th><th>Гильдия</th><th>Ранг</th><th>ELO</th></tr></thead><tbody id="topPlayers"></tbody></table></div></div><div class="card"><div class="head"><h2>Топ гильдий</h2></div><div class="table"><table><thead><tr><th>#</th><th>Гильдия</th><th>Ранг</th><th>ELO</th></tr></thead><tbody id="topGuilds"></tbody></table></div></div></div></section>
+<section class="page on" id="home"><div class="hero"><div class="eyebrow" id="tagline">FREE FIRE COMMUNITY</div><h1>LAVENDER</h1><div class="muted">Стабильная платформа: админ, игроки, матчи, гильдии и OBS.</div></div><div class="g4" id="stats"></div><div class="grid" style="margin-top:14px"><div class="card"><div class="head"><h2>LIVE / ближайший матч</h2></div><div class="body" id="liveBox"></div></div><div class="card"><div class="head"><h2>Новости</h2></div><div class="body" id="newsBox"></div></div></div><div class="grid" style="margin-top:14px"><div class="card"><div class="head"><h2>Топ игроков</h2></div><div class="table"><table><thead><tr><th>#</th><th>Игрок</th><th>Гильдия</th><th>Ранг</th><th>ELO</th></tr></thead><tbody id="topPlayers"></tbody></table></div></div><div class="card"><div class="head"><h2>Топ гильдий</h2></div><div class="table"><table><thead><tr><th>#</th><th>Гильдия</th><th>Ранг</th><th>ELO</th></tr></thead><tbody id="topGuilds"></tbody></table></div></div></div></section>
 <section class="page" id="players"><div class="hero"><h1>Игроки</h1><div class="muted">Рейтинг, статистика и профили.</div></div><div class="toolbar"><input id="ps" placeholder="Поиск по нику или ID"><select id="pr"><option value="">Все ранги</option><option>S</option><option>A</option><option>B</option><option>C</option><option>D</option><option>E</option><option>F</option></select><button class="btn editorOnly" onclick="playerForm()">+ Игрок</button></div><div class="card"><div class="table"><table><thead><tr><th>#</th><th>Игрок</th><th>Гильдия</th><th>Ранг</th><th>ELO</th><th>K/D</th><th>WR</th><th></th></tr></thead><tbody id="playersBody"></tbody></table></div></div></section>
 <section class="page" id="ranks"><div class="hero"><h1>S / A / B / C / D / E / F</h1><div class="muted">Автоматическое распределение по ELO.</div></div><div id="rankBlocks"></div></section>
 <section class="page" id="guilds"><div class="hero"><h1>Гильдии</h1><div class="muted">Рейтинг и составы гильдий.</div></div><div class="toolbar"><input id="gs" placeholder="Поиск гильдии"><button class="btn editorOnly" onclick="guildForm()">+ Гильдия</button></div><div class="g3" id="guildCards"></div></section>
