@@ -223,6 +223,9 @@ body:before{
   .hero h1{font-size:34px!important}
 }
 
+
+/* STREAMER DONATE + QUEUE */
+.streamExtras{display:grid;grid-template-columns:1fr 1.35fr;gap:14px;margin-top:14px}.extraRow{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.07)}.extraRow:last-child{border-bottom:0}.queueStatus{font-size:10px;font-weight:1000;letter-spacing:.7px;padding:5px 8px;border-radius:999px;border:1px solid #ffffff18}.queueStatus.WAITING{color:#ffd76e}.queueStatus.CHECKING{color:#65e4ff}.queueStatus.ACCEPTED{color:#67efba}.queueStatus.REJECTED{color:#ff7eaa}.money{font-weight:1000;color:#ffd76e;text-shadow:0 0 14px #ffd76e44}.miniInputRow{display:grid;grid-template-columns:1fr 140px auto;gap:8px}.queueInputRow{display:grid;grid-template-columns:1fr 1fr auto;gap:8px}@media(max-width:900px){.streamExtras{grid-template-columns:1fr}.miniInputRow,.queueInputRow{grid-template-columns:1fr}.extraRow{grid-template-columns:1fr}.extraRow .actions{justify-content:flex-start}}
 </style></head><body>
 <header class="top"><div class="brand" id="brand">🪻 LAVENDER</div><button class="menu" onclick="nav.classList.toggle('open')">☰</button><nav class="nav" id="nav"></nav><div class="state" id="state">PUBLIC</div></header><div class="noticeCurtain" id="noticeCurtain" data-type="info"><div class="noticeCurtainInner"><div class="noticeIcon" id="noticeIcon">🔔</div><div><div class="noticeTitle" id="noticeTitle"></div><div class="noticeText" id="noticeText"></div></div><button class="noticeClose" onclick="closeNoticeCurtain()" aria-label="Закрыть">×</button></div></div>
 <main class="wrap"><div class="banner" id="banner"></div>
@@ -292,6 +295,16 @@ body:before{
       <div class="field"><label>Позиция</label><select id="szPosition"><option value="bottom">Снизу</option><option value="top">Сверху</option></select></div>
       <div class="actions"><button class="btn green" onclick="copyStreamerObs()">Скопировать OBS URL</button></div>
       <p class="muted small" id="szObs"></p>
+    </div></div>
+  </div>
+  <div class="streamExtras">
+    <div class="card"><div class="head"><h2>💜 TOP DONATE</h2><span class="muted small">Для OBS</span></div><div class="body">
+      <div class="miniInputRow"><input id="donateName" placeholder="Ник донатера"><input id="donateAmount" type="number" min="1" placeholder="Сумма"><button class="btn" onclick="addDonation()">Добавить</button></div>
+      <div id="donationList" style="margin-top:10px"></div>
+    </div></div>
+    <div class="card"><div class="head"><h2>🎮 Очередь на проверку в гильдию</h2><span class="muted small">Показывается в OBS</span></div><div class="body">
+      <div class="queueInputRow"><input id="queueNick" placeholder="Ник игрока"><input id="queueNote" placeholder="Заметка (необязательно)"><button class="btn" onclick="addQueuePlayer()">+ В очередь</button></div>
+      <div id="guildQueueList" style="margin-top:10px"></div>
     </div></div>
   </div>
 </section>
@@ -594,8 +607,27 @@ async function loadStreamerZone(){
       }
     };
         $("szObs").textContent=location.origin+`/overlay.html?streamer=${streamerZoneData.streamer.id}`;
+    await loadStreamerExtras();
   }catch(e){toastMsg(e.message)}
 }
+
+async function loadStreamerExtras(){
+  if(role!=="streamer")return;
+  const x=await api("/api/streamer/extras");
+  renderStreamerExtras(x);
+}
+function renderStreamerExtras(x){
+  const ds=x?.donations||[], qs=x?.queue||[];
+  $("donationList").innerHTML=ds.slice(0,10).map((d,i)=>`<div class="extraRow"><div><b>${i<3?["🥇","🥈","🥉"][i]:"💜"} ${esc(d.name)}</b></div><div class="actions"><span class="money">${Number(d.amount||0).toLocaleString("ru-RU")} сом</span><button class="btn red" onclick="deleteDonation(${d.id})">×</button></div></div>`).join("")||'<div class="muted">Донатов пока нет</div>';
+  $("guildQueueList").innerHTML=qs.map(q=>`<div class="extraRow"><div><b>#${q.position} ${esc(q.nickname)}</b><div class="muted small">${esc(q.note||"")}</div></div><div class="actions"><span class="queueStatus ${q.status}">${({WAITING:"ОЖИДАЕТ",CHECKING:"ПРОВЕРКА",ACCEPTED:"ПРИНЯТ",REJECTED:"ОТКАЗ"})[q.status]||q.status}</span><button class="btn dark" onclick="moveQueue(${q.id},'up')">↑</button><button class="btn dark" onclick="moveQueue(${q.id},'down')">↓</button><button class="btn" onclick="queueStatus(${q.id},'CHECKING')">Проверка</button><button class="btn green" onclick="queueStatus(${q.id},'ACCEPTED')">✓</button><button class="btn red" onclick="deleteQueue(${q.id})">×</button></div></div>`).join("")||'<div class="muted">Очередь пустая</div>';
+}
+async function addDonation(){try{await api("/api/streamer/donations",{method:"POST",body:JSON.stringify({name:$("donateName").value,amount:Number($("donateAmount").value)})});$("donateName").value="";$("donateAmount").value="";await loadStreamerExtras()}catch(e){toastMsg(e.message)}}
+async function deleteDonation(id){try{await api("/api/streamer/donations/"+id,{method:"DELETE"});await loadStreamerExtras()}catch(e){toastMsg(e.message)}}
+async function addQueuePlayer(){try{await api("/api/streamer/queue",{method:"POST",body:JSON.stringify({nickname:$("queueNick").value,note:$("queueNote").value})});$("queueNick").value="";$("queueNote").value="";await loadStreamerExtras()}catch(e){toastMsg(e.message)}}
+async function queueStatus(id,status){try{await api("/api/streamer/queue/"+id,{method:"PATCH",body:JSON.stringify({status})});await loadStreamerExtras()}catch(e){toastMsg(e.message)}}
+async function moveQueue(id,move){try{await api("/api/streamer/queue/"+id,{method:"PATCH",body:JSON.stringify({move})});await loadStreamerExtras()}catch(e){toastMsg(e.message)}}
+async function deleteQueue(id){try{await api("/api/streamer/queue/"+id,{method:"DELETE"});await loadStreamerExtras()}catch(e){toastMsg(e.message)}}
+
 async function saveStreamerZone(){
   try{
     const st=await api("/api/streamer/me",{method:"PATCH",body:JSON.stringify({

@@ -100,6 +100,8 @@ function baseData() {
 
     streamers: [],
     streamerStreams: [],
+    streamerDonations: [],
+    guildQueue: [],
 
     overlay: {
       activeMatchId: null,
@@ -135,7 +137,9 @@ function normalizeData(data) {
     "tournaments",
     "news",
     "streamers",
-    "streamerStreams"
+    "streamerStreams",
+    "streamerDonations",
+    "guildQueue"
   ];
 
   for (const name of arrays) {
@@ -1409,6 +1413,17 @@ function streamerOverlayState(
     match:
       resultMatch,
 
+    donations:
+      (data.streamerDonations || [])
+        .filter(item => Number(item.streamerId) === Number(streamerId))
+        .sort((a,b) => Number(b.amount||0) - Number(a.amount||0))
+        .slice(0,5),
+
+    queue:
+      (data.guildQueue || [])
+        .filter(item => Number(item.streamerId) === Number(streamerId))
+        .sort((a,b) => Number(a.position||0) - Number(b.position||0)),
+
     settings:
       data.settings,
 
@@ -2587,6 +2602,73 @@ app.patch(
     res.json(stream);
   }
 );
+
+/* =========================================================
+   STREAMER DONATIONS + GUILD CHECK QUEUE
+========================================================= */
+
+function normalizeQueuePositions(data, streamerId) {
+  const list = (data.guildQueue || [])
+    .filter(x => Number(x.streamerId) === Number(streamerId))
+    .sort((a,b) => Number(a.position||0) - Number(b.position||0) || Number(a.id)-Number(b.id));
+  list.forEach((x,i) => x.position = i + 1);
+}
+
+app.get("/api/streamer/extras", requireStreamer, (req,res) => {
+  const data = readData();
+  res.json({
+    donations: (data.streamerDonations || []).filter(x => Number(x.streamerId) === Number(req.streamer.id)).sort((a,b)=>Number(b.amount||0)-Number(a.amount||0)),
+    queue: (data.guildQueue || []).filter(x => Number(x.streamerId) === Number(req.streamer.id)).sort((a,b)=>Number(a.position||0)-Number(b.position||0))
+  });
+});
+
+app.post("/api/streamer/donations", requireStreamer, async (req,res) => {
+  const data=readData(), body=req.body||{};
+  const name=cleanText(body.name,50), amount=Math.max(0,Number(body.amount)||0);
+  if(!name || !amount) return res.status(400).json({error:"Укажи ник донатера и сумму"});
+  let item=(data.streamerDonations||[]).find(x=>Number(x.streamerId)===Number(req.streamer.id) && String(x.name).toLowerCase()===name.toLowerCase());
+  if(item){ item.amount=amount; item.updatedAt=new Date().toISOString(); }
+  else { item={id:nextId(data.streamerDonations),streamerId:req.streamer.id,name,amount,createdAt:new Date().toISOString()}; data.streamerDonations.push(item); }
+  await atomicWrite(data); broadcastStreamer(req.streamer.id); res.json(item);
+});
+
+app.delete("/api/streamer/donations/:id", requireStreamer, async (req,res) => {
+  const data=readData(), id=Number(req.params.id);
+  data.streamerDonations=(data.streamerDonations||[]).filter(x=>!(Number(x.id)===id && Number(x.streamerId)===Number(req.streamer.id)));
+  await atomicWrite(data); broadcastStreamer(req.streamer.id); res.json({ok:true});
+});
+
+app.post("/api/streamer/queue", requireStreamer, async (req,res) => {
+  const data=readData(), body=req.body||{}, nickname=cleanText(body.nickname,50);
+  if(!nickname) return res.status(400).json({error:"Укажи ник игрока"});
+  if((data.guildQueue||[]).some(x=>Number(x.streamerId)===Number(req.streamer.id)&&String(x.nickname).toLowerCase()===nickname.toLowerCase()&&!['ACCEPTED','REJECTED'].includes(x.status))) return res.status(400).json({error:"Этот игрок уже в очереди"});
+  const mine=(data.guildQueue||[]).filter(x=>Number(x.streamerId)===Number(req.streamer.id));
+  const item={id:nextId(data.guildQueue),streamerId:req.streamer.id,nickname,note:cleanText(body.note,100),status:"WAITING",position:mine.length+1,createdAt:new Date().toISOString()};
+  data.guildQueue.push(item); normalizeQueuePositions(data,req.streamer.id);
+  await atomicWrite(data); broadcastStreamer(req.streamer.id); res.json(item);
+});
+
+app.patch("/api/streamer/queue/:id", requireStreamer, async (req,res) => {
+  const data=readData(), id=Number(req.params.id), body=req.body||{};
+  const item=(data.guildQueue||[]).find(x=>Number(x.id)===id&&Number(x.streamerId)===Number(req.streamer.id));
+  if(!item) return res.status(404).json({error:"Игрок в очереди не найден"});
+  if("nickname" in body) item.nickname=cleanText(body.nickname,50)||item.nickname;
+  if("note" in body) item.note=cleanText(body.note,100);
+  if("status" in body){ const st=String(body.status).toUpperCase(); if(["WAITING","CHECKING","ACCEPTED","REJECTED"].includes(st)) item.status=st; }
+  if("move" in body){
+    const list=(data.guildQueue||[]).filter(x=>Number(x.streamerId)===Number(req.streamer.id)).sort((a,b)=>Number(a.position)-Number(b.position));
+    const i=list.findIndex(x=>Number(x.id)===id), j=body.move==="up"?i-1:i+1;
+    if(i>=0&&j>=0&&j<list.length){ const t=list[i].position;list[i].position=list[j].position;list[j].position=t; }
+  }
+  item.updatedAt=new Date().toISOString(); normalizeQueuePositions(data,req.streamer.id);
+  await atomicWrite(data); broadcastStreamer(req.streamer.id); res.json(item);
+});
+
+app.delete("/api/streamer/queue/:id", requireStreamer, async (req,res) => {
+  const data=readData(), id=Number(req.params.id);
+  data.guildQueue=(data.guildQueue||[]).filter(x=>!(Number(x.id)===id&&Number(x.streamerId)===Number(req.streamer.id)));
+  normalizeQueuePositions(data,req.streamer.id); await atomicWrite(data); broadcastStreamer(req.streamer.id); res.json({ok:true});
+});
 
 /* =========================================================
    STREAMER OVERLAY
