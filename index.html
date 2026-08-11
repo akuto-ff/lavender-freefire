@@ -224,8 +224,20 @@ body:before{
 }
 
 
-/* STREAMER DONATE + QUEUE */
-.streamExtras{display:grid;grid-template-columns:1fr 1.35fr;gap:14px;margin-top:14px}.extraRow{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.07)}.extraRow:last-child{border-bottom:0}.queueStatus{font-size:10px;font-weight:1000;letter-spacing:.7px;padding:5px 8px;border-radius:999px;border:1px solid #ffffff18}.queueStatus.WAITING{color:#ffd76e}.queueStatus.CHECKING{color:#65e4ff}.queueStatus.ACCEPTED{color:#67efba}.queueStatus.REJECTED{color:#ff7eaa}.money{font-weight:1000;color:#ffd76e;text-shadow:0 0 14px #ffd76e44}.miniInputRow{display:grid;grid-template-columns:1fr 140px auto;gap:8px}.queueInputRow{display:grid;grid-template-columns:1fr 1fr auto;gap:8px}@media(max-width:900px){.streamExtras{grid-template-columns:1fr}.miniInputRow,.queueInputRow{grid-template-columns:1fr}.extraRow{grid-template-columns:1fr}.extraRow .actions{justify-content:flex-start}}
+/* SERIES MATCH UI */
+.seriesLineups{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
+.seriesRoster{background:#0b0810;border:1px solid #392748;border-radius:12px;padding:10px;max-height:270px;overflow:auto}
+.seriesRoster label{display:flex;gap:8px;align-items:center;padding:8px;border-radius:8px;cursor:pointer}
+.seriesRoster label:hover{background:rgba(217,124,255,.08)}
+.seriesRoster input{width:auto;min-height:auto}
+.seriesCurrent{display:grid;grid-template-columns:1fr auto 1fr;gap:12px;align-items:center;margin:14px 0}
+.seriesPlayer{padding:14px;border:1px solid rgba(217,124,255,.35);border-radius:13px;background:rgba(217,124,255,.055)}
+.seriesPlayer.r{text-align:right}
+.seriesVs{font-size:18px;font-weight:1000;color:#dca4ff}
+.seriesHistory{display:grid;gap:7px;max-height:260px;overflow:auto}
+.seriesHistoryRow{display:grid;grid-template-columns:44px 1fr auto;gap:8px;padding:9px 10px;border:1px solid #2d2036;border-radius:9px;background:#0b0810}
+@media(max-width:700px){.seriesLineups,.seriesCurrent{grid-template-columns:1fr}.seriesPlayer.r{text-align:left}.seriesVs{text-align:center}}
+
 </style></head><body>
 <header class="top"><div class="brand" id="brand">🪻 LAVENDER</div><button class="menu" onclick="nav.classList.toggle('open')">☰</button><nav class="nav" id="nav"></nav><div class="state" id="state">PUBLIC</div></header><div class="noticeCurtain" id="noticeCurtain" data-type="info"><div class="noticeCurtainInner"><div class="noticeIcon" id="noticeIcon">🔔</div><div><div class="noticeTitle" id="noticeTitle"></div><div class="noticeText" id="noticeText"></div></div><button class="noticeClose" onclick="closeNoticeCurtain()" aria-label="Закрыть">×</button></div></div>
 <main class="wrap"><div class="banner" id="banner"></div>
@@ -295,16 +307,6 @@ body:before{
       <div class="field"><label>Позиция</label><select id="szPosition"><option value="bottom">Снизу</option><option value="top">Сверху</option></select></div>
       <div class="actions"><button class="btn green" onclick="copyStreamerObs()">Скопировать OBS URL</button></div>
       <p class="muted small" id="szObs"></p>
-    </div></div>
-  </div>
-  <div class="streamExtras">
-    <div class="card"><div class="head"><h2>💜 TOP DONATE</h2><span class="muted small">Для OBS</span></div><div class="body">
-      <div class="miniInputRow"><input id="donateName" placeholder="Ник донатера"><input id="donateAmount" type="number" min="1" placeholder="Сумма"><button class="btn" onclick="addDonation()">Добавить</button></div>
-      <div id="donationList" style="margin-top:10px"></div>
-    </div></div>
-    <div class="card"><div class="head"><h2>🎮 Очередь на проверку в гильдию</h2><span class="muted small">Показывается в OBS</span></div><div class="body">
-      <div class="queueInputRow"><input id="queueNick" placeholder="Ник игрока"><input id="queueNote" placeholder="Заметка (необязательно)"><button class="btn" onclick="addQueuePlayer()">+ В очередь</button></div>
-      <div id="guildQueueList" style="margin-top:10px"></div>
     </div></div>
   </div>
 </section>
@@ -520,7 +522,26 @@ function renderPlayers(){const q=($("ps")?.value||"").toLowerCase(),r=$("pr")?.v
 function renderRanks(){const r={S:[],A:[],B:[],C:[],D:[],E:[],F:[]};db.players.forEach(p=>r[p.rank].push(p));$("rankBlocks").innerHTML=Object.keys(r).map(k=>`<div class="card" style="margin-bottom:12px"><div class="head"><h2>${k} RANK</h2><span class="muted">${r[k].length}</span></div><div class="table"><table><tbody>${r[k].map(p=>`<tr><td>${media(p.avatar)}<b>${esc(p.nickname)}</b></td><td>${esc(p.guild?.name||"—")}</td><td>${p.elo}</td><td>K/D ${p.kd}</td></tr>`).join("")||"<tr><td>Пусто</td></tr>"}</tbody></table></div></div>`).join("")}
 function renderGuilds(){const q=($("gs")?.value||"").toLowerCase();$("guildCards").innerHTML=db.guilds.filter(g=>(g.name+" "+g.tag).toLowerCase().includes(q)).map(g=>`<div class="card guildCard">${media(g.logo,"avatarLg")}<h3>${esc(g.name)}</h3><div class="muted">[${esc(g.tag)}] • ${esc(g.region)}${g.createdByRole==="streamer"?` • добавил: ${esc(g.createdByName||"стример")}`:""}</div><p><span class="rank">${g.rank}</span> ELO <b>${g.elo}</b> • WR ${g.winrate}%</p><p class="muted">${esc(g.description||"")}</p><div>${(Array.isArray(g.roster)?g.roster:[]).map(p=>`<span class="chip">${esc(p.nickname)}</span>`).join("")}</div>${(admin||role==="streamer")?`<div class="actions" style="margin-top:10px"><button class="btn dark" onclick="guildForm(${g.id})">Редактировать</button></div>`:""}</div>`).join("")}
 function renderTournaments(){$("tourCards").innerHTML=db.tournaments.map(t=>`<div class="card tourCard"><span class="status ${t.status}">${esc(t.status)}</span><h3>${esc(t.name)}</h3><p class="muted">${esc(t.description||"")}</p><span class="chip">${esc(t.format)}</span><span class="chip">${(Array.isArray(t.participants)?t.participants.length:0)} гильдий</span>${admin?`<div class="actions" style="margin-top:10px"><button class="btn dark" onclick="tournamentForm(${t.id})">Редактировать</button></div>`:""}</div>`).join("")}
-function renderMatches(){const s=$("ms")?.value||"";$("matchCards").innerHTML=db.matches.filter(m=>!s||m.status===s).map(m=>`<div class="card matchCard"><span class="status ${m.status}">${esc(m.status)}</span><h3>${esc(m.title)}</h3><div><b>${esc(m.guildA?.name||"A")}</b> <span style="font-size:28px;font-weight:1000">${m.scoreA} : ${m.scoreB}</span> <b>${esc(m.guildB?.name||"B")}</b></div><p class="muted">${esc(m.tournament)} • ${esc(m.roundText)} • ${esc(m.format)}${m.createdByRole==="streamer"?` • добавил: ${esc(m.createdByName||"стример")}`:""}${m.eloApplied&&m.eloChange?` • ELO: ${m.eloChange.deltaA>=0?"+":""}${m.eloChange.deltaA} / ${m.eloChange.deltaB>=0?"+":""}${m.eloChange.deltaB}`:""}</p>${(admin||role==="streamer")?`<div class="actions"><button class="btn dark" onclick="matchForm(${m.id})">Изм.</button>${m.status!=="FINAL"?`<button class="btn green" onclick="quickFinishMatch(${m.id})">🏁 Финал + ELO</button>`:""}${admin?`<button class="btn green" onclick="activate(${m.id})">На стрим</button>`:""}</div>`:""}</div>`).join("")}
+function renderMatches(){
+  const s=$("ms")?.value||"";
+  $("matchCards").innerHTML=db.matches.filter(m=>!s||m.status===s).map(m=>{
+    const isSeries=[6,8,10,12].includes(Number(m.seriesSize));
+    const played=Array.isArray(m.seriesHistory)?m.seriesHistory.length:0;
+    const target=Number(m.targetWins)||Number(m.seriesSize)||0;
+    return `<div class="card matchCard">
+      <span class="status ${m.status}">${esc(m.status)}</span>
+      <h3>${esc(m.title)}</h3>
+      <div><b>${esc(m.guildA?.name||"A")}</b> <span style="font-size:28px;font-weight:1000">${m.scoreA} : ${m.scoreB}</span> <b>${esc(m.guildB?.name||"B")}</b></div>
+      <p class="muted">${esc(m.tournament)} • ${esc(m.roundText)} • ${esc(m.format)}${isSeries?` • до ${target} побед • игр: ${played}`:""}${m.createdByRole==="streamer"?` • добавил: ${esc(m.createdByName||"стример")}`:""}</p>
+      ${isSeries&&m.status!=="FINAL"?`<div class="small muted">Перед каждой каткой выбери по одному игроку из каждой гильдии вручную.</div>`:""}
+      ${(admin||role==="streamer")?`<div class="actions" style="margin-top:10px">
+        <button class="btn dark" onclick="matchForm(${m.id})">Изм.</button>
+        ${isSeries?`<button class="btn green" onclick="seriesControl(${m.id})">🎮 Серия</button>`:(m.status!=="FINAL"?`<button class="btn green" onclick="quickFinishMatch(${m.id})">🏁 Финал + ELO</button>`:"")}
+        ${admin?`<button class="btn green" onclick="activate(${m.id})">На стрим</button>`:""}
+      </div>`:""}
+    </div>`;
+  }).join("")
+}
 function renderNews(){$("newsCards").innerHTML=db.news.filter(n=>!isNotice(n)).map(n=>`<div class="card newsCard"><h3>${n.pinned?"📌 ":""}${esc(n.title)}</h3><p class="muted">${esc(n.body)}</p>${admin?`<button class="btn dark" onclick="newsForm(${n.id})">Изм.</button>`:""}</div>`).join("")}
 
 function renderStreamers(){
@@ -607,27 +628,8 @@ async function loadStreamerZone(){
       }
     };
         $("szObs").textContent=location.origin+`/overlay.html?streamer=${streamerZoneData.streamer.id}`;
-    await loadStreamerExtras();
   }catch(e){toastMsg(e.message)}
 }
-
-async function loadStreamerExtras(){
-  if(role!=="streamer")return;
-  const x=await api("/api/streamer/extras");
-  renderStreamerExtras(x);
-}
-function renderStreamerExtras(x){
-  const ds=x?.donations||[], qs=x?.queue||[];
-  $("donationList").innerHTML=ds.slice(0,10).map((d,i)=>`<div class="extraRow"><div><b>${i<3?["🥇","🥈","🥉"][i]:"💜"} ${esc(d.name)}</b></div><div class="actions"><span class="money">${Number(d.amount||0).toLocaleString("ru-RU")} сом</span><button class="btn red" onclick="deleteDonation(${d.id})">×</button></div></div>`).join("")||'<div class="muted">Донатов пока нет</div>';
-  $("guildQueueList").innerHTML=qs.map(q=>`<div class="extraRow"><div><b>#${q.position} ${esc(q.nickname)}</b><div class="muted small">${esc(q.note||"")}</div></div><div class="actions"><span class="queueStatus ${q.status}">${({WAITING:"ОЖИДАЕТ",CHECKING:"ПРОВЕРКА",ACCEPTED:"ПРИНЯТ",REJECTED:"ОТКАЗ"})[q.status]||q.status}</span><button class="btn dark" onclick="moveQueue(${q.id},'up')">↑</button><button class="btn dark" onclick="moveQueue(${q.id},'down')">↓</button><button class="btn" onclick="queueStatus(${q.id},'CHECKING')">Проверка</button><button class="btn green" onclick="queueStatus(${q.id},'ACCEPTED')">✓</button><button class="btn red" onclick="deleteQueue(${q.id})">×</button></div></div>`).join("")||'<div class="muted">Очередь пустая</div>';
-}
-async function addDonation(){try{await api("/api/streamer/donations",{method:"POST",body:JSON.stringify({name:$("donateName").value,amount:Number($("donateAmount").value)})});$("donateName").value="";$("donateAmount").value="";await loadStreamerExtras()}catch(e){toastMsg(e.message)}}
-async function deleteDonation(id){try{await api("/api/streamer/donations/"+id,{method:"DELETE"});await loadStreamerExtras()}catch(e){toastMsg(e.message)}}
-async function addQueuePlayer(){try{await api("/api/streamer/queue",{method:"POST",body:JSON.stringify({nickname:$("queueNick").value,note:$("queueNote").value})});$("queueNick").value="";$("queueNote").value="";await loadStreamerExtras()}catch(e){toastMsg(e.message)}}
-async function queueStatus(id,status){try{await api("/api/streamer/queue/"+id,{method:"PATCH",body:JSON.stringify({status})});await loadStreamerExtras()}catch(e){toastMsg(e.message)}}
-async function moveQueue(id,move){try{await api("/api/streamer/queue/"+id,{method:"PATCH",body:JSON.stringify({move})});await loadStreamerExtras()}catch(e){toastMsg(e.message)}}
-async function deleteQueue(id){try{await api("/api/streamer/queue/"+id,{method:"DELETE"});await loadStreamerExtras()}catch(e){toastMsg(e.message)}}
-
 async function saveStreamerZone(){
   try{
     const st=await api("/api/streamer/me",{method:"PATCH",body:JSON.stringify({
@@ -890,8 +892,746 @@ async function quickFinishMatch(id){
   }catch(e){handleActionError(e,role==="streamer"?"streamerZone":"admin")}
 }
 
-function matchForm(id){const m=id?db.matches.find(x=>x.id===id):null,go=`<option value="">—</option>`+db.guilds.map(g=>`<option value="${g.id}">${esc(g.name)}</option>`).join("");modalOpen(`<h2>${m?"Редактировать":"Новый"} матч</h2><p class="muted small">Когда статус станет FINAL и счёт не равный, ELO игроков пересчитается автоматически один раз.</p><div class="grid"><div class="field"><label>Турнир</label><input id="mt" value="${esc(m?.tournament||"LAVENDER CUP")}"></div><div class="field"><label>Название</label><input id="mn" value="${esc(m?.title||"LIVE MATCH")}"></div><div class="field"><label>Команда A</label><select id="ma">${go}</select></div><div class="field"><label>Команда B</label><select id="mb">${go}</select></div><div class="field"><label>Счёт A</label><input id="mca" type="number" value="${m?.scoreA||0}"></div><div class="field"><label>Счёт B</label><input id="mcb" type="number" value="${m?.scoreB||0}"></div><div class="field"><label>Раунд</label><input id="mr" value="${esc(m?.roundText||"ROUND 1")}"></div><div class="field"><label>Формат</label><input id="mf" value="${esc(m?.format||"BO7")}"></div><div class="field"><label>Статус</label><select id="mst"><option>LIVE</option><option>SCHEDULED</option><option>PAUSED</option><option>FINAL</option></select></div></div><div class="actions"><button class="btn" onclick="saveMatch(${id||0})">Сохранить</button>${m?`<button class="btn red" onclick="delMatch(${m.id})">Удалить</button>`:""}</div>`);if(m){$("ma").value=m.guildAId||"";$("mb").value=m.guildBId||"";$("mst").value=m.status}}
-async function saveMatch(id){try{await api(id?"/api/matches/"+id:"/api/matches",{method:id?"PATCH":"POST",body:JSON.stringify({tournament:$("mt").value,title:$("mn").value,guildAId:Number($("ma").value)||null,guildBId:Number($("mb").value)||null,scoreA:Number($("mca").value),scoreB:Number($("mcb").value),roundText:$("mr").value,format:$("mf").value,status:$("mst").value})});closeModal();await load(true)}catch(e){handleActionError(e,"admin")}}
+function seriesSizeClient(v){
+  const n=Number(String(v||"").match(/(6|8|10|12)/)?.[1]||v);
+  return [6,8,10,12].includes(n)?n:6;
+}
+
+function matchForm(id){
+  const m=id?db.matches.find(x=>Number(x.id)===Number(id)):null;
+  const go=`<option value="">— выбери гильдию —</option>`+
+    db.guilds.map(g=>`<option value="${g.id}">${esc(g.name)}</option>`).join("");
+
+  const size=seriesSizeClient(
+    m?.seriesSize||
+    m?.format||
+    6
+  );
+
+  const locked=!!(
+    m?.seriesHistory?.length
+  );
+
+  modalOpen(`
+    <h2>${m?"Редактировать":"Новый"} матч</h2>
+
+    <p class="muted small">
+      Здесь выбираются только две гильдии и формат серии.
+      Игроков заранее выбирать не нужно.
+      Перед каждой отдельной каткой ты сам выберешь одного игрока от гильдии A
+      и одного игрока от гильдии B.
+      После выбора победителя ELO распределится автоматически.
+    </p>
+
+    <div class="grid">
+
+      <div class="field">
+        <label>Турнир</label>
+        <input
+          id="mt"
+          value="${esc(m?.tournament||"LAVENDER CUP")}"
+        >
+      </div>
+
+      <div class="field">
+        <label>Название</label>
+        <input
+          id="mn"
+          value="${esc(m?.title||"GUILD BATTLE")}"
+        >
+      </div>
+
+      <div class="field">
+        <label>Формат серии</label>
+
+        <select
+          id="mf"
+          ${locked?"disabled":""}
+        >
+          <option value="6">
+            6 на 6 — до 6 побед
+          </option>
+
+          <option value="8">
+            8 на 8 — до 8 побед
+          </option>
+
+          <option value="10">
+            10 на 10 — до 10 побед
+          </option>
+
+          <option value="12">
+            12 на 12 — до 12 побед
+          </option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>Статус</label>
+
+        <select id="mst">
+          <option>LIVE</option>
+          <option>SCHEDULED</option>
+          <option>PAUSED</option>
+          <option>FINAL</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>Гильдия A</label>
+
+        <select
+          id="ma"
+          ${locked?"disabled":""}
+        >
+          ${go}
+        </select>
+      </div>
+
+      <div class="field">
+        <label>Гильдия B</label>
+
+        <select
+          id="mb"
+          ${locked?"disabled":""}
+        >
+          ${go}
+        </select>
+      </div>
+
+    </div>
+
+    ${
+      locked
+        ? `<p class="muted small">
+             Серия уже началась.
+             Гильдии и формат заблокированы,
+             чтобы история игр и ELO не сбились.
+           </p>`
+        : ""
+    }
+
+    <div class="actions" style="margin-top:14px">
+
+      <button
+        class="btn"
+        onclick="saveMatch(${id||0})"
+      >
+        Сохранить
+      </button>
+
+      ${
+        m
+          ? `<button
+               class="btn red"
+               onclick="delMatch(${m.id})"
+             >
+               Удалить
+             </button>`
+          : ""
+      }
+
+    </div>
+  `);
+
+  $("mf").value=String(size);
+  $("ma").value=m?.guildAId||"";
+  $("mb").value=m?.guildBId||"";
+  $("mst").value=m?.status||"SCHEDULED";
+}
+
+async function saveMatch(id){
+  try{
+    const size=
+      seriesSizeClient(
+        $("mf").value
+      );
+
+    const body={
+      tournament:
+        $("mt").value,
+
+      title:
+        $("mn").value,
+
+      guildAId:
+        Number(
+          $("ma").value
+        )||null,
+
+      guildBId:
+        Number(
+          $("mb").value
+        )||null,
+
+      seriesSize:
+        size,
+
+      format:
+        `${size}v${size}`,
+
+      status:
+        $("mst").value
+    };
+
+    if(!body.guildAId||!body.guildBId){
+      return toastMsg(
+        "Выбери две гильдии"
+      );
+    }
+
+    if(
+      body.guildAId===
+      body.guildBId
+    ){
+      return toastMsg(
+        "Нужны две разные гильдии"
+      );
+    }
+
+    if(id){
+      const m=
+        db.matches.find(
+          x=>
+            Number(x.id)===
+            Number(id)
+        );
+
+      if(
+        m?.seriesHistory?.length
+      ){
+        await api(
+          "/api/matches/"+id,
+          {
+            method:"PATCH",
+            body:JSON.stringify({
+              title:
+                body.title,
+
+              tournament:
+                body.tournament,
+
+              status:
+                body.status
+            })
+          }
+        );
+      }else{
+        await api(
+          `/api/matches/${id}/series-config`,
+          {
+            method:"PATCH",
+            body:JSON.stringify(body)
+          }
+        );
+
+        await api(
+          "/api/matches/"+id,
+          {
+            method:"PATCH",
+            body:JSON.stringify({
+              title:
+                body.title,
+
+              tournament:
+                body.tournament,
+
+              status:
+                body.status
+            })
+          }
+        );
+      }
+
+    }else{
+      await api(
+        "/api/matches",
+        {
+          method:"POST",
+          body:JSON.stringify(body)
+        }
+      );
+    }
+
+    closeModal();
+    await load(true);
+
+    toastMsg(
+      "Матч сохранён"
+    );
+
+  }catch(e){
+    handleActionError(
+      e,
+      role==="streamer"
+        ?"streamerZone"
+        :"admin"
+    );
+  }
+}
+
+function seriesPlayersForGuild(guildId){
+  return (db.players||[])
+    .filter(
+      p=>
+        Number(p.guildId)===
+        Number(guildId)
+    )
+    .sort(
+      (a,b)=>
+        Number(b.elo||0)-
+        Number(a.elo||0)
+    );
+}
+
+function seriesPlayerOptions(guildId){
+  const players=
+    seriesPlayersForGuild(
+      guildId
+    );
+
+  return `
+    <option value="">
+      — выбери игрока —
+    </option>
+  `+
+  players.map(
+    p=>`
+      <option value="${p.id}">
+        ${esc(p.nickname)}
+        • ELO ${p.elo}
+        • ${esc(p.rank||"")}
+      </option>
+    `
+  ).join("");
+}
+
+function updateSeriesWinnerButtons(){
+  const aId=
+    Number(
+      $("seriesPlayerA")?.value
+    )||null;
+
+  const bId=
+    Number(
+      $("seriesPlayerB")?.value
+    )||null;
+
+  const a=
+    db.players.find(
+      p=>
+        Number(p.id)===
+        aId
+    );
+
+  const b=
+    db.players.find(
+      p=>
+        Number(p.id)===
+        bId
+    );
+
+  const aBtn=
+    $("seriesWinA");
+
+  const bBtn=
+    $("seriesWinB");
+
+  if(aBtn){
+    aBtn.disabled=!a;
+    aBtn.textContent=
+      a
+        ?`🏆 Победа ${a.nickname}`
+        :"🏆 Победа игрока A";
+  }
+
+  if(bBtn){
+    bBtn.disabled=!b;
+    bBtn.textContent=
+      b
+        ?`🏆 Победа ${b.nickname}`
+        :"🏆 Победа игрока B";
+  }
+
+  const aInfo=
+    $("seriesPlayerAInfo");
+
+  const bInfo=
+    $("seriesPlayerBInfo");
+
+  if(aInfo){
+    aInfo.textContent=
+      a
+        ?`${a.nickname} • ELO ${a.elo} • ${a.rank||""}`
+        :"Игрок не выбран";
+  }
+
+  if(bInfo){
+    bInfo.textContent=
+      b
+        ?`${b.nickname} • ELO ${b.elo} • ${b.rank||""}`
+        :"Игрок не выбран";
+  }
+}
+
+function seriesControl(id){
+  const m=
+    db.matches.find(
+      x=>
+        Number(x.id)===
+        Number(id)
+    );
+
+  if(!m)return;
+
+  const hist=
+    Array.isArray(
+      m.seriesHistory
+    )
+      ?m.seriesHistory
+      :[];
+
+  const target=
+    Number(
+      m.targetWins
+    )||
+    Number(
+      m.seriesSize
+    )||
+    0;
+
+  const optsA=
+    seriesPlayerOptions(
+      m.guildAId
+    );
+
+  const optsB=
+    seriesPlayerOptions(
+      m.guildBId
+    );
+
+  modalOpen(`
+    <h2>
+      🎮 ${esc(m.title)}
+    </h2>
+
+    <div class="muted">
+      ${esc(m.format)}
+      • до ${target} побед
+      • следующая игра №${hist.length+1}
+    </div>
+
+    <div
+      style="
+        font-size:34px;
+        font-weight:1000;
+        text-align:center;
+        margin:14px 0
+      "
+    >
+      ${esc(m.guildA?.name||"A")}
+      ${m.scoreA}
+      :
+      ${m.scoreB}
+      ${esc(m.guildB?.name||"B")}
+    </div>
+
+    ${
+      m.status==="FINAL"
+        ?`
+          <div class="status FINAL">
+            СЕРИЯ ЗАВЕРШЕНА
+          </div>
+        `
+        :`
+          <div class="grid">
+
+            <div class="card">
+              <div class="head">
+                <h2>
+                  ${esc(m.guildA?.name||"Гильдия A")}
+                </h2>
+              </div>
+
+              <div class="body">
+
+                <div class="field">
+                  <label>
+                    Игрок на эту катку
+                  </label>
+
+                  <select
+                    id="seriesPlayerA"
+                    onchange="updateSeriesWinnerButtons()"
+                  >
+                    ${optsA}
+                  </select>
+                </div>
+
+                <div
+                  class="muted small"
+                  id="seriesPlayerAInfo"
+                >
+                  Игрок не выбран
+                </div>
+
+                <button
+                  class="btn green"
+                  id="seriesWinA"
+                  style="
+                    margin-top:12px;
+                    width:100%
+                  "
+                  disabled
+                  onclick="seriesWinManual(${m.id},'A')"
+                >
+                  🏆 Победа игрока A
+                </button>
+
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="head">
+                <h2>
+                  ${esc(m.guildB?.name||"Гильдия B")}
+                </h2>
+              </div>
+
+              <div class="body">
+
+                <div class="field">
+                  <label>
+                    Игрок на эту катку
+                  </label>
+
+                  <select
+                    id="seriesPlayerB"
+                    onchange="updateSeriesWinnerButtons()"
+                  >
+                    ${optsB}
+                  </select>
+                </div>
+
+                <div
+                  class="muted small"
+                  id="seriesPlayerBInfo"
+                >
+                  Игрок не выбран
+                </div>
+
+                <button
+                  class="btn green"
+                  id="seriesWinB"
+                  style="
+                    margin-top:12px;
+                    width:100%
+                  "
+                  disabled
+                  onclick="seriesWinManual(${m.id},'B')"
+                >
+                  🏆 Победа игрока B
+                </button>
+
+              </div>
+            </div>
+
+          </div>
+
+          <p class="muted small">
+            После нажатия победителя:
+            ELO обоих игроков пересчитается сразу,
+            счёт серии увеличится,
+            а перед следующей каткой ты снова вручную выберешь двух игроков.
+          </p>
+        `
+    }
+
+    <h3>
+      История игр
+    </h3>
+
+    <div class="seriesHistory">
+      ${
+        hist.length
+          ?hist
+            .slice()
+            .reverse()
+            .map(
+              r=>`
+                <div class="seriesHistoryRow">
+
+                  <b>
+                    #${r.game}
+                  </b>
+
+                  <span>
+                    ${esc(r.playerAName||"A")}
+                    vs
+                    ${esc(r.playerBName||"B")}
+                  </span>
+
+                  <span>
+                    ${
+                      Number(r.winnerId)===
+                      Number(r.playerAId)
+                        ?"← A"
+                        :"B →"
+                    }
+                  </span>
+
+                </div>
+              `
+            )
+            .join("")
+          :`
+            <div class="muted">
+              Игр ещё не было
+            </div>
+          `
+      }
+    </div>
+  `);
+
+  updateSeriesWinnerButtons();
+}
+
+async function seriesWinManual(
+  matchId,
+  side
+){
+  const playerAId=
+    Number(
+      $("seriesPlayerA")?.value
+    )||null;
+
+  const playerBId=
+    Number(
+      $("seriesPlayerB")?.value
+    )||null;
+
+  if(
+    !playerAId||
+    !playerBId
+  ){
+    return toastMsg(
+      "Выбери двух игроков"
+    );
+  }
+
+  const winnerId=
+    side==="A"
+      ?playerAId
+      :playerBId;
+
+  const winner=
+    db.players.find(
+      p=>
+        Number(p.id)===
+        winnerId
+    );
+
+  if(
+    !confirm(
+      `Победитель: ${winner?.nickname||"игрок"}. Распределить ELO?`
+    )
+  ){
+    return;
+  }
+
+  try{
+    const result=
+      await api(
+        `/api/matches/${matchId}/series-game`,
+        {
+          method:"POST",
+
+          body:JSON.stringify({
+            playerAId,
+            playerBId,
+            winnerId
+          })
+        }
+      );
+
+    await load(true);
+
+    const c=
+      result.eloChange;
+
+    const game=
+      result.game;
+
+    modalOpen(`
+      <h2>
+        🏆 Игра №${game?.number||""} завершена
+      </h2>
+
+      <p>
+        <b>
+          ${esc(game?.playerA?.nickname||"Игрок A")}
+        </b>:
+        ${c?.deltaA>=0?"+":""}${c?.deltaA??0}
+        ELO →
+        <b>
+          ${game?.playerA?.elo??"—"}
+        </b>
+      </p>
+
+      <p>
+        <b>
+          ${esc(game?.playerB?.nickname||"Игрок B")}
+        </b>:
+        ${c?.deltaB>=0?"+":""}${c?.deltaB??0}
+        ELO →
+        <b>
+          ${game?.playerB?.elo??"—"}
+        </b>
+      </p>
+
+      ${
+        result.finished
+          ?`
+            <p>
+              Серия завершена.
+            </p>
+
+            <button
+              class="btn"
+              onclick="closeModal()"
+            >
+              Готово
+            </button>
+          `
+          :`
+            <p class="muted">
+              Следующая катка:
+              снова выбери двух игроков вручную.
+            </p>
+
+            <button
+              class="btn"
+              onclick="
+                closeModal();
+                seriesControl(${matchId})
+              "
+            >
+              Следующая катка
+            </button>
+          `
+      }
+    `);
+
+  }catch(e){
+    handleActionError(
+      e,
+      role==="streamer"
+        ?"streamerZone"
+        :"admin"
+    );
+  }
+}
+
 async function delMatch(id){if(confirm("Удалить матч?"))try{await api("/api/matches/"+id,{method:"DELETE"});closeModal();await load(true)}catch(e){handleActionError(e,"admin")}}
 function tournamentForm(id){const t=id?db.tournaments.find(x=>x.id===id):null;modalOpen(`<h2>${t?"Редактировать":"Новый"} турнир</h2><div class="field"><label>Название</label><input id="tn" value="${esc(t?.name||"")}"></div><div class="field"><label>Статус</label><select id="ts"><option>UPCOMING</option><option>LIVE</option><option>FINAL</option></select></div><div class="field"><label>Формат</label><input id="tf" value="${esc(t?.format||"BO7")}"></div><div class="field"><label>Описание</label><textarea id="td">${esc(t?.description||"")}</textarea></div><div class="actions"><button class="btn" onclick="saveTour(${id||0})">Сохранить</button>${t?`<button class="btn red" onclick="delTour(${t.id})">Удалить</button>`:""}</div>`);if(t)$("ts").value=t.status}
 async function saveTour(id){try{await api(id?"/api/tournaments/"+id:"/api/tournaments",{method:id?"PATCH":"POST",body:JSON.stringify({name:$("tn").value,status:$("ts").value,format:$("tf").value,description:$("td").value,guildIds:[]})});closeModal();await load(true)}catch(e){handleActionError(e,"admin")}}

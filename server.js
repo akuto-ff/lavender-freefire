@@ -100,8 +100,6 @@ function baseData() {
 
     streamers: [],
     streamerStreams: [],
-    streamerDonations: [],
-    guildQueue: [],
 
     overlay: {
       activeMatchId: null,
@@ -137,9 +135,7 @@ function normalizeData(data) {
     "tournaments",
     "news",
     "streamers",
-    "streamerStreams",
-    "streamerDonations",
-    "guildQueue"
+    "streamerStreams"
   ];
 
   for (const name of arrays) {
@@ -582,6 +578,111 @@ function applyMatchElo(
   };
 
   return match.eloChange;
+}
+
+
+/* =========================================================
+   TEAM SERIES 6v6 / 8v8 / 10v10 / 12v12
+========================================================= */
+
+function seriesSizeFromValue(value) {
+  const m = String(value ?? "").match(/(6|8|10|12)/);
+  const n = m ? Number(m[1]) : Number(value);
+  return [6, 8, 10, 12].includes(n) ? n : 6;
+}
+
+function uniqueNumberIds(list) {
+  return [...new Set((Array.isArray(list) ? list : []).map(Number).filter(Boolean))];
+}
+
+function validateGuildLineup(data, guildId, ids, size) {
+  const lineup = uniqueNumberIds(ids);
+  if (lineup.length !== size) {
+    return { ok: false, error: `Нужно выбрать ровно ${size} игроков` };
+  }
+
+  const players = lineup.map(id => data.players.find(p => Number(p.id) === id));
+  if (players.some(p => !p)) {
+    return { ok: false, error: "Один из выбранных игроков не найден" };
+  }
+
+  if (players.some(p => Number(p.guildId) !== Number(guildId))) {
+    return { ok: false, error: "Все выбранные игроки должны состоять в своей гильдии" };
+  }
+
+  return { ok: true, lineup, players };
+}
+
+function applySeriesGameElo(data, playerAId, playerBId, winnerId) {
+  const playerA = data.players.find(p => Number(p.id) === Number(playerAId));
+  const playerB = data.players.find(p => Number(p.id) === Number(playerBId));
+
+  if (!playerA || !playerB) {
+    throw new Error("Игрок для ELO не найден");
+  }
+
+  if (Number(playerA.id) === Number(playerB.id)) {
+    throw new Error("Один игрок не может играть сам против себя");
+  }
+
+  const winner = Number(winnerId);
+  if (![Number(playerA.id), Number(playerB.id)].includes(winner)) {
+    throw new Error("Победитель не участвует в текущей игре");
+  }
+
+  const oldA = Number(playerA.elo) || 1200;
+  const oldB = Number(playerB.elo) || 1200;
+  const resultA = winner === Number(playerA.id) ? 1 : 0;
+  const deltaA = calculateEloDelta(oldA, oldB, resultA, 32);
+  const deltaB = -deltaA;
+
+  playerA.elo = Math.max(0, oldA + deltaA);
+  playerB.elo = Math.max(0, oldB + deltaB);
+
+  if (resultA === 1) {
+    playerA.wins = (Number(playerA.wins) || 0) + 1;
+    playerB.losses = (Number(playerB.losses) || 0) + 1;
+  } else {
+    playerB.wins = (Number(playerB.wins) || 0) + 1;
+    playerA.losses = (Number(playerA.losses) || 0) + 1;
+  }
+
+  const now = new Date().toISOString();
+  playerA.updatedAt = now;
+  playerB.updatedAt = now;
+
+  return {
+    playerAId: playerA.id,
+    playerBId: playerB.id,
+    winnerId: winner,
+    beforeA: oldA,
+    beforeB: oldB,
+    afterA: playerA.elo,
+    afterB: playerB.elo,
+    deltaA,
+    deltaB,
+    appliedAt: now
+  };
+}
+
+function syncSeriesCurrentPlayers(match) {
+  const size = seriesSizeFromValue(match.seriesSize || match.format);
+  const lineupA = uniqueNumberIds(match.lineupAIds);
+  const lineupB = uniqueNumberIds(match.lineupBIds);
+
+  match.seriesSize = size;
+  match.targetWins = Number(match.targetWins) || size;
+  match.seriesHistory = Array.isArray(match.seriesHistory) ? match.seriesHistory : [];
+  match.currentStage = Math.max(0, Number(match.currentStage) || 0);
+
+  if (lineupA.length && lineupB.length) {
+    const idx = match.currentStage % Math.min(lineupA.length, lineupB.length);
+    match.playerAId = lineupA[idx] || null;
+    match.playerBId = lineupB[idx] || null;
+    match.roundText = `GAME ${match.seriesHistory.length + 1} • SLOT ${idx + 1}/${size}`;
+  }
+
+  return match;
 }
 
 /* =========================================================
@@ -1158,37 +1259,74 @@ function publicData(
 
   const matches =
     data.matches
-      .map(match => ({
-        ...match,
+      .map(match => {
+        const lineupAIds = uniqueNumberIds(match.lineupAIds);
+        const lineupBIds = uniqueNumberIds(match.lineupBIds);
+        const seriesSize = [6, 8, 10, 12].includes(Number(match.seriesSize))
+          ? Number(match.seriesSize)
+          : null;
+        const currentStage = Math.max(0, Number(match.currentStage) || 0);
+        const currentIndex = seriesSize ? currentStage % seriesSize : 0;
 
-        guildA:
-          guildMap[
-            Number(
-              match.guildAId
-            )
-          ] || null,
+        return {
+          ...match,
 
-        guildB:
-          guildMap[
-            Number(
-              match.guildBId
-            )
-          ] || null,
+          guildA:
+            guildMap[
+              Number(
+                match.guildAId
+              )
+            ] || null,
 
-        playerA:
-          playerMap[
-            Number(
-              match.playerAId
-            )
-          ] || null,
+          guildB:
+            guildMap[
+              Number(
+                match.guildBId
+              )
+            ] || null,
 
-        playerB:
-          playerMap[
-            Number(
-              match.playerBId
-            )
-          ] || null
-      }))
+          playerA:
+            playerMap[
+              Number(
+                match.playerAId
+              )
+            ] || null,
+
+          playerB:
+            playerMap[
+              Number(
+                match.playerBId
+              )
+            ] || null,
+
+          lineupAIds,
+          lineupBIds,
+
+          lineupA:
+            lineupAIds
+              .map(id => playerMap[Number(id)])
+              .filter(Boolean),
+
+          lineupB:
+            lineupBIds
+              .map(id => playerMap[Number(id)])
+              .filter(Boolean),
+
+          seriesSize,
+          targetWins:
+            Number(match.targetWins) ||
+            seriesSize ||
+            null,
+
+          seriesHistory:
+            Array.isArray(match.seriesHistory)
+              ? match.seriesHistory
+              : [],
+
+          currentStage,
+          currentIndex
+        };
+      })
       .sort(
         (a, b) =>
           Number(b.id) -
@@ -1412,17 +1550,6 @@ function streamerOverlayState(
 
     match:
       resultMatch,
-
-    donations:
-      (data.streamerDonations || [])
-        .filter(item => Number(item.streamerId) === Number(streamerId))
-        .sort((a,b) => Number(b.amount||0) - Number(a.amount||0))
-        .slice(0,5),
-
-    queue:
-      (data.guildQueue || [])
-        .filter(item => Number(item.streamerId) === Number(streamerId))
-        .sort((a,b) => Number(a.position||0) - Number(b.position||0)),
 
     settings:
       data.settings,
@@ -2604,73 +2731,6 @@ app.patch(
 );
 
 /* =========================================================
-   STREAMER DONATIONS + GUILD CHECK QUEUE
-========================================================= */
-
-function normalizeQueuePositions(data, streamerId) {
-  const list = (data.guildQueue || [])
-    .filter(x => Number(x.streamerId) === Number(streamerId))
-    .sort((a,b) => Number(a.position||0) - Number(b.position||0) || Number(a.id)-Number(b.id));
-  list.forEach((x,i) => x.position = i + 1);
-}
-
-app.get("/api/streamer/extras", requireStreamer, (req,res) => {
-  const data = readData();
-  res.json({
-    donations: (data.streamerDonations || []).filter(x => Number(x.streamerId) === Number(req.streamer.id)).sort((a,b)=>Number(b.amount||0)-Number(a.amount||0)),
-    queue: (data.guildQueue || []).filter(x => Number(x.streamerId) === Number(req.streamer.id)).sort((a,b)=>Number(a.position||0)-Number(b.position||0))
-  });
-});
-
-app.post("/api/streamer/donations", requireStreamer, async (req,res) => {
-  const data=readData(), body=req.body||{};
-  const name=cleanText(body.name,50), amount=Math.max(0,Number(body.amount)||0);
-  if(!name || !amount) return res.status(400).json({error:"Укажи ник донатера и сумму"});
-  let item=(data.streamerDonations||[]).find(x=>Number(x.streamerId)===Number(req.streamer.id) && String(x.name).toLowerCase()===name.toLowerCase());
-  if(item){ item.amount=amount; item.updatedAt=new Date().toISOString(); }
-  else { item={id:nextId(data.streamerDonations),streamerId:req.streamer.id,name,amount,createdAt:new Date().toISOString()}; data.streamerDonations.push(item); }
-  await atomicWrite(data); broadcastStreamer(req.streamer.id); res.json(item);
-});
-
-app.delete("/api/streamer/donations/:id", requireStreamer, async (req,res) => {
-  const data=readData(), id=Number(req.params.id);
-  data.streamerDonations=(data.streamerDonations||[]).filter(x=>!(Number(x.id)===id && Number(x.streamerId)===Number(req.streamer.id)));
-  await atomicWrite(data); broadcastStreamer(req.streamer.id); res.json({ok:true});
-});
-
-app.post("/api/streamer/queue", requireStreamer, async (req,res) => {
-  const data=readData(), body=req.body||{}, nickname=cleanText(body.nickname,50);
-  if(!nickname) return res.status(400).json({error:"Укажи ник игрока"});
-  if((data.guildQueue||[]).some(x=>Number(x.streamerId)===Number(req.streamer.id)&&String(x.nickname).toLowerCase()===nickname.toLowerCase()&&!['ACCEPTED','REJECTED'].includes(x.status))) return res.status(400).json({error:"Этот игрок уже в очереди"});
-  const mine=(data.guildQueue||[]).filter(x=>Number(x.streamerId)===Number(req.streamer.id));
-  const item={id:nextId(data.guildQueue),streamerId:req.streamer.id,nickname,note:cleanText(body.note,100),status:"WAITING",position:mine.length+1,createdAt:new Date().toISOString()};
-  data.guildQueue.push(item); normalizeQueuePositions(data,req.streamer.id);
-  await atomicWrite(data); broadcastStreamer(req.streamer.id); res.json(item);
-});
-
-app.patch("/api/streamer/queue/:id", requireStreamer, async (req,res) => {
-  const data=readData(), id=Number(req.params.id), body=req.body||{};
-  const item=(data.guildQueue||[]).find(x=>Number(x.id)===id&&Number(x.streamerId)===Number(req.streamer.id));
-  if(!item) return res.status(404).json({error:"Игрок в очереди не найден"});
-  if("nickname" in body) item.nickname=cleanText(body.nickname,50)||item.nickname;
-  if("note" in body) item.note=cleanText(body.note,100);
-  if("status" in body){ const st=String(body.status).toUpperCase(); if(["WAITING","CHECKING","ACCEPTED","REJECTED"].includes(st)) item.status=st; }
-  if("move" in body){
-    const list=(data.guildQueue||[]).filter(x=>Number(x.streamerId)===Number(req.streamer.id)).sort((a,b)=>Number(a.position)-Number(b.position));
-    const i=list.findIndex(x=>Number(x.id)===id), j=body.move==="up"?i-1:i+1;
-    if(i>=0&&j>=0&&j<list.length){ const t=list[i].position;list[i].position=list[j].position;list[j].position=t; }
-  }
-  item.updatedAt=new Date().toISOString(); normalizeQueuePositions(data,req.streamer.id);
-  await atomicWrite(data); broadcastStreamer(req.streamer.id); res.json(item);
-});
-
-app.delete("/api/streamer/queue/:id", requireStreamer, async (req,res) => {
-  const data=readData(), id=Number(req.params.id);
-  data.guildQueue=(data.guildQueue||[]).filter(x=>!(Number(x.id)===id&&Number(x.streamerId)===Number(req.streamer.id)));
-  normalizeQueuePositions(data,req.streamer.id); await atomicWrite(data); broadcastStreamer(req.streamer.id); res.json({ok:true});
-});
-
-/* =========================================================
    STREAMER OVERLAY
 ========================================================= */
 
@@ -3330,128 +3390,112 @@ app.post(
     req,
     res
   ) => {
-    const data =
-      readData();
+    try {
+      const data = readData();
+      const body = req.body || {};
 
-    const body =
-      req.body || {};
+      const guildAId = Number(body.guildAId) || null;
+      const guildBId = Number(body.guildBId) || null;
+      const seriesSize = seriesSizeFromValue(body.seriesSize || body.format || 6);
 
-    const match = {
-      id:
-        nextId(
-          data.matches
-        ),
+      if (!guildAId || !guildBId) {
+        return res.status(400).json({
+          error: "Выбери две гильдии"
+        });
+      }
 
-      title:
-        cleanText(
-          body.title ||
-          "LIVE MATCH",
-          80
-        ),
+      if (guildAId === guildBId) {
+        return res.status(400).json({
+          error: "Нужно выбрать две разные гильдии"
+        });
+      }
 
-      tournament:
-        cleanText(
-          body.tournament ||
-          "LAVENDER CUP",
-          80
-        ),
+      const guildA = data.guilds.find(g => Number(g.id) === guildAId);
+      const guildB = data.guilds.find(g => Number(g.id) === guildBId);
 
-      subtitle:
-        cleanText(
-          body.subtitle ||
-          "FREE FIRE",
-          80
-        ),
+      if (!guildA || !guildB) {
+        return res.status(400).json({
+          error: "Одна из гильдий не найдена"
+        });
+      }
 
-      guildAId:
-        body.guildAId
-          ? Number(
-              body.guildAId
-            )
-          : null,
+      const match = {
+        id: nextId(data.matches),
 
-      guildBId:
-        body.guildBId
-          ? Number(
-              body.guildBId
-            )
-          : null,
+        title:
+          cleanText(
+            body.title ||
+            "GUILD BATTLE",
+            80
+          ),
 
-      playerAId:
-        body.playerAId
-          ? Number(
-              body.playerAId
-            )
-          : null,
+        tournament:
+          cleanText(
+            body.tournament ||
+            "LAVENDER CUP",
+            80
+          ),
 
-      playerBId:
-        body.playerBId
-          ? Number(
-              body.playerBId
-            )
-          : null,
+        subtitle:
+          cleanText(
+            body.subtitle ||
+            "FREE FIRE",
+            80
+          ),
 
-      scoreA:
-        Number(
-          body.scoreA
-        ) || 0,
+        guildAId,
+        guildBId,
 
-      scoreB:
-        Number(
-          body.scoreB
-        ) || 0,
+        seriesSize,
+        targetWins: seriesSize,
 
-      roundText:
-        cleanText(
-          body.roundText ||
-          "ROUND 1",
-          30
-        ),
+        playerAId: null,
+        playerBId: null,
 
-      format:
-        cleanText(
-          body.format ||
-          "BO7",
-          20
-        ),
+        scoreA: 0,
+        scoreB: 0,
 
-      status:
-        cleanText(
-          body.status ||
-          "SCHEDULED",
-          20
-        ).toUpperCase(),
+        roundText: "GAME 1",
 
-      eloApplied:
-        false,
+        format: `${seriesSize}v${seriesSize}`,
 
-      createdByRole:
-        req.editor.role,
+        status:
+          cleanText(
+            body.status ||
+            "SCHEDULED",
+            20
+          ).toUpperCase(),
 
-      createdById:
-        req.editor.id,
+        seriesHistory: [],
 
-      createdByName:
-        req.editor.name,
+        createdByRole:
+          req.editor.role,
 
-      createdAt:
-        new Date()
-          .toISOString()
-    };
+        createdById:
+          req.editor.id,
 
-    data.matches.push(
-      match
-    );
+        createdByName:
+          req.editor.name,
 
-    data.overlay
-      .activeMatchId =
-      match.id;
+        createdAt:
+          new Date()
+            .toISOString()
+      };
 
-    await atomicWrite(data);
+      data.matches.push(match);
+      data.overlay.activeMatchId = match.id;
 
-    broadcast();
+      await atomicWrite(data);
+      broadcast();
 
-    res.json(match);
+      res.json(match);
+    } catch (error) {
+      console.error("CREATE MATCH ERROR:", error);
+
+      res.status(500).json({
+        error: "Не удалось создать матч"
+      });
+    }
   }
 );
 
@@ -3562,6 +3606,270 @@ app.patch(
     broadcast();
 
     res.json(match);
+  }
+);
+
+
+/* =========================================================
+   SERIES CONFIG + GAME RESULT
+========================================================= */
+
+app.patch(
+  "/api/matches/:id/series-config",
+  requireEditor,
+  async (req, res) => {
+    try {
+      const data = readData();
+
+      const match = data.matches.find(
+        item => Number(item.id) === Number(req.params.id)
+      );
+
+      if (!match) {
+        return res.status(404).json({
+          error: "Матч не найден"
+        });
+      }
+
+      match.seriesHistory = Array.isArray(match.seriesHistory)
+        ? match.seriesHistory
+        : [];
+
+      if (match.seriesHistory.length) {
+        return res.status(400).json({
+          error: "После первой игры формат и гильдии менять нельзя"
+        });
+      }
+
+      const body = req.body || {};
+
+      const guildAId = Number(body.guildAId ?? match.guildAId) || null;
+      const guildBId = Number(body.guildBId ?? match.guildBId) || null;
+      const size = seriesSizeFromValue(
+        body.seriesSize ||
+        body.format ||
+        match.seriesSize ||
+        match.format
+      );
+
+      if (!guildAId || !guildBId) {
+        return res.status(400).json({
+          error: "Выбери две гильдии"
+        });
+      }
+
+      if (guildAId === guildBId) {
+        return res.status(400).json({
+          error: "Нужно выбрать две разные гильдии"
+        });
+      }
+
+      const guildA = data.guilds.find(g => Number(g.id) === guildAId);
+      const guildB = data.guilds.find(g => Number(g.id) === guildBId);
+
+      if (!guildA || !guildB) {
+        return res.status(400).json({
+          error: "Одна из гильдий не найдена"
+        });
+      }
+
+      match.guildAId = guildAId;
+      match.guildBId = guildBId;
+      match.seriesSize = size;
+      match.targetWins = size;
+      match.format = `${size}v${size}`;
+      match.scoreA = 0;
+      match.scoreB = 0;
+      match.playerAId = null;
+      match.playerBId = null;
+      match.seriesHistory = [];
+      match.roundText = "GAME 1";
+      match.updatedAt = new Date().toISOString();
+
+      await atomicWrite(data);
+      broadcast();
+
+      res.json(match);
+    } catch (error) {
+      console.error("SERIES CONFIG ERROR:", error);
+
+      res.status(500).json({
+        error: "Ошибка настройки серии"
+      });
+    }
+  }
+);
+
+app.post(
+  "/api/matches/:id/series-game",
+  requireEditor,
+  async (req, res) => {
+    try {
+      const data = readData();
+
+      const match = data.matches.find(
+        item => Number(item.id) === Number(req.params.id)
+      );
+
+      if (!match) {
+        return res.status(404).json({
+          error: "Матч не найден"
+        });
+      }
+
+      if (String(match.status).toUpperCase() === "FINAL") {
+        return res.status(400).json({
+          error: "Серия уже завершена"
+        });
+      }
+
+      const playerAId = Number(req.body?.playerAId) || null;
+      const playerBId = Number(req.body?.playerBId) || null;
+      const winnerId = Number(req.body?.winnerId) || null;
+
+      if (!playerAId || !playerBId) {
+        return res.status(400).json({
+          error: "Перед каждой каткой выбери двух игроков"
+        });
+      }
+
+      if (playerAId === playerBId) {
+        return res.status(400).json({
+          error: "Один игрок не может играть против себя"
+        });
+      }
+
+      const playerA = data.players.find(
+        p => Number(p.id) === playerAId
+      );
+
+      const playerB = data.players.find(
+        p => Number(p.id) === playerBId
+      );
+
+      if (!playerA || !playerB) {
+        return res.status(400).json({
+          error: "Один из игроков не найден"
+        });
+      }
+
+      if (Number(playerA.guildId) !== Number(match.guildAId)) {
+        return res.status(400).json({
+          error: `${playerA.nickname} не состоит в гильдии A`
+        });
+      }
+
+      if (Number(playerB.guildId) !== Number(match.guildBId)) {
+        return res.status(400).json({
+          error: `${playerB.nickname} не состоит в гильдии B`
+        });
+      }
+
+      if (![playerAId, playerBId].includes(winnerId)) {
+        return res.status(400).json({
+          error: "Выбери победителя текущей игры"
+        });
+      }
+
+      const eloChange = applySeriesGameElo(
+        data,
+        playerAId,
+        playerBId,
+        winnerId
+      );
+
+      if (winnerId === playerAId) {
+        match.scoreA = (Number(match.scoreA) || 0) + 1;
+      } else {
+        match.scoreB = (Number(match.scoreB) || 0) + 1;
+      }
+
+      match.seriesHistory = Array.isArray(match.seriesHistory)
+        ? match.seriesHistory
+        : [];
+
+      const gameNumber = match.seriesHistory.length + 1;
+
+      match.playerAId = playerAId;
+      match.playerBId = playerBId;
+
+      match.seriesHistory.push({
+        game: gameNumber,
+        playerAId,
+        playerBId,
+        playerAName: playerA.nickname,
+        playerBName: playerB.nickname,
+        winnerId,
+        eloChange,
+        playedAt: new Date().toISOString()
+      });
+
+      const size = seriesSizeFromValue(
+        match.seriesSize ||
+        match.format
+      );
+
+      match.seriesSize = size;
+      match.targetWins = Number(match.targetWins) || size;
+      match.format = `${size}v${size}`;
+
+      const finished =
+        Number(match.scoreA) >= match.targetWins ||
+        Number(match.scoreB) >= match.targetWins;
+
+      if (finished) {
+        match.status = "FINAL";
+        match.roundText = `FINAL • ${match.scoreA}:${match.scoreB}`;
+      } else {
+        match.status = "LIVE";
+        match.roundText = `GAME ${gameNumber + 1}`;
+
+        // ВАЖНО: следующая пара НЕ выбирается автоматически.
+        // Стример/админ выбирает двух игроков вручную перед следующей каткой.
+        match.playerAId = null;
+        match.playerBId = null;
+      }
+
+      match.updatedAt = new Date().toISOString();
+
+      await atomicWrite(data);
+      broadcast();
+
+      res.json({
+        ok: true,
+        finished,
+        match,
+        eloChange,
+
+        game: {
+          number: gameNumber,
+
+          playerA: {
+            id: playerA.id,
+            nickname: playerA.nickname,
+            elo: playerA.elo,
+            rank: rankForElo(playerA.elo)
+          },
+
+          playerB: {
+            id: playerB.id,
+            nickname: playerB.nickname,
+            elo: playerB.elo,
+            rank: rankForElo(playerB.elo)
+          },
+
+          winnerId
+        }
+      });
+    } catch (error) {
+      console.error("SERIES GAME ERROR:", error);
+
+      res.status(500).json({
+        error:
+          error.message ||
+          "Ошибка сохранения результата игры"
+      });
+    }
   }
 );
 
