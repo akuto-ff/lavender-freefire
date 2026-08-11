@@ -534,7 +534,7 @@ function renderAll(){
  $("newsBox").innerHTML=db.news.filter(n=>!isNotice(n)).slice(0,3).map(n=>`<div style="margin-bottom:10px"><b>${n.pinned?"📌 ":""}${esc(n.title)}</b><div class="muted">${esc(n.body).slice(0,130)}</div></div>`).join("")||`<div class="muted">Новостей нет</div>`;
  $("topPlayers").innerHTML=db.players.slice(0,6).map((p,i)=>`<tr><td>${i+1}</td><td>${media(p.avatar)}<b>${esc(p.nickname)}</b></td><td>${esc(p.guild?.name||"—")}</td><td><span class="rank">${p.rank}</span></td><td>${p.elo}</td></tr>`).join("");
  $("topGuilds").innerHTML=db.guilds.slice(0,6).map((g,i)=>`<tr><td>${i+1}</td><td>${media(g.logo)}<b>${esc(g.name)}</b></td><td><span class="rank">${g.rank}</span></td><td>${g.elo}</td></tr>`).join("");
- renderPlayers();renderRanks();renderGuilds();renderTournaments();renderMatches();renderNews();renderStreamers();renderAdminStreamers();renderNotificationCurtain();renderAdminNotifications();
+ renderPlayers();if(typeof renderRanks==="function")renderRanks();renderGuilds();renderTournaments();renderMatches();renderNews();renderStreamers();renderAdminStreamers();renderNotificationCurtain();renderAdminNotifications();
  $("acp").textContent=db.players.length;$("acg").textContent=db.guilds.length;$("acm").textContent=db.matches.length;$("act").textContent=db.tournaments.length;
 }
 function renderPlayers(){
@@ -581,6 +581,57 @@ function renderPlayers(){
     )
     .join("");
 }
+
+function renderRanks(){
+  try{
+    const ranksBox = $("rankBlocks");
+    if(ranksBox){
+      const order=["S","A","B","C","D","E","F"];
+      ranksBox.innerHTML=order.map(rank=>{
+        const count=(db?.players||[]).filter(p=>String(p.rank||"")===rank).length;
+        return `<div class="stat"><b>${rank}</b><span>${count} игроков</span></div>`;
+      }).join("");
+    }
+
+    const topPlayers=$("topPlayers");
+    if(topPlayers){
+      const list=(db?.players||[])
+        .slice()
+        .sort((a,b)=>Number(b.elo||0)-Number(a.elo||0))
+        .slice(0,10);
+
+      topPlayers.innerHTML=list.map((p,i)=>`
+        <tr>
+          <td>${i+1}</td>
+          <td>${media(p.avatar)} <b>${esc(p.nickname)}</b></td>
+          <td>${esc(p.guild?.name||"—")}</td>
+          <td><span class="rank">${esc(p.rank||"F")}</span></td>
+          <td>${Number(p.elo||0)}</td>
+        </tr>
+      `).join("");
+    }
+
+    const topGuilds=$("topGuilds");
+    if(topGuilds){
+      const list=(db?.guilds||[])
+        .slice()
+        .sort((a,b)=>Number(b.elo||0)-Number(a.elo||0))
+        .slice(0,10);
+
+      topGuilds.innerHTML=list.map((g,i)=>`
+        <tr>
+          <td>${i+1}</td>
+          <td>${media(g.logo)} <b>${esc(g.name)}</b></td>
+          <td><span class="rank">${esc(g.rank||"F")}</span></td>
+          <td>${Number(g.elo||0)}</td>
+        </tr>
+      `).join("");
+    }
+  }catch(error){
+    console.error("renderRanks error:",error);
+  }
+}
+
 function renderGuilds(){const q=($("gs")?.value||"").toLowerCase();$("guildCards").innerHTML=db.guilds.filter(g=>(g.name+" "+g.tag).toLowerCase().includes(q)).map(g=>`<div class="card guildCard">${media(g.logo,"avatarLg")}<h3>${esc(g.name)}</h3><div class="muted">[${esc(g.tag)}] • ${esc(g.region)}${g.createdByRole==="streamer"?` • добавил: ${esc(g.createdByName||"стример")}`:""}</div><p><span class="rank">${g.rank}</span> ELO <b>${g.elo}</b> • WR ${g.winrate}%</p><p class="muted">${esc(g.description||"")}</p><div>${(Array.isArray(g.roster)?g.roster:[]).map(p=>`<span class="chip">${esc(p.nickname)}</span>`).join("")}</div>${(admin||role==="streamer")?`<div class="actions" style="margin-top:10px"><button class="btn dark" onclick="guildForm(${g.id})">Редактировать</button></div>`:""}</div>`).join("")}
 function renderTournaments(){$("tourCards").innerHTML=db.tournaments.map(t=>`<div class="card tourCard"><span class="status ${t.status}">${esc(t.status)}</span><h3>${esc(t.name)}</h3><p class="muted">${esc(t.description||"")}</p><span class="chip">${esc(t.format)}</span><span class="chip">${(Array.isArray(t.participants)?t.participants.length:0)} гильдий</span>${admin?`<div class="actions" style="margin-top:10px"><button class="btn dark" onclick="tournamentForm(${t.id})">Редактировать</button></div>`:""}</div>`).join("")}
 function renderMatches(){
