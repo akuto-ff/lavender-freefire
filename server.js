@@ -1149,8 +1149,23 @@ function publicData(
           Number(player.deaths) ||
           0;
 
+        const headshots =
+          Number(player.headshots) ||
+          0;
+
         return {
           ...player,
+
+          headshots,
+
+          headshotRate:
+            kills > 0
+              ? Math.round(
+                  headshots /
+                  kills *
+                  100
+                )
+              : 0,
 
           guild:
             guildMap[
@@ -2861,6 +2876,11 @@ app.post(
           body.deaths
         ) || 0,
 
+      headshots:
+        Number(
+          body.headshots
+        ) || 0,
+
       role:
         cleanText(
           body.role ||
@@ -2903,7 +2923,7 @@ app.post(
 
 app.patch(
   "/api/players/:id",
-  requireEditor,
+  requireAdmin,
   async (
     req,
     res
@@ -2980,7 +3000,8 @@ app.patch(
         "wins",
         "losses",
         "kills",
-        "deaths"
+        "deaths",
+        "headshots"
       ]
     ) {
       if (key in body) {
@@ -3005,7 +3026,7 @@ app.patch(
 
 app.delete(
   "/api/players/:id",
-  requireEditor,
+  requireAdmin,
   async (
     req,
     res
@@ -3057,6 +3078,200 @@ app.delete(
     });
   }
 );
+
+
+/* =========================================================
+   STREAMER PLAYER STATS
+   Стример может ТОЛЬКО прибавлять kills / deaths / headshots.
+   ELO, wins, losses и профиль игрока меняются не здесь.
+========================================================= */
+
+app.post(
+  "/api/streamer/player-stats/:id",
+  requireStreamer,
+  async (
+    req,
+    res
+  ) => {
+    try {
+      const data =
+        readData();
+
+      const player =
+        data.players.find(
+          item =>
+            Number(item.id) ===
+            Number(req.params.id)
+        );
+
+      if (!player) {
+        return res
+          .status(404)
+          .json({
+            error:
+              "Игрок не найден"
+          });
+      }
+
+      const body =
+        req.body || {};
+
+      const kills =
+        Math.max(
+          0,
+          Math.floor(
+            Number(body.kills) ||
+            0
+          )
+        );
+
+      const deaths =
+        Math.max(
+          0,
+          Math.floor(
+            Number(body.deaths) ||
+            0
+          )
+        );
+
+      const headshots =
+        Math.max(
+          0,
+          Math.floor(
+            Number(body.headshots) ||
+            0
+          )
+        );
+
+      if (
+        kills === 0 &&
+        deaths === 0 &&
+        headshots === 0
+      ) {
+        return res
+          .status(400)
+          .json({
+            error:
+              "Добавь хотя бы один показатель"
+          });
+      }
+
+      if (headshots > kills) {
+        return res
+          .status(400)
+          .json({
+            error:
+              "Хедшотов не может быть больше киллов за эту катку"
+          });
+      }
+
+      player.kills =
+        (
+          Number(player.kills) ||
+          0
+        ) + kills;
+
+      player.deaths =
+        (
+          Number(player.deaths) ||
+          0
+        ) + deaths;
+
+      player.headshots =
+        (
+          Number(player.headshots) ||
+          0
+        ) + headshots;
+
+      player.updatedAt =
+        new Date()
+          .toISOString();
+
+      player.lastStatsBy = {
+        streamerId:
+          req.streamer.id,
+
+        streamerName:
+          req.streamer.displayName ||
+          req.streamer.username,
+
+        kills,
+        deaths,
+        headshots,
+
+        at:
+          new Date()
+            .toISOString()
+      };
+
+      await atomicWrite(data);
+
+      broadcast();
+
+      res.json({
+        ok: true,
+
+        player: {
+          id:
+            player.id,
+
+          nickname:
+            player.nickname,
+
+          kills:
+            player.kills,
+
+          deaths:
+            player.deaths,
+
+          headshots:
+            player.headshots,
+
+          kd:
+            player.deaths > 0
+              ? Number(
+                  (
+                    player.kills /
+                    player.deaths
+                  ).toFixed(2)
+                )
+              : player.kills,
+
+          headshotRate:
+            player.kills > 0
+              ? Math.round(
+                  player.headshots /
+                  player.kills *
+                  100
+                )
+              : 0,
+
+          elo:
+            player.elo,
+
+          wins:
+            player.wins,
+
+          losses:
+            player.losses
+        }
+      });
+    } catch (error) {
+      console.error(
+        "STREAMER PLAYER STATS ERROR:",
+        error
+      );
+
+      res
+        .status(500)
+        .json({
+          error:
+            "Не удалось сохранить статистику"
+        });
+    }
+  }
+);
+
 
 /* =========================================================
    GUILDS
@@ -3193,7 +3408,7 @@ app.post(
 
 app.patch(
   "/api/guilds/:id",
-  requireEditor,
+  requireAdmin,
   async (
     req,
     res
@@ -3312,7 +3527,7 @@ app.patch(
 
 app.delete(
   "/api/guilds/:id",
-  requireEditor,
+  requireAdmin,
   async (
     req,
     res
