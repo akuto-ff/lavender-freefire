@@ -1,0 +1,2578 @@
+<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#0b0810"><title>LAVENDER</title>
+<style>
+:root{--bg:#07060b;--p:#110d17;--p2:#17111e;--line:#2e2237;--text:#faf6ff;--muted:#9e92a8;--a:#b46cff;--ok:#61e4a4;--bad:#ff7088}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:radial-gradient(circle at 15% -5%,#321643 0,transparent 30%),var(--bg);color:var(--text);font:14px Inter,Segoe UI,Arial,sans-serif}button,input,select,textarea{font:inherit}.top{position:sticky;top:0;z-index:50;min-height:68px;padding:9px 18px;display:flex;align-items:center;gap:14px;background:#0b0810ee;border-bottom:1px solid var(--line);backdrop-filter:blur(14px)}.brand{font-weight:1000;font-size:19px;letter-spacing:3px;color:#ddbaff;white-space:nowrap}.nav{display:flex;gap:5px;flex:1;overflow:auto}.nav button{border:0;background:transparent;color:#a195aa;padding:10px 11px;border-radius:9px;white-space:nowrap;cursor:pointer}.nav button:hover,.nav button.on{background:#1d1525;color:white}.menu{display:none;background:#1a1221;color:white;border:1px solid var(--line);border-radius:10px;min-width:44px;min-height:44px}.state{font-size:10px;color:#aa9db3}.wrap{max-width:1320px;margin:24px auto;padding:0 16px 70px}.page{display:none}.page.on{display:block}.hero,.card{background:linear-gradient(180deg,#15101c,#0e0b13);border:1px solid var(--line);border-radius:18px}.hero{padding:28px;margin-bottom:15px}.hero h1{font-size:39px;margin:2px 0 6px}.eyebrow{font-size:10px;letter-spacing:3px;color:#c993ff;font-weight:900}.muted{color:var(--muted)}.small{font-size:11px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.stat{padding:18px}.stat b{font-size:29px}.stat span{display:block;font-size:9px;color:var(--muted);letter-spacing:1px;margin-top:5px}.head{padding:14px 16px;border-bottom:1px solid #241a2c;display:flex;justify-content:space-between;gap:10px;align-items:center}.head h2{margin:0;font-size:15px}.body{padding:16px}.btn{border:0;border-radius:10px;padding:10px 14px;background:linear-gradient(135deg,#c084fc,#8b5cf6);color:#120818;font-weight:900;cursor:pointer;min-height:40px}.btn.dark{background:#211728;color:#eee;border:1px solid #3a2946}.btn.red{background:#39151e;color:#ffc1ca;border:1px solid #632433}.btn.green{background:#173525;color:#adffd3;border:1px solid #285b3e}.actions,.toolbar{display:flex;gap:8px;flex-wrap:wrap}.toolbar{margin-bottom:12px}.toolbar input,.toolbar select{flex:1;min-width:170px}.field{margin:10px 0}.field label{display:block;color:#aa9db2;font-size:11px;margin-bottom:5px}.field input,.field select,.field textarea,.toolbar input,.toolbar select{width:100%;background:#09070d;border:1px solid #3b2a46;color:#fff;border-radius:9px;padding:10px;outline:none}.field textarea{min-height:88px;resize:vertical}.table{overflow:auto}.table table{width:100%;border-collapse:collapse;min-width:760px}th,td{padding:12px 14px;text-align:left;border-bottom:1px solid #241a2c}th{font-size:9px;color:#9d90a8;text-transform:uppercase;letter-spacing:1px}.rank{display:inline-block;padding:4px 8px;border-radius:7px;background:#281733;color:#dcb9ff;font-weight:1000}.status{display:inline-block;padding:5px 8px;border-radius:999px;font-size:9px;font-weight:1000}.LIVE{background:#173626;color:#7ff0b0}.FINAL{background:#27212d;color:#c4b8ca}.SCHEDULED,.UPCOMING{background:#33243d;color:#dcb7ff}.PAUSED{background:#45391a;color:#ffe49b}.avatar{width:38px;height:38px;border-radius:10px;object-fit:cover;border:1px solid #3e2c4a;background:#0b0810;vertical-align:middle;margin-right:8px}.avatarLg{width:72px;height:72px;border-radius:17px;object-fit:cover;border:1px solid #4c3560;background:#0b0810}.guildCard,.matchCard,.tourCard,.newsCard{padding:17px}.chip{display:inline-block;padding:5px 8px;border-radius:999px;background:#1d1524;border:1px solid #33263d;color:#c7bacd;font-size:10px;margin:3px}.modal{display:none;position:fixed;inset:0;background:#000c;z-index:100;align-items:center;justify-content:center;padding:14px}.modal.show{display:flex}.modalBox{width:min(760px,100%);max-height:92vh;overflow:auto;background:#110d17;border:1px solid #4a355b;border-radius:18px;padding:20px}.toast{display:none;position:fixed;right:18px;bottom:18px;background:#181020;border:1px solid #634179;padding:12px 15px;border-radius:10px;z-index:160;font-weight:800}.banner{display:none;margin-bottom:12px;padding:12px 14px;border:1px solid #6b2736;background:#2b1118;border-radius:11px;color:#ffd1d8}.adminOnly{display:none}.editorOnly{display:none}.overlayPreview{height:390px;border-radius:16px;background:radial-gradient(circle,#291633,#08060b 65%);display:flex;align-items:flex-end;justify-content:center;padding:28px}.hud{width:100%;max-width:940px}.oh{text-align:center}.orow{display:grid;grid-template-columns:1fr 160px 1fr;gap:12px;align-items:center}.obox{background:#17101eee;border:1px solid #4a3458;border-left:4px solid var(--a);border-radius:14px;padding:15px}.obox.r{text-align:right;border-left:1px solid #4a3458;border-right:4px solid var(--a)}.pname{font-size:23px;font-weight:1000}.gname{font-size:17px;font-weight:900;margin-top:7px;color:#f0e4f5}.oscore{text-align:center;font-size:42px;font-weight:1000}.ostatus{text-align:center;color:var(--a);font-size:10px;letter-spacing:4px;font-weight:900;margin-top:10px}
+@media(max-width:900px){.top{flex-wrap:wrap}.menu{display:block;margin-left:auto}.state{display:none}.nav{display:none;order:3;width:100%;padding:7px 0 2px;flex-wrap:wrap}.nav.open{display:flex}.nav button{flex:1 1 calc(50% - 6px);min-height:44px;background:#120e18;border:1px solid var(--line)}.wrap{margin:13px auto;padding:0 10px 65px}.hero{padding:20px 16px;border-radius:14px}.hero h1{font-size:29px}.grid,.g3,.g4{grid-template-columns:1fr}.toolbar{display:grid;grid-template-columns:1fr}.toolbar input,.toolbar select,.toolbar .btn{width:100%;min-width:0;min-height:44px}.field input,.field select,.field textarea{font-size:16px;min-height:44px}.actions{display:grid;grid-template-columns:1fr 1fr}.actions .btn{min-height:44px}.table{overflow:visible}.table table{display:block;min-width:0}.table thead{display:none}.table tbody{display:grid;gap:10px}.table tr{display:grid;grid-template-columns:1fr 1fr;gap:7px 10px;background:#100d16;border:1px solid var(--line);border-radius:12px;padding:12px}.table td{border:0;padding:0;overflow-wrap:anywhere}.table td:first-child,.table td:nth-child(2),.table td:last-child{grid-column:1/-1}.modal{align-items:flex-end;padding:7px}.modalBox{border-radius:18px 18px 0 0;padding:16px}.overlayPreview{height:auto;min-height:460px;align-items:center;padding:18px 9px}.orow{grid-template-columns:1fr}.obox,.obox.r{text-align:center;border:1px solid #4a3458;border-top:4px solid var(--a)}}
+@media(max-width:520px){.nav button{flex-basis:100%}.actions{grid-template-columns:1fr}.table tr{grid-template-columns:1fr}.table td{grid-column:1/-1}.brand{font-size:16px}.hero h1{font-size:25px}}
+
+.search-player-wrap{position:relative}
+.search-player-input{
+  width:100%;background:#09070d;border:1px solid #3b2a46;color:#fff;
+  border-radius:9px;padding:10px;outline:none;font-size:14px
+}
+.search-player-input:focus{border-color:var(--a);box-shadow:0 0 0 2px rgba(180,108,255,.12)}
+.search-player-results{
+  position:absolute;left:0;right:0;top:calc(100% + 5px);z-index:220;
+  max-height:260px;overflow:auto;background:#0b0810;border:1px solid #4a3558;
+  border-radius:10px;box-shadow:0 16px 30px rgba(0,0,0,.5);display:none
+}
+.search-player-results.open{display:block}
+.search-player-item{
+  padding:10px 12px;cursor:pointer;border-bottom:1px solid #211727
+}
+.search-player-item:last-child{border-bottom:0}
+.search-player-item:hover{background:#1a1221}
+.search-player-item b{display:block;font-size:14px}
+.search-player-item span{display:block;color:#9e92a8;font-size:11px;margin-top:2px}
+.search-player-empty{padding:12px;color:#9e92a8}
+
+
+/* ===== LAVENDER COLOR SYSTEM + NOTIFICATION CURTAIN ===== */
+:root{--a:#c76dff;--violet:#9a4dff;--pink:#ff6fcf;--cyan:#63dcff;--gold:#ffd36a;--mint:#67e7b1}
+body{background:radial-gradient(900px 520px at 6% -4%,rgba(199,109,255,.28),transparent 58%),radial-gradient(760px 520px at 94% 10%,rgba(99,220,255,.13),transparent 58%),radial-gradient(680px 500px at 70% 82%,rgba(255,111,207,.10),transparent 60%),radial-gradient(520px 420px at 18% 92%,rgba(255,211,106,.07),transparent 60%),linear-gradient(135deg,#08050e 0%,#0d0715 43%,#07070e 100%)!important;background-attachment:fixed}
+body:after{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;background:linear-gradient(120deg,transparent 0 46%,rgba(199,109,255,.035) 47%,transparent 48%),repeating-linear-gradient(135deg,rgba(255,255,255,.018) 0 1px,transparent 1px 24px);opacity:.55}
+.brand{color:#f3ddff!important;text-shadow:0 0 10px rgba(213,147,255,.9),0 0 30px rgba(176,73,255,.48),0 0 58px rgba(99,220,255,.12)!important}
+.hero{background:radial-gradient(circle at 87% 18%,rgba(99,220,255,.10),transparent 26%),radial-gradient(circle at 12% 8%,rgba(255,111,207,.075),transparent 24%),linear-gradient(145deg,rgba(27,16,38,.98),rgba(12,9,18,.98))!important;border-color:rgba(204,122,255,.42)!important;box-shadow:0 18px 60px rgba(0,0,0,.32),0 0 36px rgba(181,71,255,.12)!important}
+.card{border-color:rgba(152,103,178,.32)!important;background:linear-gradient(160deg,rgba(25,16,34,.95),rgba(11,9,16,.97))!important}
+.card:hover{border-color:rgba(208,129,255,.60)!important;box-shadow:0 20px 50px rgba(0,0,0,.35),0 0 34px rgba(191,83,255,.14),0 0 22px rgba(99,220,255,.035)!important}
+.btn:not(.dark):not(.red):not(.green){background:linear-gradient(135deg,#db8cff 0%,#a553ff 58%,#7841ff 100%)!important;box-shadow:0 8px 26px rgba(174,76,255,.28),inset 0 1px 0 rgba(255,255,255,.24)!important}
+.btn.green{background:linear-gradient(135deg,#174931,#153927)!important;border-color:rgba(103,231,177,.48)!important;box-shadow:0 0 18px rgba(103,231,177,.08)!important}
+.rank{background:linear-gradient(135deg,rgba(124,61,170,.62),rgba(58,27,80,.72))!important;border-color:rgba(210,132,255,.44)!important;box-shadow:0 0 18px rgba(192,91,255,.17)!important}
+.chip:nth-child(3n+1){border-color:rgba(199,109,255,.28)}.chip:nth-child(3n+2){border-color:rgba(99,220,255,.23)}.chip:nth-child(3n){border-color:rgba(255,111,207,.20)}
+.noticeCurtain{position:fixed;top:78px;left:50%;transform:translate(-50%,-130%);width:min(980px,calc(100% - 28px));z-index:88;opacity:0;pointer-events:none;transition:transform .34s cubic-bezier(.2,.8,.2,1),opacity .26s ease}
+.noticeCurtain.show{transform:translate(-50%,0);opacity:1;pointer-events:auto}
+.noticeCurtainInner{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:13px;padding:14px 16px;border-radius:16px;border:1px solid rgba(213,147,255,.50);background:radial-gradient(circle at 90% 20%,rgba(99,220,255,.12),transparent 28%),linear-gradient(135deg,rgba(37,18,50,.98),rgba(13,10,20,.98));box-shadow:0 18px 55px rgba(0,0,0,.55),0 0 38px rgba(183,76,255,.17);backdrop-filter:blur(20px)}
+.noticeCurtain[data-type="important"] .noticeCurtainInner{border-color:rgba(255,111,207,.60);background:linear-gradient(135deg,rgba(64,17,46,.98),rgba(21,10,20,.98))}
+.noticeCurtain[data-type="event"] .noticeCurtainInner{border-color:rgba(255,211,106,.58);background:linear-gradient(135deg,rgba(58,43,16,.98),rgba(20,15,8,.98))}
+.noticeCurtain[data-type="success"] .noticeCurtainInner{border-color:rgba(103,231,177,.54);background:linear-gradient(135deg,rgba(18,55,39,.98),rgba(9,21,16,.98))}
+.noticeIcon{width:42px;height:42px;border-radius:13px;display:grid;place-items:center;font-size:20px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08)}
+.noticeTitle{font-weight:1000;font-size:14px;color:#fff}.noticeText{font-size:12px;color:#cbbfd2;margin-top:3px;line-height:1.45}
+.noticeClose{width:36px;height:36px;border-radius:10px;border:1px solid rgba(255,255,255,.09);background:rgba(255,255,255,.04);color:#fff;cursor:pointer;font-size:18px}
+.noticeAdminRow{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;padding:12px 0;border-bottom:1px solid #241a2c}.noticeAdminRow:last-child{border-bottom:0}
+@media(max-width:900px){.noticeCurtain{top:70px;width:calc(100% - 18px)}.noticeCurtainInner{grid-template-columns:auto 1fr auto;padding:12px;border-radius:14px}.noticeIcon{width:38px;height:38px}.noticeTitle{font-size:13px}.noticeText{font-size:11px}}
+
+
+/* ===== LAVENDER VIBRANT — brighter, richer, more inviting ===== */
+:root{
+  --a:#d97cff;
+  --hot:#ff68d4;
+  --electric:#65e4ff;
+  --royal:#8d55ff;
+  --sun:#ffd76e;
+  --mint:#67efba;
+}
+body{
+  background:
+    radial-gradient(1000px 620px at -5% -8%,rgba(217,124,255,.42),transparent 57%),
+    radial-gradient(850px 600px at 104% 4%,rgba(101,228,255,.23),transparent 55%),
+    radial-gradient(800px 600px at 75% 70%,rgba(255,104,212,.17),transparent 60%),
+    radial-gradient(650px 500px at 5% 88%,rgba(141,85,255,.24),transparent 58%),
+    linear-gradient(145deg,#100619 0%,#0b0714 42%,#090b16 100%) !important;
+}
+body:before{
+  content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
+  background:
+    radial-gradient(circle at 20% 30%,rgba(255,255,255,.08) 0 1px,transparent 2px),
+    radial-gradient(circle at 70% 20%,rgba(101,228,255,.10) 0 1px,transparent 2px),
+    radial-gradient(circle at 80% 75%,rgba(255,104,212,.09) 0 1px,transparent 2px);
+  background-size:110px 110px,145px 145px,170px 170px;
+  opacity:.55;
+}
+.top{
+  background:linear-gradient(90deg,rgba(13,7,20,.94),rgba(24,10,35,.94),rgba(8,13,24,.94)) !important;
+  border-bottom:1px solid rgba(217,124,255,.32) !important;
+  box-shadow:0 8px 36px rgba(0,0,0,.45),0 0 35px rgba(195,82,255,.12) !important;
+}
+.brand{
+  font-weight:1000 !important;
+  color:#fff !important;
+  text-shadow:
+    0 0 7px #fff,
+    0 0 18px rgba(217,124,255,.95),
+    0 0 38px rgba(179,63,255,.72),
+    0 0 65px rgba(101,228,255,.25) !important;
+}
+.nav button.on{
+  color:#fff !important;
+  background:linear-gradient(135deg,rgba(217,124,255,.28),rgba(101,228,255,.08)) !important;
+  border-color:rgba(222,144,255,.55) !important;
+  box-shadow:0 0 24px rgba(198,82,255,.18),inset 0 0 18px rgba(255,255,255,.035) !important;
+}
+.hero{
+  border:1px solid rgba(222,144,255,.56) !important;
+  background:
+    radial-gradient(circle at 82% 24%,rgba(101,228,255,.17),transparent 28%),
+    radial-gradient(circle at 14% 10%,rgba(255,104,212,.15),transparent 26%),
+    linear-gradient(125deg,rgba(44,18,59,.98),rgba(16,10,27,.98) 55%,rgba(8,19,29,.98)) !important;
+  box-shadow:
+    0 22px 70px rgba(0,0,0,.43),
+    0 0 48px rgba(195,78,255,.20),
+    inset 0 1px 0 rgba(255,255,255,.07) !important;
+}
+.hero h1{
+  font-size:clamp(32px,5vw,56px) !important;
+  background:linear-gradient(90deg,#fff 0%,#f0c8ff 36%,#ff91dc 63%,#83eaff 100%) !important;
+  -webkit-background-clip:text !important;background-clip:text !important;color:transparent !important;
+  filter:drop-shadow(0 0 18px rgba(215,115,255,.22));
+}
+.eyebrow{
+  color:#e9b8ff !important;
+  text-shadow:0 0 16px rgba(217,124,255,.6) !important;
+}
+.stat{
+  border-color:rgba(217,124,255,.30) !important;
+  background:linear-gradient(145deg,rgba(255,255,255,.055),rgba(217,124,255,.035)) !important;
+  box-shadow:inset 0 0 22px rgba(217,124,255,.035) !important;
+}
+.stat b{
+  color:#fff !important;
+  text-shadow:0 0 18px rgba(217,124,255,.40) !important;
+}
+.card{
+  background:
+    radial-gradient(circle at 100% 0%,rgba(101,228,255,.045),transparent 30%),
+    linear-gradient(155deg,rgba(31,18,42,.97),rgba(12,10,19,.98)) !important;
+  border:1px solid rgba(185,116,218,.39) !important;
+  box-shadow:0 16px 48px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.035) !important;
+}
+.card:hover{
+  transform:translateY(-4px) !important;
+  border-color:rgba(226,146,255,.76) !important;
+  box-shadow:
+    0 24px 60px rgba(0,0,0,.38),
+    0 0 38px rgba(211,91,255,.22),
+    0 0 18px rgba(101,228,255,.08) !important;
+}
+.head h2{color:#fff;text-shadow:0 0 18px rgba(217,124,255,.16)}
+.btn:not(.dark):not(.red):not(.green){
+  color:#13071b !important;
+  background:linear-gradient(135deg,#f0b2ff 0%,#db7cff 38%,#a75bff 72%,#7ee8ff 130%) !important;
+  border-color:rgba(255,255,255,.30) !important;
+  box-shadow:
+    0 9px 28px rgba(199,78,255,.36),
+    0 0 22px rgba(217,124,255,.18),
+    inset 0 1px 0 rgba(255,255,255,.52) !important;
+}
+.btn:not(.dark):not(.red):not(.green):hover{
+  filter:brightness(1.13) saturate(1.12) !important;
+  transform:translateY(-3px) scale(1.015) !important;
+  box-shadow:0 13px 34px rgba(199,78,255,.48),0 0 30px rgba(101,228,255,.12) !important;
+}
+.btn.green{
+  background:linear-gradient(135deg,#1f6044,#168c61) !important;
+  border-color:rgba(103,239,186,.62) !important;
+  box-shadow:0 0 24px rgba(103,239,186,.13) !important;
+}
+.btn.red{
+  background:linear-gradient(135deg,#5d1f39,#7d294a) !important;
+  border-color:rgba(255,104,160,.48) !important;
+}
+.rank{
+  color:#fff !important;
+  background:linear-gradient(135deg,#8f46c7,#553078) !important;
+  border-color:rgba(235,169,255,.58) !important;
+  box-shadow:0 0 22px rgba(217,124,255,.24),inset 0 1px 0 rgba(255,255,255,.15) !important;
+}
+.avatar,.avatarLg{
+  border-color:rgba(217,124,255,.48) !important;
+  box-shadow:0 0 22px rgba(198,83,255,.11) !important;
+}
+.card:hover .avatar,.card:hover .avatarLg{
+  border-color:rgba(101,228,255,.65) !important;
+  box-shadow:0 0 30px rgba(217,124,255,.22),0 0 18px rgba(101,228,255,.10) !important;
+}
+.chip{
+  background:linear-gradient(135deg,rgba(217,124,255,.08),rgba(101,228,255,.025)) !important;
+}
+.table tbody tr:hover{
+  background:linear-gradient(90deg,rgba(217,124,255,.09),rgba(101,228,255,.025)) !important;
+}
+.field input:focus,.field select:focus,.field textarea:focus,.toolbar input:focus,.toolbar select:focus,.search-player-input:focus{
+  border-color:#d97cff !important;
+  box-shadow:0 0 0 3px rgba(217,124,255,.14),0 0 30px rgba(217,124,255,.15) !important;
+}
+.noticeCurtainInner{
+  border-color:rgba(234,163,255,.72) !important;
+  background:
+    radial-gradient(circle at 92% 10%,rgba(101,228,255,.20),transparent 30%),
+    radial-gradient(circle at 5% 100%,rgba(255,104,212,.16),transparent 34%),
+    linear-gradient(125deg,rgba(55,20,72,.99),rgba(16,10,25,.99)) !important;
+  box-shadow:
+    0 22px 65px rgba(0,0,0,.62),
+    0 0 48px rgba(205,81,255,.27),
+    inset 0 1px 0 rgba(255,255,255,.08) !important;
+}
+.noticeIcon{
+  background:linear-gradient(145deg,rgba(217,124,255,.24),rgba(101,228,255,.10)) !important;
+  border-color:rgba(255,255,255,.15) !important;
+  box-shadow:0 0 24px rgba(217,124,255,.16) !important;
+}
+.noticeTitle{font-size:15px!important;text-shadow:0 0 15px rgba(217,124,255,.28)}
+.status.LIVE,.LIVE{
+  box-shadow:0 0 24px rgba(103,239,186,.38),0 0 40px rgba(103,239,186,.12) !important;
+}
+.overlayPreview{
+  background:
+    radial-gradient(circle at 30% 40%,rgba(217,124,255,.22),transparent 35%),
+    radial-gradient(circle at 72% 52%,rgba(101,228,255,.13),transparent 35%),
+    linear-gradient(145deg,#100819,#071018) !important;
+  border-color:rgba(217,124,255,.42) !important;
+}
+@media(max-width:900px){
+  .card:hover{transform:none!important}
+  .hero h1{font-size:34px!important}
+}
+
+
+/* SERIES MATCH UI */
+.seriesLineups{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
+.seriesRoster{background:#0b0810;border:1px solid #392748;border-radius:12px;padding:10px;max-height:270px;overflow:auto}
+.seriesRoster label{display:flex;gap:8px;align-items:center;padding:8px;border-radius:8px;cursor:pointer}
+.seriesRoster label:hover{background:rgba(217,124,255,.08)}
+.seriesRoster input{width:auto;min-height:auto}
+.seriesCurrent{display:grid;grid-template-columns:1fr auto 1fr;gap:12px;align-items:center;margin:14px 0}
+.seriesPlayer{padding:14px;border:1px solid rgba(217,124,255,.35);border-radius:13px;background:rgba(217,124,255,.055)}
+.seriesPlayer.r{text-align:right}
+.seriesVs{font-size:18px;font-weight:1000;color:#dca4ff}
+.seriesHistory{display:grid;gap:7px;max-height:260px;overflow:auto}
+.seriesHistoryRow{display:grid;grid-template-columns:44px 1fr auto;gap:8px;padding:9px 10px;border:1px solid #2d2036;border-radius:9px;background:#0b0810}
+@media(max-width:700px){.seriesLineups,.seriesCurrent{grid-template-columns:1fr}.seriesPlayer.r{text-align:left}.seriesVs{text-align:center}}
+
+
+/* ===== STREAMER MATCH CONTROL — ADMIN STYLE ===== */
+.streamerMatchControl .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.streamerMatchControl .field.full{grid-column:1/-1}
+.streamerMatchControl .scoreActions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.streamerMatchControl .winnerRow{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:end}
+@media(max-width:700px){
+  .streamerMatchControl .grid{grid-template-columns:1fr}
+  .streamerMatchControl .field.full{grid-column:auto}
+  .streamerMatchControl .winnerRow{grid-template-columns:1fr}
+}
+
+
+/* ===== OVERLAY CENTER ===== */
+.overlayCenterGrid{display:grid;grid-template-columns:420px 1fr;gap:14px;align-items:start}
+.overlayControlCard{position:sticky;top:82px}
+.overlayColorGrid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.overlayColorBox{padding:10px;border:1px solid #35243f;border-radius:12px;background:#0b0810}
+.overlayColorBox input[type="color"]{height:46px;padding:3px;cursor:pointer}
+.overlayAvatarPreview{width:68px;height:68px;object-fit:cover;background:#0b0810;border:2px solid #5c3a70;display:block;margin-top:8px}
+.overlayAvatarPreview.circle{border-radius:50%}.overlayAvatarPreview.square{border-radius:4px}.overlayAvatarPreview.rounded{border-radius:16px}
+.overlayLivePreview{min-height:520px;border-radius:18px;overflow:hidden;display:flex;align-items:flex-end;padding:30px;position:relative;background:#08060b}
+.overlayLivePreview:before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 25% 25%,rgba(180,108,255,.18),transparent 35%),radial-gradient(circle at 80% 65%,rgba(101,228,255,.10),transparent 30%);pointer-events:none}
+.overlayDemoHud{position:relative;z-index:1;width:100%}
+.overlayDemoTop{text-align:center;font-weight:1000;letter-spacing:4px;margin-bottom:10px}
+.overlayDemoRow{display:grid;grid-template-columns:1fr 150px 1fr;gap:12px;align-items:center}
+.overlayDemoTeam{padding:16px;border:1px solid rgba(255,255,255,.14);backdrop-filter:blur(12px);display:flex;align-items:center;gap:12px;min-height:92px}
+.overlayDemoTeam.r{justify-content:flex-end;text-align:right}
+.overlayDemoAvatar{width:58px;height:58px;object-fit:cover;border:2px solid currentColor;background:#09070d}
+.overlayDemoScore{text-align:center;font-size:40px;font-weight:1000}
+.overlayThemePills{display:flex;gap:7px;flex-wrap:wrap}
+.overlayThemePills button.on{outline:2px solid var(--a);box-shadow:0 0 18px rgba(217,124,255,.22)}
+@media(max-width:980px){.overlayCenterGrid{grid-template-columns:1fr}.overlayControlCard{position:static}.overlayLivePreview{min-height:420px}.overlayDemoRow{grid-template-columns:1fr}.overlayDemoTeam,.overlayDemoTeam.r{justify-content:center;text-align:center}.overlayDemoScore{order:-1}}
+
+</style></head><body>
+<header class="top"><div class="brand" id="brand">🪻 LAVENDER</div><button class="menu" onclick="nav.classList.toggle('open')">☰</button><nav class="nav" id="nav"></nav><div class="state" id="state">PUBLIC</div></header><div class="noticeCurtain" id="noticeCurtain" data-type="info"><div class="noticeCurtainInner"><div class="noticeIcon" id="noticeIcon">🔔</div><div><div class="noticeTitle" id="noticeTitle"></div><div class="noticeText" id="noticeText"></div></div><button class="noticeClose" onclick="closeNoticeCurtain()" aria-label="Закрыть">×</button></div></div>
+<main class="wrap"><div class="banner" id="banner"></div>
+<section class="page on" id="home"><div class="hero"><div class="eyebrow" id="tagline">FREE FIRE COMMUNITY</div><h1>LAVENDER</h1><div class="muted">Стабильная платформа: админ, игроки, матчи, гильдии и OBS.</div></div><div class="g4" id="stats"></div><div class="grid" style="margin-top:14px"><div class="card"><div class="head"><h2>LIVE / ближайший матч</h2></div><div class="body" id="liveBox"></div></div><div class="card"><div class="head"><h2>Новости</h2></div><div class="body" id="newsBox"></div></div></div><div class="grid" style="margin-top:14px"><div class="card"><div class="head"><h2>Топ игроков</h2></div><div class="table"><table><thead><tr><th>#</th><th>Игрок</th><th>Гильдия</th><th>Ранг</th><th>ELO</th></tr></thead><tbody id="topPlayers"></tbody></table></div></div><div class="card"><div class="head"><h2>Топ гильдий</h2></div><div class="table"><table><thead><tr><th>#</th><th>Гильдия</th><th>Ранг</th><th>ELO</th></tr></thead><tbody id="topGuilds"></tbody></table></div></div></div></section>
+<section class="page" id="players"><div class="hero"><h1>Игроки</h1><div class="muted">Рейтинг, статистика и профили.</div></div><div class="toolbar"><input id="ps" placeholder="Поиск по нику или ID"><select id="pr"><option value="">Все ранги</option><option>S</option><option>A</option><option>B</option><option>C</option><option>D</option><option>E</option><option>F</option></select><button class="btn editorOnly" onclick="playerForm()">+ Игрок</button></div><div class="card"><div class="table"><table><thead><tr><th>#</th><th>Игрок</th><th>Гильдия</th><th>Ранг</th><th>ELO</th><th>K/D</th><th>HS</th><th>HS%</th><th>WR</th><th></th></tr></thead><tbody id="playersBody"></tbody></table></div></div></section>
+<section class="page" id="ranks"><div class="hero"><h1>S / A / B / C / D / E / F</h1><div class="muted">Автоматическое распределение по ELO.</div></div><div id="rankBlocks"></div></section>
+<section class="page" id="guilds"><div class="hero"><h1>Гильдии</h1><div class="muted">Рейтинг и составы гильдий.</div></div><div class="toolbar"><input id="gs" placeholder="Поиск гильдии"><button class="btn editorOnly" onclick="guildForm()">+ Гильдия</button></div><div class="g3" id="guildCards"></div></section>
+<section class="page" id="tournaments"><div class="hero"><h1>Турниры</h1><div class="muted">Активные и будущие соревнования.</div></div><div class="actions" style="margin-bottom:12px"><button class="btn adminOnly" onclick="tournamentForm()">+ Турнир</button></div><div class="g3" id="tourCards"></div></section>
+<section class="page" id="matches"><div class="hero"><h1>Матчи</h1><div class="muted">LIVE, расписание и результаты. После 🏁 Финал + ELO рейтинг игроков пересчитывается сразу.</div></div><div class="toolbar"><select id="ms"><option value="">Все статусы</option><option>LIVE</option><option>SCHEDULED</option><option>PAUSED</option><option>FINAL</option></select><button class="btn editorOnly" onclick="matchForm()">+ Матч</button></div><div class="g3" id="matchCards"></div></section>
+<section class="page" id="news"><div class="hero"><h1>Новости</h1><div class="muted">Анонсы и обновления проекта.</div></div><div class="actions" style="margin-bottom:12px"><button class="btn adminOnly" onclick="newsForm()">+ Новость</button></div><div class="g3" id="newsCards"></div></section>
+
+<section class="page" id="streamers">
+  <div class="hero"><h1>Стримеры</h1><div class="muted">Участники стримерской зоны LAVENDER.</div></div>
+  <div class="g3" id="streamerCards"></div>
+</section>
+
+<section class="page" id="streamerZone">
+  <div class="hero">
+    <div class="eyebrow">STREAMER ACCESS</div>
+    <h1>Стример-панель</h1>
+    <div class="muted">Матчи, статистика игроков и управление результатами. ELO, победы и поражения считаются автоматически.</div>
+    <div class="actions" style="margin-top:10px"><button class="btn red" onclick="logout()">Выйти</button><button class="btn green" onclick="loadStreamerZone()">Обновить данные</button></div>
+  </div>
+
+  <div class="g4">
+    <div class="card stat"><b id="szcp">0</b><span>ИГРОКОВ</span></div>
+    <div class="card stat"><b id="szcg">0</b><span>ГИЛЬДИЙ</span></div>
+    <div class="card stat"><b id="szcm">0</b><span>МАТЧЕЙ</span></div>
+    <div class="card stat"><b id="szlive">READY</b><span>МАТЧ-КОНТРОЛЬ</span></div>
+  </div>
+
+  <div class="grid" style="margin-top:14px">
+    <div class="card">
+      <div class="head"><h2>Быстрые действия</h2><span class="muted small">Доступ стримера</span></div>
+      <div class="body actions">
+        <button class="btn" onclick="playerForm()">+ Игрок</button>
+        <button class="btn" onclick="guildForm()">+ Гильдия</button>
+        <button class="btn" onclick="matchForm()">+ Матч</button>
+        <button class="btn green" onclick="streamerStatsPicker()">+ Киллы / смерти / хедшоты</button>
+        <button class="btn dark" onclick="showPage('players')">Игроки</button>
+        <button class="btn dark" onclick="showPage('guilds')">Гильдии</button>
+        <button class="btn dark" onclick="showPage('matches')">Матчи</button><button class="btn green" onclick="showPage('overlayCenter')">🎨 Мой Overlay</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="head"><h2>Мой доступ</h2></div>
+      <div class="body"><p class="muted">Стример не может вручную менять ELO, победы, поражения, игроков или гильдии. ELO и результат считаются автоматически после игры. Вручную добавляются только киллы, смерти и хедшоты.</p><div class="actions"><button class="btn green" onclick="showPage('streamers')">Открыть стримеров</button></div></div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:14px">
+    <div class="head">
+      <h2>Статистика игроков</h2>
+      <span class="muted small">Только + Kills / Deaths / Headshots</span>
+    </div>
+    <div class="body">
+      <p class="muted">
+        Выбери игрока и укажи показатели за только что сыгранную катку.
+        Значения прибавляются к общей статистике. Убавлять статистику стример не может.
+        ELO, победы и поражения здесь недоступны.
+      </p>
+      <div class="actions">
+        <button class="btn green" onclick="streamerStatsPicker()">+ Добавить статистику за катку</button>
+        <button class="btn dark" onclick="showPage('players')">Открыть статистику игроков</button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- STREAMER MATCH CONTROL -->
+  <div class="card streamerMatchControl" style="margin-top:14px">
+    <div class="head">
+      <h2>Матч</h2>
+      <span class="muted small">Выбор игроков и победителя</span>
+    </div>
+    <div class="body">
+      <div class="field">
+        <label>Матч</label>
+        <select id="smMatch" onchange="loadStreamerMatchControl()"></select>
+      </div>
+
+      <div class="field">
+        <label>Название</label>
+        <input id="smTitle" readonly>
+      </div>
+
+      <div class="grid">
+        <div class="field">
+          <label>Счёт A</label>
+          <input id="smScoreA" type="number" min="0" value="0" readonly>
+        </div>
+        <div class="field">
+          <label>Счёт B</label>
+          <input id="smScoreB" type="number" min="0" value="0" readonly>
+        </div>
+        <div class="field">
+          <label>Раунд</label>
+          <input id="smRound" readonly>
+        </div>
+        <div class="field">
+          <label>Формат</label>
+          <input id="smFormat" readonly>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Статус</label>
+        <select id="smStatus" disabled>
+          <option value="LIVE">LIVE</option>
+          <option value="SCHEDULED">SCHEDULED</option>
+          <option value="PAUSED">PAUSED</option>
+          <option value="FINAL">FINAL</option>
+        </select>
+      </div>
+
+      <div class="grid">
+        <div class="field">
+          <label>Игрок A</label>
+          <select id="smPlayerA" onchange="syncStreamerWinnerOptions()"></select>
+        </div>
+        <div class="field">
+          <label>Игрок B</label>
+          <select id="smPlayerB" onchange="syncStreamerWinnerOptions()"></select>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>🏆 Победитель</label>
+        <select id="smWinner">
+          <option value="">— выбери победителя —</option>
+        </select>
+      </div>
+
+      <div class="actions" style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn" onclick="saveStreamerMatchView()">Сохранить</button>
+        <button class="btn green" onclick="streamerSetWinner()">🏆 Указать победителя + ELO</button>
+        <button class="btn dark" onclick="streamerFinishByScore()">🏁 По счёту + ELO</button>
+        <button class="btn dark" onclick="streamerScorePlus('A')">A +</button>
+        <button class="btn dark" onclick="streamerScorePlus('B')">B +</button>
+        <button class="btn dark" onclick="streamerScoreMinus('A')">A −</button>
+        <button class="btn dark" onclick="streamerScoreMinus('B')">B −</button>
+      </div>
+
+      <div class="muted small" style="margin-top:10px">
+        Выбери игрока A, игрока B и победителя. ELO пересчитается автоматически.
+      </div>
+    </div>
+  </div>
+
+  
+</section>
+
+
+<section class="page" id="overlayCenter">
+  <div class="hero">
+    <div class="eyebrow">OBS DESIGN</div>
+    <h1>Overlay Center</h1>
+    <div class="muted">Отдельный редактор оверлея для администратора и стримеров: цвета, аватарки, стиль и OBS URL.</div>
+  </div>
+
+  <div class="overlayCenterGrid">
+    <div class="card overlayControlCard">
+      <div class="head"><h2>Настройки Overlay</h2><span class="muted small" id="ocRole">—</span></div>
+      <div class="body">
+
+        <div class="field">
+          <label>Текст сверху</label>
+          <input id="ocText" placeholder="LAVENDER • LIVE" oninput="renderOverlayCenterPreview()">
+        </div>
+
+        <div class="field">
+          <label>Тема</label>
+          <select id="ocTheme" onchange="renderOverlayCenterPreview()">
+            <option value="neon">Neon</option>
+            <option value="glass">Glass</option>
+            <option value="minimal">Minimal</option>
+          </select>
+        </div>
+
+        <div class="overlayColorGrid">
+          <div class="overlayColorBox">
+            <label class="small muted">Главный цвет</label>
+            <input id="ocAccent" type="color" value="#b46cff" oninput="renderOverlayCenterPreview()">
+          </div>
+          <div class="overlayColorBox">
+            <label class="small muted">Цвет текста</label>
+            <input id="ocTextColor" type="color" value="#ffffff" oninput="renderOverlayCenterPreview()">
+          </div>
+          <div class="overlayColorBox">
+            <label class="small muted">Цвет панелей</label>
+            <input id="ocPanelColor" type="color" value="#17101e" oninput="renderOverlayCenterPreview()">
+          </div>
+          <div class="overlayColorBox">
+            <label class="small muted">Свечение</label>
+            <input id="ocGlowColor" type="color" value="#b46cff" oninput="renderOverlayCenterPreview()">
+          </div>
+          <div class="overlayColorBox" style="grid-column:1/-1">
+            <label class="small muted">Фон OBS-превью</label>
+            <input id="ocBackgroundColor" type="color" value="#08060b" oninput="renderOverlayCenterPreview()">
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Форма аватарок</label>
+          <select id="ocAvatarShape" onchange="renderOverlayCenterPreview()">
+            <option value="rounded">Скруглённые</option>
+            <option value="circle">Круглые</option>
+            <option value="square">Квадратные</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label><input id="ocShowAvatars" type="checkbox" checked onchange="renderOverlayCenterPreview()" style="width:auto"> Показывать аватарки</label>
+        </div>
+
+        <div class="grid">
+          <div>
+            <div class="field">
+              <label>Своя аватарка слева</label>
+              <input id="ocLeftAvatar" placeholder="эмодзи или изображение" oninput="renderOverlayCenterPreview()">
+              <input type="file" accept="image/*" onchange="overlayImageFromFile(this,'ocLeftAvatar','ocLeftPreview')">
+            </div>
+            <img id="ocLeftPreview" class="overlayAvatarPreview rounded" alt="">
+          </div>
+
+          <div>
+            <div class="field">
+              <label>Своя аватарка справа</label>
+              <input id="ocRightAvatar" placeholder="эмодзи или изображение" oninput="renderOverlayCenterPreview()">
+              <input type="file" accept="image/*" onchange="overlayImageFromFile(this,'ocRightAvatar','ocRightPreview')">
+            </div>
+            <img id="ocRightPreview" class="overlayAvatarPreview rounded" alt="">
+          </div>
+        </div>
+
+        <div class="field adminOnly">
+          <label>Позиция глобального Overlay</label>
+          <select id="ocPosition">
+            <option value="bottom">Снизу</option>
+            <option value="top">Сверху</option>
+          </select>
+        </div>
+
+        <div class="actions" style="margin-top:14px">
+          <button class="btn" onclick="saveOverlayCenter()">Сохранить Overlay</button>
+          <button class="btn green" onclick="copyOverlayCenterUrl()">Скопировать OBS URL</button>
+          <button class="btn dark" onclick="resetOverlayCenterVisual()">Сбросить цвета</button>
+        </div>
+
+        <p class="muted small" id="ocUrl" style="overflow-wrap:anywhere;margin-top:10px"></p>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="head"><h2>Предпросмотр</h2><span class="muted small">Обновляется сразу</span></div>
+      <div class="body">
+        <div class="overlayLivePreview" id="ocPreview">
+          <div class="overlayDemoHud" id="ocPreviewHud"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="page" id="studio"><div class="hero"><div class="eyebrow">PRIVATE</div><h1>Stream Studio</h1><div class="muted">Управление активным матчем и OBS Overlay.</div><div class="actions" style="margin-top:10px"><button class="btn red" onclick="logout()">Выйти</button></div></div><div class="grid"><div class="card"><div class="head"><h2>Матч</h2></div><div class="body"><div class="field"><label>Матч</label><select id="smatch"></select></div><div class="field"><label>Название</label><input id="stitle"></div><div class="grid"><div class="field"><label>Счёт A</label><input id="ssa" type="number"></div><div class="field"><label>Счёт B</label><input id="ssb" type="number"></div></div><div class="grid"><div class="field"><label>Раунд</label><input id="sround"></div><div class="field"><label>Формат</label><input id="sformat"></div></div><div class="field"><label>Статус</label><select id="sstatus"><option>LIVE</option><option>SCHEDULED</option><option>PAUSED</option><option>FINAL</option></select></div><div class="field"><label>Победитель</label><select id="swinner"><option value="">— выбери победителя —</option></select></div>
+<div class="muted small" style="margin-bottom:10px">Выбираешь двух игроков и победителя — ELO распределится автоматически.</div><div class="actions"><button class="btn" onclick="saveStudio()">Сохранить</button><button class="btn green" onclick="applyWinnerElo()">🏆 Указать победителя + ELO</button><button class="btn dark" onclick="finishStudioMatch()">🏁 По счёту + ELO</button><button class="btn dark" onclick="bump(1,0)">A +</button><button class="btn dark" onclick="bump(0,1)">B +</button><button class="btn dark" onclick="bump(-1,0)">A −</button><button class="btn dark" onclick="bump(0,-1)">B −</button></div></div></div><div class="card"><div class="head"><h2>Overlay</h2></div><div class="body"><div class="field"><label>Текст</label><input id="otext"></div><div class="field"><label>Цвет</label><input id="oaccent" type="color"></div>
+<div class="field">
+  <label>Игрок A</label>
+  <div class="search-player-wrap">
+    <input class="search-player-input" id="opaSearch" placeholder="🔎 Напиши ник игрока..." autocomplete="off">
+    <input id="opa" type="hidden">
+    <div class="search-player-results" id="opaResults"></div>
+  </div>
+  <div class="muted small" id="opaInfo">Поиск по нику, ID или гильдии</div>
+</div>
+<div class="field">
+  <label>Игрок B</label>
+  <div class="search-player-wrap">
+    <input class="search-player-input" id="opbSearch" placeholder="🔎 Напиши ник игрока..." autocomplete="off">
+    <input id="opb" type="hidden">
+    <div class="search-player-results" id="opbResults"></div>
+  </div>
+  <div class="muted small" id="opbInfo">Поиск по нику, ID или гильдии</div>
+</div>
+
+</div><div class="actions"><button class="btn" onclick="saveOverlay()">Обновить OBS</button><button class="btn green" onclick="copyObs()">Скопировать URL</button></div><p class="muted small">OBS: <span id="obsUrl"></span></p></div></div></div><div class="card" style="margin-top:14px"><div class="head"><h2>Предпросмотр</h2></div><div class="body"><div class="overlayPreview"><div class="hud" id="preview"></div></div></div></div></section>
+<section class="page" id="admin"><div class="hero"><div class="eyebrow">PRIVATE</div><h1>Админ-панель</h1><div class="muted">Управление контентом и резервной копией.</div><div class="actions" style="margin-top:10px"><button class="btn red" onclick="logout()">Выйти</button><button class="btn green" onclick="testAdmin()">Проверить админ</button></div></div><div class="g4"><div class="card stat"><b id="acp">0</b><span>ИГРОКОВ</span></div><div class="card stat"><b id="acg">0</b><span>ГИЛЬДИЙ</span></div><div class="card stat"><b id="acm">0</b><span>МАТЧЕЙ</span></div><div class="card stat"><b id="act">0</b><span>ТУРНИРОВ</span></div></div><div class="grid" style="margin-top:14px"><div class="card"><div class="head"><h2>Быстрые действия</h2></div><div class="body actions"><button class="btn" onclick="playerForm()">+ Игрок</button><button class="btn" onclick="guildForm()">+ Гильдия</button><button class="btn" onclick="matchForm()">+ Матч</button><button class="btn" onclick="tournamentForm()">+ Турнир</button><button class="btn" onclick="newsForm()">+ Новость</button><button class="btn" onclick="streamerForm()">+ Стример</button><button class="btn" onclick="notificationForm()">🔔 Уведомление</button><button class="btn green" onclick="showPage('overlayCenter')">🎨 Overlay Center</button></div></div><div class="card"><div class="head"><h2>Backup</h2></div><div class="body"><div class="actions"><button class="btn green" onclick="exportBackup()">Скачать backup</button><button class="btn dark" onclick="$('importFile').click()">Импорт</button><input id="importFile" type="file" accept=".json,application/json" style="display:none"></div><p class="muted small">На бесплатном Render делай backup регулярно.</p></div></div></div>
+<div class="card" style="margin-top:14px"><div class="head"><h2>Уведомления на главном экране</h2><button class="btn" onclick="notificationForm()">+ Уведомление</button></div><div class="body" id="adminNotificationList"></div></div>
+<div class="card" style="margin-top:14px">
+  <div class="head"><h2>Стримеры</h2><button class="btn" onclick="streamerForm()">+ Добавить стримера</button></div>
+  <div class="body" id="adminStreamerList"></div>
+</div>
+</section>
+</main>
+<div class="modal" id="modal" onclick="if(event.target===this)closeModal()"><div class="modalBox" id="modalBox"></div></div><div class="toast" id="toast"></div>
+<script src="/socket.io/socket.io.js"></script><script>
+"use strict";
+let db=null,ov=null,admin=false,role=null,currentStreamer=null,streamerZoneData=null,reloadTimer=null;
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+
+function isNotice(n){return /^\[NOTICE:(info|important|event|success)\]/i.test(String(n?.title||""))}
+function noticeType(n){return String(n?.title||"").match(/^\[NOTICE:(info|important|event|success)\]/i)?.[1]?.toLowerCase()||"info"}
+function noticeTitleClean(n){return String(n?.title||"").replace(/^\[NOTICE:(info|important|event|success)\]\s*/i,"")}
+function noticeIconFor(type){return ({info:"🔔",important:"⚠️",event:"🏆",success:"✅"})[type]||"🔔"}
+function noticeStorageKey(id){return "lavender_notice_closed_"+id}
+function closeNoticeCurtain(){const c=$("noticeCurtain");const id=c?.dataset?.noticeId;if(id)localStorage.setItem(noticeStorageKey(id),"1");c?.classList.remove("show")}
+function renderNotificationCurtain(){
+  const c=$("noticeCurtain");if(!c||!db)return;
+  const n=(db.news||[]).filter(isNotice).find(x=>localStorage.getItem(noticeStorageKey(x.id))!=="1");
+  if(!n){c.classList.remove("show");return}
+  const type=noticeType(n);c.dataset.type=type;c.dataset.noticeId=String(n.id);
+  $("noticeIcon").textContent=noticeIconFor(type);$("noticeTitle").textContent=noticeTitleClean(n)||"Уведомление";$("noticeText").textContent=n.body||"";
+  requestAnimationFrame(()=>c.classList.add("show"));
+}
+
+
+function normalizeClientData(d){
+  d = d && typeof d==="object" ? d : {};
+
+  d.settings = d.settings && typeof d.settings==="object" ? d.settings : {};
+  d.overlay = d.overlay && typeof d.overlay==="object" ? d.overlay : {};
+
+  const arrays=["players","guilds","matches","tournaments","news","streamers"];
+  arrays.forEach(k=>{ if(!Array.isArray(d[k])) d[k]=[]; });
+
+  const guildMap=Object.fromEntries(d.guilds.map(g=>[Number(g.id),g]));
+
+  d.players=d.players.map(p=>({
+    ...p,
+    guild:p.guild||guildMap[Number(p.guildId)]||null,
+    rank:p.rank||rankFromEloClient(p.elo),
+    kd:Number.isFinite(Number(p.kd))?Number(p.kd):((Number(p.deaths)||0)?Number(((Number(p.kills)||0)/(Number(p.deaths)||1)).toFixed(2)):(Number(p.kills)||0)),
+    winrate:Number.isFinite(Number(p.winrate))?Number(p.winrate):(((Number(p.wins)||0)+(Number(p.losses)||0))?Math.round((Number(p.wins)||0)/((Number(p.wins)||0)+(Number(p.losses)||0))*100):0)
+  }));
+
+  const playerMap=Object.fromEntries(d.players.map(p=>[Number(p.id),p]));
+
+  d.guilds=d.guilds.map(g=>{
+    const roster=Array.isArray(g.roster)?g.roster:d.players.filter(p=>Number(p.guildId)===Number(g.id));
+    const wins=Number(g.wins)||0, losses=Number(g.losses)||0;
+    return {
+      ...g,
+      rank:g.rank||rankFromEloClient(g.elo),
+      roster,
+      memberCount:Number.isFinite(Number(g.memberCount))?Number(g.memberCount):roster.length,
+      winrate:Number.isFinite(Number(g.winrate))?Number(g.winrate):((wins+losses)?Math.round(wins/(wins+losses)*100):0)
+    };
+  });
+
+  d.matches=d.matches.map(m=>({
+    ...m,
+    guildA:m.guildA||guildMap[Number(m.guildAId)]||null,
+    guildB:m.guildB||guildMap[Number(m.guildBId)]||null,
+    playerA:m.playerA||playerMap[Number(m.playerAId)]||null,
+    playerB:m.playerB||playerMap[Number(m.playerBId)]||null
+  }));
+
+  d.tournaments=d.tournaments.map(t=>({
+    ...t,
+    participants:Array.isArray(t.participants)
+      ? t.participants
+      : (Array.isArray(t.guildIds)?t.guildIds.map(id=>guildMap[Number(id)]).filter(Boolean):[])
+  }));
+
+  return d;
+}
+function rankFromEloClient(elo){
+  const e=Number(elo)||0;
+  if(e>=2000)return "S";
+  if(e>=1800)return "A";
+  if(e>=1600)return "B";
+  if(e>=1400)return "C";
+  if(e>=1200)return "D";
+  if(e>=1000)return "E";
+  return "F";
+}
+
+async function api(url,opt={}){
+  const cfg={credentials:"same-origin",cache:"no-store",...opt,headers:{"Content-Type":"application/json",...(opt.headers||{})}};
+  const r=await fetch(url,cfg);const d=await r.json().catch(()=>({}));
+  if(!r.ok){
+    const err=new Error(d.error||`HTTP ${r.status}`);
+    err.status=r.status;
+    throw err;
+  }
+  return d;
+}
+function handleActionError(e,target="admin"){
+  toastMsg(e.message||"Ошибка");
+  if(e.status===401){
+    admin=false;
+    document.querySelectorAll(".adminOnly").forEach(x=>x.style.display="none");
+    setTimeout(()=>loginModal(target),250);
+  }
+}
+function showError(msg){$("banner").textContent=msg;$("banner").style.display="block"}
+function clearError(){$("banner").style.display="none"}
+function toastMsg(t){const e=$("toast");e.textContent=t;e.style.display="block";setTimeout(()=>e.style.display="none",2200)}
+function media(v,cls="avatar"){v=String(v||"");return v.startsWith("data:image/")?`<img class="${cls}" src="${v}" alt="">`:`<span style="font-size:${cls==="avatarLg"?"42px":"22px"};margin-right:7px">${esc(v||"👤")}</span>`}
+function modalOpen(html){$("modalBox").innerHTML=html;$("modal").classList.add("show")}
+function closeModal(){$("modal").classList.remove("show")}
+function buildNav(){const items=[["home","Главная"],["players","Игроки"],["ranks","S–F"],["guilds","Гильдии"],["tournaments","Турниры"],["matches","Матчи"],["news","Новости"],["streamers","Стримеры"],["streamerZone","🎥 Streamer Zone"],["overlayCenter","🎨 Overlay"],["studio","🔒 Studio"],["admin","🔒 Admin"]];$("nav").innerHTML=items.map(x=>`<button data-p="${x[0]}" onclick="showPage('${x[0]}')">${x[1]}</button>`).join("")}
+async function authStatus(){
+  const a=await api("/api/auth/status");
+  role=a.authenticated?a.role:null;
+  admin=role==="admin";
+  currentStreamer=a.streamer||null;
+  $("state").textContent=admin?"ADMIN":role==="streamer"?"STREAMER":"PUBLIC";
+  document.querySelectorAll(".adminOnly").forEach(x=>x.style.display=admin?"":"none");
+  const editor = admin || role==="streamer";
+  document.querySelectorAll(".editorOnly").forEach(x=>x.style.display=editor?"":"none");
+  return a;
+}
+async function showPage(id){
+  if((id==="studio"||id==="admin")&&!admin){loginModal(id);return}
+  if(id==="streamerZone"&&role!=="streamer"&&!admin){loginModal(id);return}
+  if(id==="overlayCenter"&&role!=="streamer"&&!admin){loginModal(id);return}
+  if(id==="streamerZone"&&role==="streamer")await loadStreamerZone();
+  if(id==="overlayCenter")await loadOverlayCenter();
+document.querySelectorAll(".page").forEach(x=>x.classList.remove("on"));$(id).classList.add("on");document.querySelectorAll("#nav button").forEach(x=>x.classList.toggle("on",x.dataset.p===id));$("nav").classList.remove("open")}
+function loginModal(target){modalOpen(`<h2>🔒 Вход администратора</h2><p class="muted">Админ входит своими данными. Стример — логином и паролем, которые создал админ.</p><div class="field"><label>Логин</label><input id="lu" autocomplete="username" autocapitalize="none"></div><div class="field"><label>Пароль</label><input id="lp" type="password" autocomplete="current-password"></div><button class="btn" style="width:100%" id="loginBtn">Войти</button>`);setTimeout(()=>{$("loginBtn").onclick=()=>doLogin(target);$("lp").onkeydown=e=>{if(e.key==="Enter")doLogin(target)};$("lu").focus()},0)}
+async function doLogin(target){
+  try{
+    const username=$("lu").value.trim(),password=$("lp").value;
+    if(!username||!password)return toastMsg("Введи логин и пароль");
+    $("loginBtn").disabled=true;
+    const login=await api("/api/auth/login",{method:"POST",body:JSON.stringify({username,password})});
+    if(login.role==="admin")await api("/api/admin/ping");
+    if(login.role==="streamer")await api("/api/streamer/ping");
+    closeModal();
+    await load(true);
+    await showPage(target);
+    toastMsg("Админ-вход выполнен");
+  }catch(e){
+    toastMsg(e.message);
+    if($("loginBtn"))$("loginBtn").disabled=false;
+  }
+}
+async function logout(){try{await api("/api/auth/logout",{method:"POST",body:"{}"})}catch{}admin=false;await authStatus();showPage("home")}
+async function load(silent=false){
+  try{
+    clearError();
+    const [d,o,a]=await Promise.all([api("/api/all"),api("/api/overlay"),api("/api/auth/status")]);
+    db=normalizeClientData(d);ov=o||{overlay:{},match:null};role=a.authenticated?a.role:null;admin=role==="admin";currentStreamer=a.streamer||null;
+    $("state").textContent=admin?"ADMIN":role==="streamer"?"STREAMER":"PUBLIC";
+    document.querySelectorAll(".adminOnly").forEach(x=>x.style.display=admin?"":"none");
+    const editor=admin||role==="streamer";
+    document.querySelectorAll(".editorOnly").forEach(x=>x.style.display=editor?"":"none");
+    document.documentElement.style.setProperty("--a",db.settings.accent||"#b46cff");
+    $("brand").textContent="🪻 "+(db.settings.siteName||"LAVENDER");
+    $("tagline").textContent=db.settings.tagline||"FREE FIRE COMMUNITY";
+    renderAll();
+    setupStudio();
+    draw(ov);
+    document.querySelectorAll(".adminOnly").forEach(x=>x.style.display=admin?"":"none");
+    if(!silent)console.log("LAVENDER loaded",a.version||"");
+  }catch(e){
+    showError("Ошибка загрузки сайта: "+e.message);
+  }
+}
+function scheduleReload(){clearTimeout(reloadTimer);reloadTimer=setTimeout(()=>load(true),350)}
+function renderAll(){
+ db=normalizeClientData(db);
+ $("stats").innerHTML=`<div class="card stat"><b>${db.players.length}</b><span>ИГРОКОВ</span></div><div class="card stat"><b>${db.guilds.length}</b><span>ГИЛЬДИЙ</span></div><div class="card stat"><b>${db.tournaments.length}</b><span>ТУРНИРОВ</span></div><div class="card stat"><b>${db.matches.filter(m=>m.status==="LIVE").length}</b><span>LIVE</span></div>`;
+ const lm=db.matches.find(m=>m.status==="LIVE")||db.matches[0];
+ $("liveBox").innerHTML=lm?`<span class="status ${lm.status}">${esc(lm.status)}</span><h2>${esc(lm.title)}</h2><div><b>${esc(lm.guildA?.name||"TEAM A")}</b> <span style="font-size:28px;font-weight:1000">${lm.scoreA} : ${lm.scoreB}</span> <b>${esc(lm.guildB?.name||"TEAM B")}</b></div><p class="muted">${esc(lm.roundText)} • ${esc(lm.format)}</p>`:`<div class="muted">Матчей пока нет</div>`;
+ $("newsBox").innerHTML=db.news.filter(n=>!isNotice(n)).slice(0,3).map(n=>`<div style="margin-bottom:10px"><b>${n.pinned?"📌 ":""}${esc(n.title)}</b><div class="muted">${esc(n.body).slice(0,130)}</div></div>`).join("")||`<div class="muted">Новостей нет</div>`;
+ $("topPlayers").innerHTML=db.players.slice(0,6).map((p,i)=>`<tr><td>${i+1}</td><td>${media(p.avatar)}<b>${esc(p.nickname)}</b></td><td>${esc(p.guild?.name||"—")}</td><td><span class="rank">${p.rank}</span></td><td>${p.elo}</td></tr>`).join("");
+ $("topGuilds").innerHTML=db.guilds.slice(0,6).map((g,i)=>`<tr><td>${i+1}</td><td>${media(g.logo)}<b>${esc(g.name)}</b></td><td><span class="rank">${g.rank}</span></td><td>${g.elo}</td></tr>`).join("");
+ renderPlayers();if(typeof renderRanks==="function")renderRanks();renderGuilds();renderTournaments();renderMatches();renderNews();renderStreamers();renderAdminStreamers();renderNotificationCurtain();renderAdminNotifications();
+ $("acp").textContent=db.players.length;$("acg").textContent=db.guilds.length;$("acm").textContent=db.matches.length;$("act").textContent=db.tournaments.length;
+}
+function renderPlayers(){
+  const q=($("ps")?.value||"").toLowerCase();
+  const r=$("pr")?.value||"";
+
+  $("playersBody").innerHTML=db.players
+    .filter(
+      p=>
+        (p.nickname+" "+p.gameId)
+          .toLowerCase()
+          .includes(q) &&
+        (!r||p.rank===r)
+    )
+    .map(
+      (p,i)=>`
+        <tr>
+          <td>${i+1}</td>
+          <td>
+            ${media(p.avatar)}
+            <b>${esc(p.nickname)}</b>
+            <div class="muted small">
+              ${esc(p.gameId)}
+            </div>
+          </td>
+          <td>${esc(p.guild?.name||"—")}</td>
+          <td><span class="rank">${p.rank}</span></td>
+          <td>${p.elo}</td>
+          <td>${p.kd}</td>
+          <td>${Number(p.headshots||0)}</td>
+          <td>${Number(p.headshotRate||0)}%</td>
+          <td>${p.winrate}%</td>
+          <td>
+            ${
+              admin
+                ? `<button class="btn dark" onclick="playerForm(${p.id})">Изм.</button>`
+                : role==="streamer"
+                  ? `<button class="btn green" onclick="streamerStatsForm(${p.id})">+ Статистика</button>`
+                  : ""
+            }
+          </td>
+        </tr>
+      `
+    )
+    .join("");
+}
+
+function renderRanks(){
+  try{
+    const ranksBox = $("rankBlocks");
+    if(ranksBox){
+      const order=["S","A","B","C","D","E","F"];
+      ranksBox.innerHTML=order.map(rank=>{
+        const count=(db?.players||[]).filter(p=>String(p.rank||"")===rank).length;
+        return `<div class="stat"><b>${rank}</b><span>${count} игроков</span></div>`;
+      }).join("");
+    }
+
+    const topPlayers=$("topPlayers");
+    if(topPlayers){
+      const list=(db?.players||[])
+        .slice()
+        .sort((a,b)=>Number(b.elo||0)-Number(a.elo||0))
+        .slice(0,10);
+
+      topPlayers.innerHTML=list.map((p,i)=>`
+        <tr>
+          <td>${i+1}</td>
+          <td>${media(p.avatar)} <b>${esc(p.nickname)}</b></td>
+          <td>${esc(p.guild?.name||"—")}</td>
+          <td><span class="rank">${esc(p.rank||"F")}</span></td>
+          <td>${Number(p.elo||0)}</td>
+        </tr>
+      `).join("");
+    }
+
+    const topGuilds=$("topGuilds");
+    if(topGuilds){
+      const list=(db?.guilds||[])
+        .slice()
+        .sort((a,b)=>Number(b.elo||0)-Number(a.elo||0))
+        .slice(0,10);
+
+      topGuilds.innerHTML=list.map((g,i)=>`
+        <tr>
+          <td>${i+1}</td>
+          <td>${media(g.logo)} <b>${esc(g.name)}</b></td>
+          <td><span class="rank">${esc(g.rank||"F")}</span></td>
+          <td>${Number(g.elo||0)}</td>
+        </tr>
+      `).join("");
+    }
+  }catch(error){
+    console.error("renderRanks error:",error);
+  }
+}
+
+function renderGuilds(){const q=($("gs")?.value||"").toLowerCase();$("guildCards").innerHTML=db.guilds.filter(g=>(g.name+" "+g.tag).toLowerCase().includes(q)).map(g=>`<div class="card guildCard">${media(g.logo,"avatarLg")}<h3>${esc(g.name)}</h3><div class="muted">[${esc(g.tag)}] • ${esc(g.region)}${g.createdByRole==="streamer"?` • добавил: ${esc(g.createdByName||"стример")}`:""}</div><p><span class="rank">${g.rank}</span> ELO <b>${g.elo}</b> • WR ${g.winrate}%</p><p class="muted">${esc(g.description||"")}</p><div>${(Array.isArray(g.roster)?g.roster:[]).map(p=>`<span class="chip">${esc(p.nickname)}</span>`).join("")}</div>${(admin||role==="streamer")?`<div class="actions" style="margin-top:10px"><button class="btn dark" onclick="guildForm(${g.id})">Редактировать</button></div>`:""}</div>`).join("")}
+function renderTournaments(){$("tourCards").innerHTML=db.tournaments.map(t=>`<div class="card tourCard"><span class="status ${t.status}">${esc(t.status)}</span><h3>${esc(t.name)}</h3><p class="muted">${esc(t.description||"")}</p><span class="chip">${esc(t.format)}</span><span class="chip">${(Array.isArray(t.participants)?t.participants.length:0)} гильдий</span>${admin?`<div class="actions" style="margin-top:10px"><button class="btn dark" onclick="tournamentForm(${t.id})">Редактировать</button></div>`:""}</div>`).join("")}
+function renderMatches(){
+  const s=$("ms")?.value||"";
+  $("matchCards").innerHTML=db.matches.filter(m=>!s||m.status===s).map(m=>{
+    const isSeries=[6,8,10,12].includes(Number(m.seriesSize));
+    const played=Array.isArray(m.seriesHistory)?m.seriesHistory.length:0;
+    const target=Number(m.targetWins)||Number(m.seriesSize)||0;
+    return `<div class="card matchCard">
+      <span class="status ${m.status}">${esc(m.status)}</span>
+      <h3>${esc(m.title)}</h3>
+      <div><b>${esc(m.guildA?.name||"A")}</b> <span style="font-size:28px;font-weight:1000">${m.scoreA} : ${m.scoreB}</span> <b>${esc(m.guildB?.name||"B")}</b></div>
+      <p class="muted">${esc(m.tournament)} • ${esc(m.roundText)} • ${esc(m.format)}${isSeries?` • до ${target} побед • игр: ${played}`:""}${m.createdByRole==="streamer"?` • добавил: ${esc(m.createdByName||"стример")}`:""}</p>
+      ${isSeries&&m.status!=="FINAL"?`<div class="small muted">Перед каждой каткой выбери по одному игроку из каждой гильдии вручную.</div>`:""}
+      ${(admin||role==="streamer")?`<div class="actions" style="margin-top:10px">
+        <button class="btn dark" onclick="matchForm(${m.id})">Изм.</button>
+        ${isSeries?`<button class="btn green" onclick="seriesControl(${m.id})">🎮 Серия</button>`:(m.status!=="FINAL"?`<button class="btn green" onclick="quickFinishMatch(${m.id})">🏁 Финал + ELO</button>`:"")}
+        ${admin?`<button class="btn green" onclick="activate(${m.id})">На стрим</button>`:""}
+      </div>`:""}
+    </div>`;
+  }).join("")
+}
+function renderNews(){$("newsCards").innerHTML=db.news.filter(n=>!isNotice(n)).map(n=>`<div class="card newsCard"><h3>${n.pinned?"📌 ":""}${esc(n.title)}</h3><p class="muted">${esc(n.body)}</p>${admin?`<button class="btn dark" onclick="newsForm(${n.id})">Изм.</button>`:""}</div>`).join("")}
+
+function renderStreamers(){
+  if(!$("streamerCards"))return;
+  $("streamerCards").innerHTML=(db.streamers||[]).map(s=>{
+    const st=s.stream||{};
+    const live=st.status==="LIVE";
+    return `<div class="card guildCard">${media(s.avatar||"🎥","avatarLg")}<h3>${esc(s.displayName||s.username)}</h3><div class="muted">@${esc(s.username)}</div><p><span class="status ${live?"LIVE":"FINAL"}">${esc(st.status||"OFFLINE")}</span> ${esc(st.platform||"")}</p><p class="muted">${esc(st.title||"")}</p>${live&&st.streamUrl?`<a class="btn green" href="${esc(st.streamUrl)}" target="_blank" rel="noopener">Открыть стрим</a>`:""}<div class="small muted" style="margin-top:8px">Overlay: /overlay.html?streamer=${s.id}</div></div>`;
+  }).join("")||'<div class="muted">Стримеров пока нет</div>';
+}
+
+
+function streamerPlayerLabel(p){
+  if(!p)return "";
+  const guild=p.guild?.name||"Без гильдии";
+  const gameId=p.gameId?` • ID ${p.gameId}`:"";
+  return `${p.nickname}${gameId} • ${guild} • ELO ${p.elo}`;
+}
+function findStreamerPlayerByText(text){
+  const q=String(text||"").trim().toLowerCase();
+  if(!q)return null;
+  const players=streamerZoneData?.players||[];
+  return players.find(p=>streamerPlayerLabel(p).toLowerCase()===q)
+      ||players.find(p=>String(p.nickname||"").toLowerCase()===q)
+      ||players.find(p=>String(p.gameId||"").toLowerCase()===q)
+      ||players.find(p=>streamerPlayerLabel(p).toLowerCase().includes(q))
+      ||null;
+}
+function setStreamerPlayer(side,id){
+  const players=streamerZoneData?.players||[];
+  const p=players.find(x=>Number(x.id)===Number(id))||null;
+  $(`szPlayer${side}`).value=p?p.id:"";
+  $(`szPlayer${side}Search`).value=p?streamerPlayerLabel(p):"";
+  $(`szPlayer${side}Info`).textContent=p
+    ? `${p.nickname} • ${p.guild?.name||"Без гильдии"} • ELO ${p.elo} • ${p.rank||""}`
+    : "Поиск по нику / Game ID / гильдии";
+}
+function bindStreamerPlayerSearch(side){
+  const input=$(`szPlayer${side}Search`);
+  const hidden=$(`szPlayer${side}`);
+  const info=$(`szPlayer${side}Info`);
+  const resolve=()=>{
+    const p=findStreamerPlayerByText(input.value);
+    hidden.value=p?p.id:"";
+    info.textContent=p
+      ? `${p.nickname} • ${p.guild?.name||"Без гильдии"} • ELO ${p.elo} • ${p.rank||""}`
+      : (input.value.trim()?"Игрок не найден":"Поиск по нику / Game ID / гильдии");
+  };
+  input.oninput=resolve;
+  input.onchange=resolve;
+  input.onblur=resolve;
+}
+function setupStreamerPlayerSearch(st){
+  const players=streamerZoneData?.players||[];
+  const options=players.map(p=>`<option value="${esc(streamerPlayerLabel(p))}"></option>`).join("");
+  $("szPlayersAList").innerHTML=options;
+  $("szPlayersBList").innerHTML=options;
+  bindStreamerPlayerSearch("A");
+  bindStreamerPlayerSearch("B");
+  setStreamerPlayer("A",st.playerAId||null);
+  setStreamerPlayer("B",st.playerBId||null);
+}
+
+async function loadStreamerZone(){
+  if(role!=="streamer")return;
+  try{
+    streamerZoneData=await api("/api/streamer/me");
+    const st=streamerZoneData.stream||{};
+    if($("szcp")) $("szcp").textContent=(streamerZoneData.players||db?.players||[]).length;
+    if($("szcg")) $("szcg").textContent=(db?.guilds||[]).length;
+    if($("szcm")) $("szcm").textContent=(streamerZoneData.matches||db?.matches||[]).length;
+    if($("szlive")) $("szlive").textContent=String(st.status||"OFFLINE").toUpperCase()==="LIVE"?"LIVE":"OFF";
+    $("szTitle").value=st.title||"";
+    $("szPlatform").value=st.platform||"YouTube";
+    $("szUrl").value=st.streamUrl||"";
+    $("szStatus").value=st.status||"OFFLINE";
+    $("szText").value=st.customText||`${streamerZoneData.streamer.displayName||streamerZoneData.streamer.username} • LIVE`;
+    $("szAccent").value=st.accent||"#b46cff";
+    $("szPosition").value=st.position||"bottom";
+    $("szMatch").innerHTML=(streamerZoneData.matches||[]).map(m=>`<option value="${m.id}">${esc(m.title)} — ${esc(m.guildA?.name||"A")} vs ${esc(m.guildB?.name||"B")}</option>`).join("");
+    $("szMatch").value=st.matchId||streamerZoneData.matches?.[0]?.id||"";
+    setupStreamerPlayerSearch(st);
+    $("szMatch").onchange=()=>{
+      const m=(streamerZoneData.matches||[]).find(x=>Number(x.id)===Number($("szMatch").value));
+      if(m){
+        setStreamerPlayer("A",m.playerAId||null);
+        setStreamerPlayer("B",m.playerBId||null);
+      }
+    };
+        $("szObs").textContent=location.origin+`/overlay.html?streamer=${streamerZoneData.streamer.id}`;
+  }catch(e){toastMsg(e.message)}
+}
+async function saveStreamerZone(){
+  try{
+    const st=await api("/api/streamer/me",{method:"PATCH",body:JSON.stringify({
+      title:$("szTitle").value,platform:$("szPlatform").value,streamUrl:$("szUrl").value,
+      matchId:Number($("szMatch").value)||null,playerAId:Number($("szPlayerA").value)||null,playerBId:Number($("szPlayerB").value)||null,status:$("szStatus").value,
+      customText:$("szText").value,accent:$("szAccent").value,position:$("szPosition").value,
+      showPlayers:true,showStats:true
+    })});
+    streamerZoneData.stream=st;toastMsg("Стримерская зона сохранена");
+  }catch(e){toastMsg(e.message)}
+}
+async function streamerStart(){$("szStatus").value="LIVE";await saveStreamerZone()}
+async function streamerStop(){$("szStatus").value="OFFLINE";await saveStreamerZone()}
+function copyStreamerObs(){
+  if(!streamerZoneData)return;
+  navigator.clipboard.writeText(location.origin+`/overlay.html?streamer=${streamerZoneData.streamer.id}`).then(()=>toastMsg("OBS URL скопирован")).catch(()=>toastMsg("Скопируй URL вручную"));
+}
+
+async function renderAdminStreamers(){
+  if(!$("adminStreamerList"))return;
+  if(!admin){$("adminStreamerList").innerHTML='<div class="muted">Доступно только админу</div>';return}
+  try{
+    const list=await api("/api/admin/streamers");
+    $("adminStreamerList").innerHTML=list.map(s=>`<div class="card" style="padding:12px;margin-bottom:8px"><div style="display:flex;align-items:center;gap:10px">${media(s.avatar||"🎥")}<div style="flex:1"><b>${esc(s.displayName||s.username)}</b><div class="muted small">@${esc(s.username)} • ${s.active===false?"ОТКЛЮЧЕН":"АКТИВЕН"} • ${esc(s.stream?.status||"OFFLINE")}</div></div><div class="actions"><button class="btn dark" onclick="streamerForm(${s.id})">Изм.</button><button class="btn red" onclick="deleteStreamer(${s.id})">Удалить</button></div></div></div>`).join("")||'<div class="muted">Стримеров пока нет</div>';
+  }catch(e){$("adminStreamerList").innerHTML='<div class="muted">'+esc(e.message)+'</div>'}
+}
+async function streamerForm(id){
+  let s=null;
+  if(id){
+    const list=await api("/api/admin/streamers");
+    s=list.find(x=>Number(x.id)===Number(id));
+  }
+  modalOpen(`<h2>${s?"Редактировать":"Добавить"} стримера</h2>
+  <div class="field"><label>Логин</label><input id="su" value="${esc(s?.username||"")}"></div>
+  <div class="field"><label>Отображаемое имя</label><input id="sdn" value="${esc(s?.displayName||"")}"></div>
+  ${avatarField("sav",s?.avatar||"🎥","Аватар")}
+  <div class="field"><label>${s?"Новый пароль (оставь пустым, если не менять)":"Пароль"}</label><input id="spw" type="password"></div>
+  ${s?`<div class="field"><label>Статус аккаунта</label><select id="sactive"><option value="true">Активен</option><option value="false">Отключён</option></select></div>`:""}
+  <button class="btn" onclick="saveStreamer(${id||0})">Сохранить</button>`);
+  if(s)$("sactive").value=String(s.active!==false);
+}
+async function saveStreamer(id){
+  try{
+    const body={username:$("su").value,displayName:$("sdn").value,avatar:$("sav").value,password:$("spw").value};
+    if(id)body.active=$("sactive").value==="true";
+    await api(id?"/api/admin/streamers/"+id:"/api/admin/streamers",{method:id?"PATCH":"POST",body:JSON.stringify(body)});
+    closeModal();await load(true);toastMsg(id?"Стример обновлён":"Стример добавлен");
+  }catch(e){toastMsg(e.message)}
+}
+async function deleteStreamer(id){
+  if(!confirm("Удалить стримера и его стримерскую зону?"))return;
+  try{await api("/api/admin/streamers/"+id,{method:"DELETE"});await load(true);toastMsg("Стример удалён")}catch(e){toastMsg(e.message)}
+}
+
+
+
+function globalPlayerLabel(p){
+  if(!p)return "";
+  const guild=p.guild?.name||"Без гильдии";
+  const gid=p.gameId?` • ID ${p.gameId}`:"";
+  return `${p.nickname}${gid} • ${guild} • ELO ${p.elo}`;
+}
+function setGlobalPlayer(side,id){
+  const key=side.toLowerCase();
+  const p=db.players.find(x=>Number(x.id)===Number(id))||null;
+  $(`op${key}`).value=p?p.id:"";
+  $(`op${key}Search`).value=p?p.nickname:"";
+  $(`op${key}Info`).textContent=p
+    ? `${p.nickname} • ${p.guild?.name||"Без гильдии"} • ELO ${p.elo} • ${p.rank||""}`
+    : "Поиск по нику, ID или гильдии";
+  const box=$(`op${key}Results`);
+  if(box)box.classList.remove("open");refreshWinnerOptions();
+}
+function searchPlayers(query){
+  const q=String(query||"").trim().toLowerCase();
+  const list=db.players||[];
+  if(!q)return list.slice(0,20);
+  return list.filter(p=>{
+    const hay=[
+      p.nickname,
+      p.gameId,
+      p.guild?.name,
+      p.guild?.tag,
+      String(p.elo||"")
+    ].filter(Boolean).join(" ").toLowerCase();
+    return hay.includes(q);
+  }).slice(0,30);
+}
+function renderPlayerSearchResults(side){
+  const key=side.toLowerCase();
+  const input=$(`op${key}Search`);
+  const box=$(`op${key}Results`);
+  const list=searchPlayers(input.value);
+  if(!list.length){
+    box.innerHTML=`<div class="search-player-empty">Игрок не найден</div>`;
+  }else{
+    box.innerHTML=list.map(p=>`
+      <div class="search-player-item" data-player-id="${p.id}">
+        <b>${esc(p.nickname)}</b>
+        <span>${esc(p.guild?.name||"Без гильдии")} • ${p.gameId?`ID ${esc(p.gameId)} • `:""}ELO ${p.elo} • ${esc(p.rank||"")}</span>
+      </div>
+    `).join("");
+    box.querySelectorAll(".search-player-item").forEach(el=>{
+      el.onmousedown=e=>{
+        e.preventDefault();
+        setGlobalPlayer(side,Number(el.dataset.playerId));
+      };
+    });
+  }
+  box.classList.add("open");
+}
+function bindGlobalPlayerSearch(side){
+  const key=side.toLowerCase();
+  const input=$(`op${key}Search`);
+  const box=$(`op${key}Results`);
+  input.onfocus=()=>renderPlayerSearchResults(side);
+  input.oninput=()=>{
+    $(`op${key}`).value="";
+    $(`op${key}Info`).textContent=input.value.trim()?"Выбери игрока из результатов":"Поиск по нику, ID или гильдии";
+    renderPlayerSearchResults(side);
+  };
+  input.onkeydown=e=>{
+    if(e.key==="Escape")box.classList.remove("open");
+    if(e.key==="Enter"){
+      e.preventDefault();
+      const first=box.querySelector(".search-player-item");
+      if(first)setGlobalPlayer(side,Number(first.dataset.playerId));
+    }
+  };
+  input.onblur=()=>setTimeout(()=>box.classList.remove("open"),120);
+}
+function setupGlobalPlayerSearch(){
+  bindGlobalPlayerSearch("A");
+  bindGlobalPlayerSearch("B");
+}
+
+
+let overlayCenterState=null;
+
+function overlayCenterImageValue(value,fallback){
+  const v=String(value||"").trim();
+  return v||fallback||"";
+}
+
+function overlayCenterMedia(value,cls){
+  const v=String(value||"").trim();
+  if(!v)return "";
+  if(v.startsWith("data:image/")||/^https?:\/\//i.test(v)){
+    return `<img class="${cls}" src="${esc(v)}" alt="">`;
+  }
+  return `<div class="${cls}" style="display:grid;place-items:center;font-size:30px">${esc(v)}</div>`;
+}
+
+async function overlayImageFromFile(input,target,preview){
+  const f=input.files?.[0];
+  if(!f)return;
+  if(!f.type.startsWith("image/"))return toastMsg("Выбери изображение");
+  if(f.size>5*1024*1024)return toastMsg("Файл слишком большой");
+  const bmp=await createImageBitmap(f);
+  const max=512;
+  const scale=Math.min(1,max/Math.max(bmp.width,bmp.height));
+  const c=document.createElement("canvas");
+  c.width=Math.round(bmp.width*scale);
+  c.height=Math.round(bmp.height*scale);
+  c.getContext("2d").drawImage(bmp,0,0,c.width,c.height);
+  $(target).value=c.toDataURL("image/jpeg",.86);
+  $(preview).src=$(target).value;
+  renderOverlayCenterPreview();
+}
+
+function overlayCenterDefaults(){
+  return {
+    customText:"LAVENDER • LIVE",
+    accent:"#b46cff",
+    textColor:"#ffffff",
+    panelColor:"#17101e",
+    glowColor:"#b46cff",
+    backgroundColor:"#08060b",
+    leftAvatar:"",
+    rightAvatar:"",
+    showAvatars:true,
+    avatarShape:"rounded",
+    theme:"neon",
+    position:"bottom"
+  };
+}
+
+function setOverlayCenterFields(o){
+  const d={...overlayCenterDefaults(),...(o||{})};
+  $("ocText").value=d.customText||"";
+  $("ocAccent").value=d.accent||"#b46cff";
+  $("ocTextColor").value=d.textColor||"#ffffff";
+  $("ocPanelColor").value=d.panelColor||"#17101e";
+  $("ocGlowColor").value=d.glowColor||d.accent||"#b46cff";
+  $("ocBackgroundColor").value=d.backgroundColor||"#08060b";
+  $("ocLeftAvatar").value=d.leftAvatar||"";
+  $("ocRightAvatar").value=d.rightAvatar||"";
+  $("ocShowAvatars").checked=d.showAvatars!==false;
+  $("ocAvatarShape").value=d.avatarShape||"rounded";
+  $("ocTheme").value=d.theme||"neon";
+  if($("ocPosition"))$("ocPosition").value=d.position||"bottom";
+  $("ocLeftPreview").src=d.leftAvatar?.startsWith("data:image/")?d.leftAvatar:"";
+  $("ocRightPreview").src=d.rightAvatar?.startsWith("data:image/")?d.rightAvatar:"";
+  $("ocLeftPreview").className=`overlayAvatarPreview ${d.avatarShape||"rounded"}`;
+  $("ocRightPreview").className=`overlayAvatarPreview ${d.avatarShape||"rounded"}`;
+}
+
+function overlayCenterPayload(){
+  return {
+    customText:$("ocText").value,
+    accent:$("ocAccent").value,
+    textColor:$("ocTextColor").value,
+    panelColor:$("ocPanelColor").value,
+    glowColor:$("ocGlowColor").value,
+    backgroundColor:$("ocBackgroundColor").value,
+    leftAvatar:$("ocLeftAvatar").value,
+    rightAvatar:$("ocRightAvatar").value,
+    showAvatars:$("ocShowAvatars").checked,
+    avatarShape:$("ocAvatarShape").value,
+    theme:$("ocTheme").value,
+    position:$("ocPosition")?.value||"bottom"
+  };
+}
+
+async function loadOverlayCenter(){
+  try{
+    if(role==="streamer"){
+      const z=await api("/api/streamer/me");
+      streamerZoneData=z;
+      overlayCenterState=z.stream||{};
+      $("ocRole").textContent=`STREAMER • ${z.streamer?.displayName||z.streamer?.username||""}`;
+      $("ocUrl").textContent=location.origin+`/overlay.html?streamer=${z.streamer.id}`;
+      setOverlayCenterFields(overlayCenterState);
+    }else if(admin){
+      const state=await api("/api/overlay");
+      overlayCenterState=state.overlay||{};
+      $("ocRole").textContent="ADMIN • GLOBAL";
+      $("ocUrl").textContent=location.origin+"/overlay.html";
+      setOverlayCenterFields(overlayCenterState);
+    }
+    renderOverlayCenterPreview();
+  }catch(e){
+    toastMsg(e.message);
+  }
+}
+
+async function saveOverlayCenter(){
+  try{
+    const body=overlayCenterPayload();
+    if(role==="streamer"){
+      const st=await api("/api/streamer/me",{method:"PATCH",body:JSON.stringify(body)});
+      if(streamerZoneData)streamerZoneData.stream=st;
+      overlayCenterState=st;
+    }else if(admin){
+      const state=await api("/api/overlay",{method:"PATCH",body:JSON.stringify(body)});
+      overlayCenterState=state.overlay||body;
+    }else{
+      return toastMsg("Нужен вход стримера или администратора");
+    }
+    renderOverlayCenterPreview();
+    toastMsg("Overlay сохранён");
+  }catch(e){
+    toastMsg(e.message);
+  }
+}
+
+function copyOverlayCenterUrl(){
+  const url=$("ocUrl").textContent.trim();
+  if(!url)return;
+  navigator.clipboard.writeText(url).then(()=>toastMsg("OBS URL скопирован")).catch(()=>toastMsg("Скопируй URL вручную"));
+}
+
+function resetOverlayCenterVisual(){
+  const d=overlayCenterDefaults();
+  setOverlayCenterFields(d);
+  renderOverlayCenterPreview();
+}
+
+function renderOverlayCenterPreview(){
+  const o=overlayCenterPayload();
+  const shape=o.avatarShape||"rounded";
+  $("ocLeftPreview").className=`overlayAvatarPreview ${shape}`;
+  $("ocRightPreview").className=`overlayAvatarPreview ${shape}`;
+
+  const pA=(db?.players||[])[0]||null;
+  const pB=(db?.players||[])[1]||null;
+  const left=o.leftAvatar||pA?.avatar||"👤";
+  const right=o.rightAvatar||pB?.avatar||"👤";
+
+  const preview=$("ocPreview");
+  preview.style.background=o.theme==="glass"
+    ?`linear-gradient(145deg,${o.backgroundColor}dd,${o.panelColor}aa)`
+    :o.theme==="minimal"
+      ?o.backgroundColor
+      :`radial-gradient(circle at 25% 20%,${o.glowColor}44,transparent 35%),radial-gradient(circle at 80% 70%,${o.accent}33,transparent 35%),${o.backgroundColor}`;
+
+  const radius=shape==="circle"?"50%":shape==="square"?"4px":"16px";
+  const shadow=o.theme==="minimal"?"none":`0 0 28px ${o.glowColor}66`;
+
+  $("ocPreviewHud").innerHTML=`
+    <div class="overlayDemoTop" style="color:${o.accent};text-shadow:${shadow}">${esc(o.customText||"LAVENDER • LIVE")}</div>
+    <div class="overlayDemoRow" style="color:${o.textColor}">
+      <div class="overlayDemoTeam" style="background:${o.panelColor}e8;border-color:${o.accent}88;box-shadow:${shadow};border-radius:${o.theme==="minimal"?"4px":"16px"}">
+        ${o.showAvatars?overlayCenterMedia(left,"overlayDemoAvatar"):""}
+        <div><b style="font-size:19px">${esc(pA?.nickname||"PLAYER A")}</b><div class="muted small">TEAM A</div></div>
+      </div>
+      <div class="overlayDemoScore" style="color:${o.textColor};text-shadow:${shadow}">3 : 2</div>
+      <div class="overlayDemoTeam r" style="background:${o.panelColor}e8;border-color:${o.accent}88;box-shadow:${shadow};border-radius:${o.theme==="minimal"?"4px":"16px"}">
+        <div><b style="font-size:19px">${esc(pB?.nickname||"PLAYER B")}</b><div class="muted small">TEAM B</div></div>
+        ${o.showAvatars?overlayCenterMedia(right,"overlayDemoAvatar"):""}
+      </div>
+    </div>
+    <div style="text-align:center;margin-top:10px;color:${o.accent};font-weight:900;letter-spacing:3px">● LIVE</div>
+  `;
+
+  document.querySelectorAll(".overlayDemoAvatar").forEach(x=>{
+    x.style.borderRadius=radius;
+    x.style.borderColor=o.accent;
+  });
+}
+
+function setupStudio(){setupGlobalPlayerSearch();
+ $("obsUrl").textContent=location.origin+"/overlay.html";
+ if(!Array.isArray(db.matches)||!db.matches.length){$("smatch").innerHTML="";return}
+ $("smatch").innerHTML=db.matches.map(m=>`<option value="${m.id}">${esc(m.title)}</option>`).join("");
+ $("smatch").value=ov.overlay.activeMatchId||db.matches[0].id;$("smatch").onchange=fillStudio;
+ setupGlobalPlayerSearch();
+ $("otext").value=ov.overlay.customText||"";$("oaccent").value=ov.overlay.accent||"#b46cff";
+ fillStudio();
+ setGlobalPlayer("A",ov.match?.playerAId||null);
+ setGlobalPlayer("B",ov.match?.playerBId||null);
+}
+function fillStudio(){const m=db.matches.find(x=>Number(x.id)===Number($("smatch").value))||db.matches[0];if(!m)return;$("stitle").value=m.title;$("ssa").value=m.scoreA;$("ssb").value=m.scoreB;$("sround").value=m.roundText;$("sformat").value=m.format;$("sstatus").value=m.status;setGlobalPlayer("A",m.playerAId||null);setGlobalPlayer("B",m.playerBId||null);refreshWinnerOptions()}
+async function saveStudio(){try{const id=Number($("smatch").value);await api("/api/matches/"+id,{method:"PATCH",body:JSON.stringify({title:$("stitle").value,scoreA:Number($("ssa").value),scoreB:Number($("ssb").value),roundText:$("sround").value,format:$("sformat").value,status:$("sstatus").value,playerAId:Number($("opa").value)||null,playerBId:Number($("opb").value)||null})});await api("/api/overlay",{method:"PATCH",body:JSON.stringify({activeMatchId:id,visible:true,accent:$("oaccent").value,position:"bottom",showPlayers:true,showStats:true,customText:$("otext").value})});await load(true);toastMsg("Сохранено")}catch(e){handleActionError(e,"admin")}}
+
+
+function refreshWinnerOptions(){
+  const el=$("swinner");
+  if(!el)return;
+  const aId=Number($("opa")?.value)||null;
+  const bId=Number($("opb")?.value)||null;
+  const a=db?.players?.find(p=>Number(p.id)===aId);
+  const b=db?.players?.find(p=>Number(p.id)===bId);
+  const current=el.value;
+  el.innerHTML=`<option value="">— выбери победителя —</option>`
+    +(a?`<option value="${a.id}">${esc(a.nickname)}</option>`:"")
+    +(b?`<option value="${b.id}">${esc(b.nickname)}</option>`:"");
+  if(current&&[String(aId),String(bId)].includes(String(current)))el.value=current;
+}
+async function applyWinnerElo(){
+  try{
+    const id=Number($("smatch").value);
+    const playerAId=Number($("opa").value)||null;
+    const playerBId=Number($("opb").value)||null;
+    const winnerId=Number($("swinner").value)||null;
+    if(!id)return toastMsg("Выбери матч");
+    if(!playerAId||!playerBId)return toastMsg("Выбери двух игроков");
+    if(!winnerId)return toastMsg("Выбери победителя");
+
+    const winner=db.players.find(p=>Number(p.id)===winnerId);
+    if(!confirm(`Победитель: ${winner?.nickname||"игрок"}. Начислить ELO?`))return;
+
+    const result=await api(`/api/matches/${id}/set-winner`,{
+      method:"POST",
+      body:JSON.stringify({playerAId,playerBId,winnerId})
+    });
+
+    await load(true);
+    const c=result.eloChange;
+    if(c){
+      const pa=result.players.A,pb=result.players.B;
+      modalOpen(`<h2>🏆 ELO распределено</h2>
+        <p><b>${esc(pa.nickname)}</b>: ${c.deltaA>=0?"+":""}${c.deltaA} → ELO <b>${pa.elo}</b></p>
+        <p><b>${esc(pb.nickname)}</b>: ${c.deltaB>=0?"+":""}${c.deltaB} → ELO <b>${pb.elo}</b></p>
+        <button class="btn" onclick="closeModal()">Готово</button>`);
+    }else{
+      toastMsg("ELO этого матча уже было рассчитано");
+    }
+  }catch(e){handleActionError(e,role==="streamer"?"streamerZone":"admin")}
+}
+
+async function finishStudioMatch(){
+  try{
+    const id=Number($("smatch").value);
+    if(!id)return toastMsg("Сначала выбери матч");
+    const scoreA=Number($("ssa").value),scoreB=Number($("ssb").value);
+    const playerAId=Number($("opa").value)||null;
+    const playerBId=Number($("opb").value)||null;
+    if(scoreA===scoreB)return toastMsg("При равном счёте ELO не распределяется");
+    if(!playerAId||!playerBId)return toastMsg("Выбери Игрока A и Игрока B");
+
+    if(!confirm(`Завершить матч со счётом ${scoreA}:${scoreB} и сразу распределить ELO?`))return;
+
+    const result=await api(`/api/matches/${id}/finish`,{
+      method:"POST",
+      body:JSON.stringify({
+        scoreA,scoreB,playerAId,playerBId,
+        roundText:$("sround").value,
+        format:$("sformat").value
+      })
+    });
+
+    await load(true);
+    const c=result.eloChange;
+    if(c){
+      const pa=result.players.A,pb=result.players.B;
+      modalOpen(`<h2>🏁 Матч завершён</h2>
+        <p><b>${esc(pa.nickname)}</b>: ${c.deltaA>=0?"+":""}${c.deltaA} ELO → <b>${pa.elo}</b></p>
+        <p><b>${esc(pb.nickname)}</b>: ${c.deltaB>=0?"+":""}${c.deltaB} ELO → <b>${pb.elo}</b></p>
+        <button class="btn" onclick="closeModal()">Готово</button>`);
+    }else{
+      toastMsg("Матч уже был рассчитан раньше — повторного ELO нет");
+    }
+  }catch(e){handleActionError(e,role==="streamer"?"streamerZone":"admin")}
+}
+
+async function bump(a,b){$("ssa").value=Math.max(0,Number($("ssa").value)+a);$("ssb").value=Math.max(0,Number($("ssb").value)+b);await saveStudio()}
+async function saveOverlay(){await saveStudio()}
+async function activate(id){try{await api("/api/overlay",{method:"PATCH",body:JSON.stringify({activeMatchId:id,visible:true})});await load(true);showPage("studio")}catch(e){handleActionError(e,"admin")}}
+function draw(d){const m=d?.match,o=d?.overlay;if(!m||!o?.visible){$("preview").innerHTML=`<div class="muted">Overlay скрыт</div>`;return}document.documentElement.style.setProperty("--a",o.accent||"#b46cff");$("preview").innerHTML=`<div class="oh"><div style="color:var(--a);font-weight:900;letter-spacing:4px">${esc(o.customText)}</div><h2>${esc(m.title)}</h2></div><div class="orow"><div class="obox">${m.playerA?`<div class="pname">${media(m.playerA.avatar)}${esc(m.playerA.nickname)}</div>`:""}<div class="gname">${media(m.guildA?.logo)}${esc(m.guildA?.name||"TEAM A")}</div></div><div><div class="oscore">${m.scoreA} : ${m.scoreB}</div><div class="muted" style="text-align:center">${esc(m.roundText)}</div></div><div class="obox r">${m.playerB?`<div class="pname">${esc(m.playerB.nickname)} ${media(m.playerB.avatar)}</div>`:""}<div class="gname">${esc(m.guildB?.name||"TEAM B")} ${media(m.guildB?.logo)}</div></div></div><div class="ostatus">● ${esc(m.status)}</div>`}
+async function imageFromFile(input,target){const f=input.files?.[0];if(!f)return;if(!f.type.startsWith("image/"))return toastMsg("Выбери изображение");if(f.size>5*1024*1024)return toastMsg("Файл слишком большой");const bmp=await createImageBitmap(f);const max=512,scale=Math.min(1,max/Math.max(bmp.width,bmp.height));const c=document.createElement("canvas");c.width=Math.round(bmp.width*scale);c.height=Math.round(bmp.height*scale);c.getContext("2d").drawImage(bmp,0,0,c.width,c.height);$(target).value=c.toDataURL("image/jpeg",.82);toastMsg("Аватарка готова")}
+function avatarField(id,v,label){return `<div class="field"><label>${label}</label><input id="${id}" value="${esc(v||"")}" placeholder="эмодзи или фото"><input type="file" accept="image/*" onchange="imageFromFile(this,'${id}')"></div>`}
+function guildForm(id){
+  if(role==="streamer" && id){
+    return toastMsg("Стример не может редактировать гильдию");
+  }const g=id?db.guilds.find(x=>x.id===id):null;modalOpen(`<h2>${g?"Редактировать":"Новая"} гильдия</h2><div class="grid"><div class="field"><label>Название</label><input id="gn" value="${esc(g?.name||"")}"></div><div class="field"><label>Тег</label><input id="gt" value="${esc(g?.tag||"")}"></div>${avatarField("gl",g?.logo||"🪻","Логотип")}<div class="field"><label>Регион</label><input id="gr" value="${esc(g?.region||"Кыргызстан")}"></div><div class="field"><label>ELO</label><input id="ge" type="number" value="${g?.elo||1200}"></div><div class="field"><label>Победы</label><input id="gw" type="number" value="${g?.wins||0}"></div><div class="field"><label>Поражения</label><input id="gls" type="number" value="${g?.losses||0}"></div><div class="field"><label>Капитан</label><input id="gc" value="${esc(g?.captain||"")}"></div></div><div class="field"><label>Описание</label><textarea id="gd">${esc(g?.description||"")}</textarea></div><div class="actions"><button class="btn" onclick="saveGuild(${id||0})">Сохранить</button>${g?`<button class="btn red" onclick="delGuild(${g.id})">Удалить</button>`:""}</div>`)}
+async function saveGuild(id){try{await api(id?"/api/guilds/"+id:"/api/guilds",{method:id?"PATCH":"POST",body:JSON.stringify({name:$("gn").value,tag:$("gt").value,logo:$("gl").value,region:$("gr").value,elo:Number($("ge").value),wins:Number($("gw").value),losses:Number($("gls").value),captain:$("gc").value,description:$("gd").value})});closeModal();await load(true)}catch(e){handleActionError(e,"admin")}}
+async function delGuild(id){if(confirm("Удалить гильдию?"))try{await api("/api/guilds/"+id,{method:"DELETE"});closeModal();await load(true)}catch(e){handleActionError(e,"admin")}}
+
+function streamerStatsPicker(){
+  if(role!=="streamer"){
+    return toastMsg("Доступно только стримеру");
+  }
+
+  const options=(db.players||[])
+    .map(
+      p=>`
+        <option value="${p.id}">
+          ${esc(p.nickname)}
+          • ${esc(p.guild?.name||"Без гильдии")}
+          • ELO ${p.elo}
+        </option>
+      `
+    )
+    .join("");
+
+  modalOpen(`
+    <h2>Добавить статистику за катку</h2>
+
+    <div class="field">
+      <label>Игрок</label>
+      <select id="ssPlayer">
+        <option value="">— выбери игрока —</option>
+        ${options}
+      </select>
+    </div>
+
+    <div class="actions">
+      <button
+        class="btn"
+        onclick="
+          const id=Number($('ssPlayer').value);
+          if(!id)return toastMsg('Выбери игрока');
+          streamerStatsForm(id);
+        "
+      >
+        Продолжить
+      </button>
+    </div>
+  `);
+}
+
+function streamerStatsForm(id){
+  if(role!=="streamer"){
+    return toastMsg("Доступно только стримеру");
+  }
+
+  const p=(db.players||[])
+    .find(
+      x=>
+        Number(x.id)===
+        Number(id)
+    );
+
+  if(!p){
+    return toastMsg("Игрок не найден");
+  }
+
+  modalOpen(`
+    <h2>${esc(p.nickname)}</h2>
+
+    <p class="muted">
+      Текущая статистика:
+      K ${Number(p.kills||0)}
+      • D ${Number(p.deaths||0)}
+      • HS ${Number(p.headshots||0)}
+      • K/D ${p.kd}
+      • HS ${Number(p.headshotRate||0)}%
+    </p>
+
+    <div class="grid">
+      <div class="field">
+        <label>Киллы за эту катку</label>
+        <input
+          id="ssk"
+          type="number"
+          min="0"
+          step="1"
+          value="0"
+        >
+      </div>
+
+      <div class="field">
+        <label>Смерти за эту катку</label>
+        <input
+          id="ssd"
+          type="number"
+          min="0"
+          step="1"
+          value="0"
+        >
+      </div>
+
+      <div class="field">
+        <label>Хедшоты за эту катку</label>
+        <input
+          id="sshs"
+          type="number"
+          min="0"
+          step="1"
+          value="0"
+        >
+      </div>
+    </div>
+
+    <div class="muted small">
+      Стример может только прибавлять эти показатели.
+      ELO, победы и поражения рассчитываются автоматически по результату игры.
+    </div>
+
+    <div class="actions" style="margin-top:12px">
+      <button
+        class="btn green"
+        onclick="saveStreamerStats(${p.id})"
+      >
+        + Добавить статистику
+      </button>
+    </div>
+  `);
+}
+
+async function saveStreamerStats(id){
+  try{
+    const kills=
+      Math.max(
+        0,
+        Math.floor(
+          Number($("ssk").value)||
+          0
+        )
+      );
+
+    const deaths=
+      Math.max(
+        0,
+        Math.floor(
+          Number($("ssd").value)||
+          0
+        )
+      );
+
+    const headshots=
+      Math.max(
+        0,
+        Math.floor(
+          Number($("sshs").value)||
+          0
+        )
+      );
+
+    if(headshots>kills){
+      return toastMsg(
+        "Хедшотов не может быть больше киллов"
+      );
+    }
+
+    const result=
+      await api(
+        `/api/streamer/player-stats/${id}`,
+        {
+          method:"POST",
+
+          body:JSON.stringify({
+            kills,
+            deaths,
+            headshots
+          })
+        }
+      );
+
+    closeModal();
+
+    await load(true);
+
+    toastMsg(
+      `${result.player.nickname}: +${kills} K • +${deaths} D • +${headshots} HS`
+    );
+  }catch(e){
+    handleActionError(
+      e,
+      "streamerZone"
+    );
+  }
+}
+
+
+
+function streamerMatchOptions(){
+  const box=$("smMatch");
+  if(!box)return;
+
+  const list=(db?.matches||[]);
+  box.innerHTML=list.map(
+    m=>`<option value="${m.id}">${esc(m.title||"MATCH")} • ${esc(m.guildA?.name||"A")} ${m.scoreA||0}:${m.scoreB||0} ${esc(m.guildB?.name||"B")}</option>`
+  ).join("");
+
+  if(streamerMe?.stream?.matchId){
+    box.value=String(streamerMe.stream.matchId);
+  }
+
+  loadStreamerMatchControl();
+}
+
+function streamerPlayersForGuild(guildId){
+  return (db?.players||[])
+    .filter(p=>Number(p.guildId)===Number(guildId))
+    .sort((a,b)=>Number(b.elo||0)-Number(a.elo||0));
+}
+
+function streamerPlayerOptions(guildId,selected){
+  return `<option value="">— выбери игрока —</option>`+
+    streamerPlayersForGuild(guildId).map(
+      p=>`<option value="${p.id}" ${Number(selected)===Number(p.id)?"selected":""}>${esc(p.nickname)} • ELO ${p.elo} • ${esc(p.rank||"")}</option>`
+    ).join("");
+}
+
+function loadStreamerMatchControl(){
+  const id=Number($("smMatch")?.value)||null;
+  const m=(db?.matches||[]).find(x=>Number(x.id)===id);
+  if(!m)return;
+
+  $("smTitle").value=m.title||"";
+  $("smScoreA").value=Number(m.scoreA||0);
+  $("smScoreB").value=Number(m.scoreB||0);
+  $("smRound").value=m.roundText||"";
+  $("smFormat").value=m.format||"";
+  $("smStatus").value=m.status||"LIVE";
+
+  $("smPlayerA").innerHTML=streamerPlayerOptions(m.guildAId,m.playerAId);
+  $("smPlayerB").innerHTML=streamerPlayerOptions(m.guildBId,m.playerBId);
+
+  syncStreamerWinnerOptions();
+}
+
+function syncStreamerWinnerOptions(){
+  const aId=Number($("smPlayerA")?.value)||null;
+  const bId=Number($("smPlayerB")?.value)||null;
+
+  const a=(db?.players||[]).find(p=>Number(p.id)===aId);
+  const b=(db?.players||[]).find(p=>Number(p.id)===bId);
+
+  const box=$("smWinner");
+  if(!box)return;
+
+  box.innerHTML=
+    `<option value="">— выбери победителя —</option>`+
+    (a?`<option value="${a.id}">${esc(a.nickname)}</option>`:"")+
+    (b?`<option value="${b.id}">${esc(b.nickname)}</option>`:"");
+}
+
+function streamerCurrentMatch(){
+  const id=Number($("smMatch")?.value)||null;
+  return (db?.matches||[]).find(x=>Number(x.id)===id)||null;
+}
+
+function streamerScorePlus(side){
+  const el=$(side==="A"?"smScoreA":"smScoreB");
+  if(!el)return;
+  el.value=Number(el.value||0)+1;
+}
+
+function streamerScoreMinus(side){
+  const el=$(side==="A"?"smScoreA":"smScoreB");
+  if(!el)return;
+  el.value=Math.max(0,Number(el.value||0)-1);
+}
+
+async function saveStreamerMatchView(){
+  const m=streamerCurrentMatch();
+  if(!m)return toastMsg("Выбери матч");
+
+  try{
+    await api(`/api/matches/${m.id}`,{
+      method:"PATCH",
+      body:JSON.stringify({
+        playerAId:Number($("smPlayerA").value)||null,
+        playerBId:Number($("smPlayerB").value)||null,
+        scoreA:Number($("smScoreA").value)||0,
+        scoreB:Number($("smScoreB").value)||0
+      })
+    });
+
+    if(streamerMe?.stream){
+      await api("/api/streamer/me",{
+        method:"PATCH",
+        body:JSON.stringify({
+          matchId:m.id,
+          playerAId:Number($("smPlayerA").value)||null,
+          playerBId:Number($("smPlayerB").value)||null
+        })
+      });
+    }
+
+    await load(true);
+    toastMsg("Матч сохранён");
+    streamerMatchOptions();
+  }catch(e){
+    handleActionError(e,"streamerZone");
+  }
+}
+
+async function streamerSetWinner(){
+  const m=streamerCurrentMatch();
+  if(!m)return toastMsg("Выбери матч");
+
+  const playerAId=Number($("smPlayerA").value)||null;
+  const playerBId=Number($("smPlayerB").value)||null;
+  const winnerId=Number($("smWinner").value)||null;
+
+  if(!playerAId||!playerBId){
+    return toastMsg("Выбери двух игроков");
+  }
+
+  if(!winnerId){
+    return toastMsg("Выбери победителя");
+  }
+
+  try{
+    const isSeries=[6,8,10,12].includes(Number(m.seriesSize));
+
+    if(isSeries){
+      await api(`/api/matches/${m.id}/series-game`,{
+        method:"POST",
+        body:JSON.stringify({
+          playerAId,
+          playerBId,
+          winnerId
+        })
+      });
+    }else{
+      await api(`/api/matches/${m.id}/set-winner`,{
+        method:"POST",
+        body:JSON.stringify({
+          playerAId,
+          playerBId,
+          winnerId
+        })
+      });
+    }
+
+    await load(true);
+    toastMsg("Победитель сохранён • ELO обновлено");
+    streamerMatchOptions();
+  }catch(e){
+    handleActionError(e,"streamerZone");
+  }
+}
+
+async function streamerFinishByScore(){
+  const m=streamerCurrentMatch();
+  if(!m)return toastMsg("Выбери матч");
+
+  const playerAId=Number($("smPlayerA").value)||null;
+  const playerBId=Number($("smPlayerB").value)||null;
+
+  if(!playerAId||!playerBId){
+    return toastMsg("Выбери двух игроков");
+  }
+
+  const scoreA=Number($("smScoreA").value)||0;
+  const scoreB=Number($("smScoreB").value)||0;
+
+  if(scoreA===scoreB){
+    return toastMsg("Ничья не подходит для ELO");
+  }
+
+  try{
+    await api(`/api/matches/${m.id}/finish`,{
+      method:"POST",
+      body:JSON.stringify({
+        scoreA,
+        scoreB,
+        playerAId,
+        playerBId
+      })
+    });
+
+    await load(true);
+    toastMsg("Матч завершён • ELO обновлено");
+    streamerMatchOptions();
+  }catch(e){
+    handleActionError(e,"streamerZone");
+  }
+}
+
+function playerForm(id){
+  if(role==="streamer" && id){
+    return toastMsg("Стример не может редактировать игрока");
+  }const p=id?db.players.find(x=>x.id===id):null,go=`<option value="">Без гильдии</option>`+db.guilds.map(g=>`<option value="${g.id}" ${p?.guildId===g.id?"selected":""}>${esc(g.name)}</option>`).join("");modalOpen(`<h2>${p?"Редактировать":"Новый"} игрок</h2><div class="grid"><div class="field"><label>Ник</label><input id="pn" value="${esc(p?.nickname||"")}"></div><div class="field"><label>Game ID</label><input id="pid" value="${esc(p?.gameId||"")}"></div>${avatarField("pa",p?.avatar||"👤","Аватар")}<div class="field"><label>Гильдия</label><select id="pg">${go}</select></div><div class="field"><label>ELO</label><input id="pe" type="number" value="${p?.elo||1200}"></div><div class="field"><label>Победы</label><input id="pw" type="number" value="${p?.wins||0}"></div><div class="field"><label>Поражения</label><input id="pls" type="number" value="${p?.losses||0}"></div><div class="field"><label>Убийства</label><input id="pk" type="number" value="${p?.kills||0}"></div><div class="field"><label>Смерти</label><input id="pd" type="number" value="${p?.deaths||0}"></div><div class="field"><label>Хедшоты</label><input id="phs" type="number" value="${p?.headshots||0}"></div></div><div class="actions"><button class="btn" onclick="savePlayer(${id||0})">Сохранить</button>${p?`<button class="btn red" onclick="delPlayer(${p.id})">Удалить</button>`:""}</div>`)}
+async function savePlayer(id){try{await api(id?"/api/players/"+id:"/api/players",{method:id?"PATCH":"POST",body:JSON.stringify({nickname:$("pn").value,gameId:$("pid").value,avatar:$("pa").value,guildId:Number($("pg").value)||null,elo:Number($("pe").value),wins:Number($("pw").value),losses:Number($("pls").value),kills:Number($("pk").value),deaths:Number($("pd").value),headshots:Number($("phs").value)})});closeModal();await load(true)}catch(e){handleActionError(e,"admin")}}
+async function delPlayer(id){if(confirm("Удалить игрока?"))try{await api("/api/players/"+id,{method:"DELETE"});closeModal();await load(true)}catch(e){handleActionError(e,"admin")}}
+
+async function quickFinishMatch(id){
+  const m=db.matches.find(x=>Number(x.id)===Number(id));
+  if(!m)return;
+  if(Number(m.scoreA)===Number(m.scoreB))return toastMsg("Сначала укажи итоговый счёт — ничья не подходит");
+  if(!m.playerAId||!m.playerBId)return toastMsg("В матче должны быть выбраны Игрок A и Игрок B");
+  if(!confirm(`Завершить ${m.title} со счётом ${m.scoreA}:${m.scoreB} и распределить ELO?`))return;
+  try{
+    const result=await api(`/api/matches/${id}/finish`,{method:"POST",body:JSON.stringify({
+      scoreA:m.scoreA,scoreB:m.scoreB,playerAId:m.playerAId,playerBId:m.playerBId,
+      roundText:m.roundText,format:m.format
+    })});
+    await load(true);
+    const c=result.eloChange;
+    if(c)toastMsg(`ELO: ${result.players.A.nickname} ${c.deltaA>=0?"+":""}${c.deltaA}, ${result.players.B.nickname} ${c.deltaB>=0?"+":""}${c.deltaB}`);
+    else toastMsg("Этот матч уже был рассчитан");
+  }catch(e){handleActionError(e,role==="streamer"?"streamerZone":"admin")}
+}
+
+function seriesSizeClient(v){
+  const n=Number(String(v||"").match(/(6|8|10|12)/)?.[1]||v);
+  return [6,8,10,12].includes(n)?n:6;
+}
+
+function matchForm(id){
+  const m=id?db.matches.find(x=>Number(x.id)===Number(id)):null;
+  const go=`<option value="">— выбери гильдию —</option>`+
+    db.guilds.map(g=>`<option value="${g.id}">${esc(g.name)}</option>`).join("");
+
+  const size=seriesSizeClient(
+    m?.seriesSize||
+    m?.format||
+    6
+  );
+
+  const locked=!!(
+    m?.seriesHistory?.length
+  );
+
+  modalOpen(`
+    <h2>${m?"Редактировать":"Новый"} матч</h2>
+
+    <p class="muted small">
+      Здесь выбираются только две гильдии и формат серии.
+      Игроков заранее выбирать не нужно.
+      Перед каждой отдельной каткой ты сам выберешь одного игрока от гильдии A
+      и одного игрока от гильдии B.
+      После выбора победителя ELO распределится автоматически.
+    </p>
+
+    <div class="grid">
+
+      <div class="field">
+        <label>Турнир</label>
+        <input
+          id="mt"
+          value="${esc(m?.tournament||"LAVENDER CUP")}"
+        >
+      </div>
+
+      <div class="field">
+        <label>Название</label>
+        <input
+          id="mn"
+          value="${esc(m?.title||"GUILD BATTLE")}"
+        >
+      </div>
+
+      <div class="field">
+        <label>Формат серии</label>
+
+        <select
+          id="mf"
+          ${locked?"disabled":""}
+        >
+          <option value="6">
+            6 на 6 — до 6 побед
+          </option>
+
+          <option value="8">
+            8 на 8 — до 8 побед
+          </option>
+
+          <option value="10">
+            10 на 10 — до 10 побед
+          </option>
+
+          <option value="12">
+            12 на 12 — до 12 побед
+          </option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>Статус</label>
+
+        <select id="mst">
+          <option>LIVE</option>
+          <option>SCHEDULED</option>
+          <option>PAUSED</option>
+          <option>FINAL</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>Гильдия A</label>
+
+        <select
+          id="ma"
+          ${locked?"disabled":""}
+        >
+          ${go}
+        </select>
+      </div>
+
+      <div class="field">
+        <label>Гильдия B</label>
+
+        <select
+          id="mb"
+          ${locked?"disabled":""}
+        >
+          ${go}
+        </select>
+      </div>
+
+    </div>
+
+    ${
+      locked
+        ? `<p class="muted small">
+             Серия уже началась.
+             Гильдии и формат заблокированы,
+             чтобы история игр и ELO не сбились.
+           </p>`
+        : ""
+    }
+
+    <div class="actions" style="margin-top:14px">
+
+      <button
+        class="btn"
+        onclick="saveMatch(${id||0})"
+      >
+        Сохранить
+      </button>
+
+      ${
+        m
+          ? `<button
+               class="btn red"
+               onclick="delMatch(${m.id})"
+             >
+               Удалить
+             </button>`
+          : ""
+      }
+
+    </div>
+  `);
+
+  $("mf").value=String(size);
+  $("ma").value=m?.guildAId||"";
+  $("mb").value=m?.guildBId||"";
+  $("mst").value=m?.status||"SCHEDULED";
+}
+
+async function saveMatch(id){
+  try{
+    const size=
+      seriesSizeClient(
+        $("mf").value
+      );
+
+    const body={
+      tournament:
+        $("mt").value,
+
+      title:
+        $("mn").value,
+
+      guildAId:
+        Number(
+          $("ma").value
+        )||null,
+
+      guildBId:
+        Number(
+          $("mb").value
+        )||null,
+
+      seriesSize:
+        size,
+
+      format:
+        `${size}v${size}`,
+
+      status:
+        $("mst").value
+    };
+
+    if(!body.guildAId||!body.guildBId){
+      return toastMsg(
+        "Выбери две гильдии"
+      );
+    }
+
+    if(
+      body.guildAId===
+      body.guildBId
+    ){
+      return toastMsg(
+        "Нужны две разные гильдии"
+      );
+    }
+
+    if(id){
+      const m=
+        db.matches.find(
+          x=>
+            Number(x.id)===
+            Number(id)
+        );
+
+      if(
+        m?.seriesHistory?.length
+      ){
+        await api(
+          "/api/matches/"+id,
+          {
+            method:"PATCH",
+            body:JSON.stringify({
+              title:
+                body.title,
+
+              tournament:
+                body.tournament,
+
+              status:
+                body.status
+            })
+          }
+        );
+      }else{
+        await api(
+          `/api/matches/${id}/series-config`,
+          {
+            method:"PATCH",
+            body:JSON.stringify(body)
+          }
+        );
+
+        await api(
+          "/api/matches/"+id,
+          {
+            method:"PATCH",
+            body:JSON.stringify({
+              title:
+                body.title,
+
+              tournament:
+                body.tournament,
+
+              status:
+                body.status
+            })
+          }
+        );
+      }
+
+    }else{
+      await api(
+        "/api/matches",
+        {
+          method:"POST",
+          body:JSON.stringify(body)
+        }
+      );
+    }
+
+    closeModal();
+    await load(true);
+
+    toastMsg(
+      "Матч сохранён"
+    );
+
+  }catch(e){
+    handleActionError(
+      e,
+      role==="streamer"
+        ?"streamerZone"
+        :"admin"
+    );
+  }
+}
+
+function seriesPlayersForGuild(guildId){
+  return (db.players||[])
+    .filter(
+      p=>
+        Number(p.guildId)===
+        Number(guildId)
+    )
+    .sort(
+      (a,b)=>
+        Number(b.elo||0)-
+        Number(a.elo||0)
+    );
+}
+
+function seriesPlayerOptions(guildId){
+  const players=
+    seriesPlayersForGuild(
+      guildId
+    );
+
+  return `
+    <option value="">
+      — выбери игрока —
+    </option>
+  `+
+  players.map(
+    p=>`
+      <option value="${p.id}">
+        ${esc(p.nickname)}
+        • ELO ${p.elo}
+        • ${esc(p.rank||"")}
+      </option>
+    `
+  ).join("");
+}
+
+function updateSeriesWinnerButtons(){
+  const aId=
+    Number(
+      $("seriesPlayerA")?.value
+    )||null;
+
+  const bId=
+    Number(
+      $("seriesPlayerB")?.value
+    )||null;
+
+  const a=
+    db.players.find(
+      p=>
+        Number(p.id)===
+        aId
+    );
+
+  const b=
+    db.players.find(
+      p=>
+        Number(p.id)===
+        bId
+    );
+
+  const aBtn=
+    $("seriesWinA");
+
+  const bBtn=
+    $("seriesWinB");
+
+  if(aBtn){
+    aBtn.disabled=!a;
+    aBtn.textContent=
+      a
+        ?`🏆 Победа ${a.nickname}`
+        :"🏆 Победа игрока A";
+  }
+
+  if(bBtn){
+    bBtn.disabled=!b;
+    bBtn.textContent=
+      b
+        ?`🏆 Победа ${b.nickname}`
+        :"🏆 Победа игрока B";
+  }
+
+  const aInfo=
+    $("seriesPlayerAInfo");
+
+  const bInfo=
+    $("seriesPlayerBInfo");
+
+  if(aInfo){
+    aInfo.textContent=
+      a
+        ?`${a.nickname} • ELO ${a.elo} • ${a.rank||""}`
+        :"Игрок не выбран";
+  }
+
+  if(bInfo){
+    bInfo.textContent=
+      b
+        ?`${b.nickname} • ELO ${b.elo} • ${b.rank||""}`
+        :"Игрок не выбран";
+  }
+}
+
+function seriesControl(id){
+  const m=
+    db.matches.find(
+      x=>
+        Number(x.id)===
+        Number(id)
+    );
+
+  if(!m)return;
+
+  const hist=
+    Array.isArray(
+      m.seriesHistory
+    )
+      ?m.seriesHistory
+      :[];
+
+  const target=
+    Number(
+      m.targetWins
+    )||
+    Number(
+      m.seriesSize
+    )||
+    0;
+
+  const optsA=
+    seriesPlayerOptions(
+      m.guildAId
+    );
+
+  const optsB=
+    seriesPlayerOptions(
+      m.guildBId
+    );
+
+  modalOpen(`
+    <h2>
+      🎮 ${esc(m.title)}
+    </h2>
+
+    <div class="muted">
+      ${esc(m.format)}
+      • до ${target} побед
+      • следующая игра №${hist.length+1}
+    </div>
+
+    <div
+      style="
+        font-size:34px;
+        font-weight:1000;
+        text-align:center;
+        margin:14px 0
+      "
+    >
+      ${esc(m.guildA?.name||"A")}
+      ${m.scoreA}
+      :
+      ${m.scoreB}
+      ${esc(m.guildB?.name||"B")}
+    </div>
+
+    ${
+      m.status==="FINAL"
+        ?`
+          <div class="status FINAL">
+            СЕРИЯ ЗАВЕРШЕНА
+          </div>
+        `
+        :`
+          <div class="grid">
+
+            <div class="card">
+              <div class="head">
+                <h2>
+                  ${esc(m.guildA?.name||"Гильдия A")}
+                </h2>
+              </div>
+
+              <div class="body">
+
+                <div class="field">
+                  <label>
+                    Игрок на эту катку
+                  </label>
+
+                  <select
+                    id="seriesPlayerA"
+                    onchange="updateSeriesWinnerButtons()"
+                  >
+                    ${optsA}
+                  </select>
+                </div>
+
+                <div
+                  class="muted small"
+                  id="seriesPlayerAInfo"
+                >
+                  Игрок не выбран
+                </div>
+
+                <button
+                  class="btn green"
+                  id="seriesWinA"
+                  style="
+                    margin-top:12px;
+                    width:100%
+                  "
+                  disabled
+                  onclick="seriesWinManual(${m.id},'A')"
+                >
+                  🏆 Победа игрока A
+                </button>
+
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="head">
+                <h2>
+                  ${esc(m.guildB?.name||"Гильдия B")}
+                </h2>
+              </div>
+
+              <div class="body">
+
+                <div class="field">
+                  <label>
+                    Игрок на эту катку
+                  </label>
+
+                  <select
+                    id="seriesPlayerB"
+                    onchange="updateSeriesWinnerButtons()"
+                  >
+                    ${optsB}
+                  </select>
+                </div>
+
+                <div
+                  class="muted small"
+                  id="seriesPlayerBInfo"
+                >
+                  Игрок не выбран
+                </div>
+
+                <button
+                  class="btn green"
+                  id="seriesWinB"
+                  style="
+                    margin-top:12px;
+                    width:100%
+                  "
+                  disabled
+                  onclick="seriesWinManual(${m.id},'B')"
+                >
+                  🏆 Победа игрока B
+                </button>
+
+              </div>
+            </div>
+
+          </div>
+
+          <p class="muted small">
+            После нажатия победителя:
+            ELO обоих игроков пересчитается сразу,
+            счёт серии увеличится,
+            а перед следующей каткой ты снова вручную выберешь двух игроков.
+          </p>
+        `
+    }
+
+    <h3>
+      История игр
+    </h3>
+
+    <div class="seriesHistory">
+      ${
+        hist.length
+          ?hist
+            .slice()
+            .reverse()
+            .map(
+              r=>`
+                <div class="seriesHistoryRow">
+
+                  <b>
+                    #${r.game}
+                  </b>
+
+                  <span>
+                    ${esc(r.playerAName||"A")}
+                    vs
+                    ${esc(r.playerBName||"B")}
+                  </span>
+
+                  <span>
+                    ${
+                      Number(r.winnerId)===
+                      Number(r.playerAId)
+                        ?"← A"
+                        :"B →"
+                    }
+                  </span>
+
+                </div>
+              `
+            )
+            .join("")
+          :`
+            <div class="muted">
+              Игр ещё не было
+            </div>
+          `
+      }
+    </div>
+  `);
+
+  updateSeriesWinnerButtons();
+}
+
+async function seriesWinManual(
+  matchId,
+  side
+){
+  const playerAId=
+    Number(
+      $("seriesPlayerA")?.value
+    )||null;
+
+  const playerBId=
+    Number(
+      $("seriesPlayerB")?.value
+    )||null;
+
+  if(
+    !playerAId||
+    !playerBId
+  ){
+    return toastMsg(
+      "Выбери двух игроков"
+    );
+  }
+
+  const winnerId=
+    side==="A"
+      ?playerAId
+      :playerBId;
+
+  const winner=
+    db.players.find(
+      p=>
+        Number(p.id)===
+        winnerId
+    );
+
+  if(
+    !confirm(
+      `Победитель: ${winner?.nickname||"игрок"}. Распределить ELO?`
+    )
+  ){
+    return;
+  }
+
+  try{
+    const result=
+      await api(
+        `/api/matches/${matchId}/series-game`,
+        {
+          method:"POST",
+
+          body:JSON.stringify({
+            playerAId,
+            playerBId,
+            winnerId
+          })
+        }
+      );
+
+    await load(true);
+
+    const c=
+      result.eloChange;
+
+    const game=
+      result.game;
+
+    modalOpen(`
+      <h2>
+        🏆 Игра №${game?.number||""} завершена
+      </h2>
+
+      <p>
+        <b>
+          ${esc(game?.playerA?.nickname||"Игрок A")}
+        </b>:
+        ${c?.deltaA>=0?"+":""}${c?.deltaA??0}
+        ELO →
+        <b>
+          ${game?.playerA?.elo??"—"}
+        </b>
+      </p>
+
+      <p>
+        <b>
+          ${esc(game?.playerB?.nickname||"Игрок B")}
+        </b>:
+        ${c?.deltaB>=0?"+":""}${c?.deltaB??0}
+        ELO →
+        <b>
+          ${game?.playerB?.elo??"—"}
+        </b>
+      </p>
+
+      ${
+        result.finished
+          ?`
+            <p>
+              Серия завершена.
+            </p>
+
+            <button
+              class="btn"
+              onclick="closeModal()"
+            >
+              Готово
+            </button>
+          `
+          :`
+            <p class="muted">
+              Следующая катка:
+              снова выбери двух игроков вручную.
+            </p>
+
+            <button
+              class="btn"
+              onclick="
+                closeModal();
+                seriesControl(${matchId})
+              "
+            >
+              Следующая катка
+            </button>
+          `
+      }
+    `);
+
+  }catch(e){
+    handleActionError(
+      e,
+      role==="streamer"
+        ?"streamerZone"
+        :"admin"
+    );
+  }
+}
+
+async function delMatch(id){if(confirm("Удалить матч?"))try{await api("/api/matches/"+id,{method:"DELETE"});closeModal();await load(true)}catch(e){handleActionError(e,"admin")}}
+function tournamentForm(id){const t=id?db.tournaments.find(x=>x.id===id):null;modalOpen(`<h2>${t?"Редактировать":"Новый"} турнир</h2><div class="field"><label>Название</label><input id="tn" value="${esc(t?.name||"")}"></div><div class="field"><label>Статус</label><select id="ts"><option>UPCOMING</option><option>LIVE</option><option>FINAL</option></select></div><div class="field"><label>Формат</label><input id="tf" value="${esc(t?.format||"BO7")}"></div><div class="field"><label>Описание</label><textarea id="td">${esc(t?.description||"")}</textarea></div><div class="actions"><button class="btn" onclick="saveTour(${id||0})">Сохранить</button>${t?`<button class="btn red" onclick="delTour(${t.id})">Удалить</button>`:""}</div>`);if(t)$("ts").value=t.status}
+async function saveTour(id){try{await api(id?"/api/tournaments/"+id:"/api/tournaments",{method:id?"PATCH":"POST",body:JSON.stringify({name:$("tn").value,status:$("ts").value,format:$("tf").value,description:$("td").value,guildIds:[]})});closeModal();await load(true)}catch(e){handleActionError(e,"admin")}}
+async function delTour(id){if(confirm("Удалить турнир?"))try{await api("/api/tournaments/"+id,{method:"DELETE"});closeModal();await load(true)}catch(e){handleActionError(e,"admin")}}
+
+function renderAdminNotifications(){
+  const box=$("adminNotificationList");if(!box)return;
+  if(!admin){box.innerHTML='<div class="muted">Доступно только админу</div>';return}
+  const list=(db.news||[]).filter(isNotice);
+  box.innerHTML=list.map(n=>{const type=noticeType(n);return `<div class="noticeAdminRow"><div><b>${noticeIconFor(type)} ${esc(noticeTitleClean(n))}</b><div class="muted small">${esc(n.body||"")} • тип: ${esc(type)}</div></div><div class="actions"><button class="btn dark" onclick="notificationForm(${n.id})">Изм.</button><button class="btn red" onclick="deleteNotification(${n.id})">Удалить</button></div></div>`}).join("")||'<div class="muted">Уведомлений пока нет</div>';
+}
+function notificationForm(id){
+  const n=id?(db.news||[]).find(x=>Number(x.id)===Number(id)):null;const type=n?noticeType(n):"info";
+  modalOpen(`<h2>${n?"Редактировать":"Новое"} уведомление</h2><div class="field"><label>Заголовок</label><input id="noticeT" value="${esc(n?noticeTitleClean(n):"")}"></div><div class="field"><label>Текст</label><textarea id="noticeB">${esc(n?.body||"")}</textarea></div><div class="field"><label>Тип</label><select id="noticeType"><option value="info">🔔 Обычное</option><option value="important">⚠️ Важное</option><option value="event">🏆 Событие</option><option value="success">✅ Успех</option></select></div><div class="actions"><button class="btn" onclick="saveNotification(${id||0})">Показать на главной</button>${n?`<button class="btn red" onclick="deleteNotification(${n.id})">Удалить</button>`:""}</div>`);
+  $("noticeType").value=type;
+}
+async function saveNotification(id){
+  try{
+    const title=$("noticeT").value.trim(),body=$("noticeB").value.trim(),type=$("noticeType").value;
+    if(!title)return toastMsg("Укажи заголовок");if(!body)return toastMsg("Укажи текст уведомления");
+    await api(id?"/api/news/"+id:"/api/news",{method:id?"PATCH":"POST",body:JSON.stringify({title:`[NOTICE:${type}] ${title}`,body,pinned:true})});
+    if(id)localStorage.removeItem(noticeStorageKey(id));closeModal();await load(true);toastMsg("Уведомление опубликовано");
+  }catch(e){handleActionError(e,"admin")}
+}
+async function deleteNotification(id){
+  if(!confirm("Удалить уведомление?"))return;
+  try{await api("/api/news/"+id,{method:"DELETE"});localStorage.removeItem(noticeStorageKey(id));closeModal();await load(true);toastMsg("Уведомление удалено")}catch(e){handleActionError(e,"admin")}
+}
+
+function newsForm(id){const n=id?db.news.find(x=>x.id===id):null;modalOpen(`<h2>${n?"Редактировать":"Новая"} новость</h2><div class="field"><label>Заголовок</label><input id="nt" value="${esc(n?.title||"")}"></div><div class="field"><label>Текст</label><textarea id="nb">${esc(n?.body||"")}</textarea></div><div class="field"><label>Закрепить</label><select id="np"><option value="false">Нет</option><option value="true">Да</option></select></div><div class="actions"><button class="btn" onclick="saveNews(${id||0})">Сохранить</button>${n?`<button class="btn red" onclick="delNews(${n.id})">Удалить</button>`:""}</div>`);if(n)$("np").value=String(!!n.pinned)}
+async function saveNews(id){try{await api(id?"/api/news/"+id:"/api/news",{method:id?"PATCH":"POST",body:JSON.stringify({title:$("nt").value,body:$("nb").value,pinned:$("np").value==="true"})});closeModal();await load(true)}catch(e){handleActionError(e,"admin")}}
+async function delNews(id){if(confirm("Удалить новость?"))try{await api("/api/news/"+id,{method:"DELETE"});closeModal();await load(true)}catch(e){handleActionError(e,"admin")}}
+function copyObs(){navigator.clipboard.writeText(location.origin+"/overlay.html").then(()=>toastMsg("OBS URL скопирован")).catch(()=>toastMsg("Скопируй URL вручную"))}
+async function testAdmin(){try{const x=await api("/api/admin/ping");toastMsg("Админ работает • v"+x.version)}catch(e){handleActionError(e,"admin")}}
+async function exportBackup(){try{const r=await fetch("/api/admin/export",{credentials:"same-origin"});if(!r.ok)throw new Error("Нужен вход администратора");const blob=await r.blob(),u=URL.createObjectURL(blob),a=document.createElement("a");a.href=u;a.download="lavender-backup.json";a.click();URL.revokeObjectURL(u)}catch(e){handleActionError(e,role==="streamer"?"streamerZone":"admin")}}
+$("importFile").addEventListener("change",async e=>{const f=e.target.files?.[0];if(!f)return;try{const d=JSON.parse(await f.text());await api("/api/admin/import",{method:"POST",body:JSON.stringify(d)});await load(true);toastMsg("Backup восстановлен")}catch(err){toastMsg("Ошибка backup: "+err.message)}})
+$("ps").addEventListener("input",renderPlayers);$("pr").addEventListener("change",renderPlayers);$("gs").addEventListener("input",renderGuilds);$("ms").addEventListener("change",renderMatches);
+document.addEventListener("click",e=>{if(innerWidth<=900&&$("nav").classList.contains("open")&&!e.target.closest("#nav")&&!e.target.closest(".menu"))$("nav").classList.remove("open")});
+const socket=io({reconnection:true,reconnectionDelay:1000,reconnectionDelayMax:5000,timeout:10000});
+socket.on("overlay:update",d=>{ov=d;draw(d)});socket.on("site:update",scheduleReload);socket.on("streamer-removed",()=>{if(role==="streamer"){toastMsg("Аккаунт стримера удалён");logout()}});socket.on("connect_error",()=>showError("Связь с сервером восстанавливается…"));socket.on("connect",clearError);
+buildNav();load();
+</script></body></html>
