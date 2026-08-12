@@ -1149,23 +1149,8 @@ function publicData(
           Number(player.deaths) ||
           0;
 
-        const headshots =
-          Number(player.headshots) ||
-          0;
-
         return {
           ...player,
-
-          headshots,
-
-          headshotRate:
-            kills > 0
-              ? Math.round(
-                  headshots /
-                  kills *
-                  100
-                )
-              : 0,
 
           guild:
             guildMap[
@@ -1561,6 +1546,15 @@ function streamerOverlayState(
           streamer.displayName ||
           streamer.username
         } • LIVE`
+,
+      playerABg: stream.playerABg || "",
+      playerBBg: stream.playerBBg || "",
+      playerAColor: stream.playerAColor || "#24112f",
+      playerBColor: stream.playerBColor || "#0d2430",
+      playerATextColor: stream.playerATextColor || "#ffffff",
+      playerBTextColor: stream.playerBTextColor || "#ffffff",
+      centerColor: stream.centerColor || "#140d1c",
+      panelOpacity: Number.isFinite(Number(stream.panelOpacity)) ? Number(stream.panelOpacity) : 0.88
     },
 
     match:
@@ -2730,6 +2724,24 @@ app.patch(
         );
     }
 
+    for (const key of ["playerAColor","playerBColor","playerATextColor","playerBTextColor","centerColor"]) {
+      if (key in body && /^#[0-9a-f]{6}$/i.test(String(body[key] || ""))) {
+        stream[key] = String(body[key]);
+      }
+    }
+
+    if ("playerABg" in body) {
+      stream.playerABg = cleanText(body.playerABg, 1000);
+    }
+
+    if ("playerBBg" in body) {
+      stream.playerBBg = cleanText(body.playerBBg, 1000);
+    }
+
+    if ("panelOpacity" in body) {
+      stream.panelOpacity = Math.max(0.15, Math.min(1, Number(body.panelOpacity) || 0.88));
+    }
+
     stream.updatedAt =
       new Date()
         .toISOString();
@@ -2876,11 +2888,6 @@ app.post(
           body.deaths
         ) || 0,
 
-      headshots:
-        Number(
-          body.headshots
-        ) || 0,
-
       role:
         cleanText(
           body.role ||
@@ -2923,7 +2930,7 @@ app.post(
 
 app.patch(
   "/api/players/:id",
-  requireAdmin,
+  requireEditor,
   async (
     req,
     res
@@ -3000,8 +3007,7 @@ app.patch(
         "wins",
         "losses",
         "kills",
-        "deaths",
-        "headshots"
+        "deaths"
       ]
     ) {
       if (key in body) {
@@ -3026,7 +3032,7 @@ app.patch(
 
 app.delete(
   "/api/players/:id",
-  requireAdmin,
+  requireEditor,
   async (
     req,
     res
@@ -3078,200 +3084,6 @@ app.delete(
     });
   }
 );
-
-
-/* =========================================================
-   STREAMER PLAYER STATS
-   Стример может ТОЛЬКО прибавлять kills / deaths / headshots.
-   ELO, wins, losses и профиль игрока меняются не здесь.
-========================================================= */
-
-app.post(
-  "/api/streamer/player-stats/:id",
-  requireStreamer,
-  async (
-    req,
-    res
-  ) => {
-    try {
-      const data =
-        readData();
-
-      const player =
-        data.players.find(
-          item =>
-            Number(item.id) ===
-            Number(req.params.id)
-        );
-
-      if (!player) {
-        return res
-          .status(404)
-          .json({
-            error:
-              "Игрок не найден"
-          });
-      }
-
-      const body =
-        req.body || {};
-
-      const kills =
-        Math.max(
-          0,
-          Math.floor(
-            Number(body.kills) ||
-            0
-          )
-        );
-
-      const deaths =
-        Math.max(
-          0,
-          Math.floor(
-            Number(body.deaths) ||
-            0
-          )
-        );
-
-      const headshots =
-        Math.max(
-          0,
-          Math.floor(
-            Number(body.headshots) ||
-            0
-          )
-        );
-
-      if (
-        kills === 0 &&
-        deaths === 0 &&
-        headshots === 0
-      ) {
-        return res
-          .status(400)
-          .json({
-            error:
-              "Добавь хотя бы один показатель"
-          });
-      }
-
-      if (headshots > kills) {
-        return res
-          .status(400)
-          .json({
-            error:
-              "Хедшотов не может быть больше киллов за эту катку"
-          });
-      }
-
-      player.kills =
-        (
-          Number(player.kills) ||
-          0
-        ) + kills;
-
-      player.deaths =
-        (
-          Number(player.deaths) ||
-          0
-        ) + deaths;
-
-      player.headshots =
-        (
-          Number(player.headshots) ||
-          0
-        ) + headshots;
-
-      player.updatedAt =
-        new Date()
-          .toISOString();
-
-      player.lastStatsBy = {
-        streamerId:
-          req.streamer.id,
-
-        streamerName:
-          req.streamer.displayName ||
-          req.streamer.username,
-
-        kills,
-        deaths,
-        headshots,
-
-        at:
-          new Date()
-            .toISOString()
-      };
-
-      await atomicWrite(data);
-
-      broadcast();
-
-      res.json({
-        ok: true,
-
-        player: {
-          id:
-            player.id,
-
-          nickname:
-            player.nickname,
-
-          kills:
-            player.kills,
-
-          deaths:
-            player.deaths,
-
-          headshots:
-            player.headshots,
-
-          kd:
-            player.deaths > 0
-              ? Number(
-                  (
-                    player.kills /
-                    player.deaths
-                  ).toFixed(2)
-                )
-              : player.kills,
-
-          headshotRate:
-            player.kills > 0
-              ? Math.round(
-                  player.headshots /
-                  player.kills *
-                  100
-                )
-              : 0,
-
-          elo:
-            player.elo,
-
-          wins:
-            player.wins,
-
-          losses:
-            player.losses
-        }
-      });
-    } catch (error) {
-      console.error(
-        "STREAMER PLAYER STATS ERROR:",
-        error
-      );
-
-      res
-        .status(500)
-        .json({
-          error:
-            "Не удалось сохранить статистику"
-        });
-    }
-  }
-);
-
 
 /* =========================================================
    GUILDS
@@ -3408,7 +3220,7 @@ app.post(
 
 app.patch(
   "/api/guilds/:id",
-  requireAdmin,
+  requireEditor,
   async (
     req,
     res
@@ -3527,7 +3339,7 @@ app.patch(
 
 app.delete(
   "/api/guilds/:id",
-  requireAdmin,
+  requireEditor,
   async (
     req,
     res

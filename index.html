@@ -238,23 +238,11 @@ body:before{
 .seriesHistoryRow{display:grid;grid-template-columns:44px 1fr auto;gap:8px;padding:9px 10px;border:1px solid #2d2036;border-radius:9px;background:#0b0810}
 @media(max-width:700px){.seriesLineups,.seriesCurrent{grid-template-columns:1fr}.seriesPlayer.r{text-align:left}.seriesVs{text-align:center}}
 
-
-/* ===== STREAMER MATCH CONTROL — ADMIN STYLE ===== */
-.streamerMatchControl .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.streamerMatchControl .field.full{grid-column:1/-1}
-.streamerMatchControl .scoreActions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
-.streamerMatchControl .winnerRow{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:end}
-@media(max-width:700px){
-  .streamerMatchControl .grid{grid-template-columns:1fr}
-  .streamerMatchControl .field.full{grid-column:auto}
-  .streamerMatchControl .winnerRow{grid-template-columns:1fr}
-}
-
 </style></head><body>
 <header class="top"><div class="brand" id="brand">🪻 LAVENDER</div><button class="menu" onclick="nav.classList.toggle('open')">☰</button><nav class="nav" id="nav"></nav><div class="state" id="state">PUBLIC</div></header><div class="noticeCurtain" id="noticeCurtain" data-type="info"><div class="noticeCurtainInner"><div class="noticeIcon" id="noticeIcon">🔔</div><div><div class="noticeTitle" id="noticeTitle"></div><div class="noticeText" id="noticeText"></div></div><button class="noticeClose" onclick="closeNoticeCurtain()" aria-label="Закрыть">×</button></div></div>
 <main class="wrap"><div class="banner" id="banner"></div>
 <section class="page on" id="home"><div class="hero"><div class="eyebrow" id="tagline">FREE FIRE COMMUNITY</div><h1>LAVENDER</h1><div class="muted">Стабильная платформа: админ, игроки, матчи, гильдии и OBS.</div></div><div class="g4" id="stats"></div><div class="grid" style="margin-top:14px"><div class="card"><div class="head"><h2>LIVE / ближайший матч</h2></div><div class="body" id="liveBox"></div></div><div class="card"><div class="head"><h2>Новости</h2></div><div class="body" id="newsBox"></div></div></div><div class="grid" style="margin-top:14px"><div class="card"><div class="head"><h2>Топ игроков</h2></div><div class="table"><table><thead><tr><th>#</th><th>Игрок</th><th>Гильдия</th><th>Ранг</th><th>ELO</th></tr></thead><tbody id="topPlayers"></tbody></table></div></div><div class="card"><div class="head"><h2>Топ гильдий</h2></div><div class="table"><table><thead><tr><th>#</th><th>Гильдия</th><th>Ранг</th><th>ELO</th></tr></thead><tbody id="topGuilds"></tbody></table></div></div></div></section>
-<section class="page" id="players"><div class="hero"><h1>Игроки</h1><div class="muted">Рейтинг, статистика и профили.</div></div><div class="toolbar"><input id="ps" placeholder="Поиск по нику или ID"><select id="pr"><option value="">Все ранги</option><option>S</option><option>A</option><option>B</option><option>C</option><option>D</option><option>E</option><option>F</option></select><button class="btn editorOnly" onclick="playerForm()">+ Игрок</button></div><div class="card"><div class="table"><table><thead><tr><th>#</th><th>Игрок</th><th>Гильдия</th><th>Ранг</th><th>ELO</th><th>K/D</th><th>HS</th><th>HS%</th><th>WR</th><th></th></tr></thead><tbody id="playersBody"></tbody></table></div></div></section>
+<section class="page" id="players"><div class="hero"><h1>Игроки</h1><div class="muted">Рейтинг, статистика и профили.</div></div><div class="toolbar"><input id="ps" placeholder="Поиск по нику или ID"><select id="pr"><option value="">Все ранги</option><option>S</option><option>A</option><option>B</option><option>C</option><option>D</option><option>E</option><option>F</option></select><button class="btn editorOnly" onclick="playerForm()">+ Игрок</button></div><div class="card"><div class="table"><table><thead><tr><th>#</th><th>Игрок</th><th>Гильдия</th><th>Ранг</th><th>ELO</th><th>K/D</th><th>WR</th><th></th></tr></thead><tbody id="playersBody"></tbody></table></div></div></section>
 <section class="page" id="ranks"><div class="hero"><h1>S / A / B / C / D / E / F</h1><div class="muted">Автоматическое распределение по ELO.</div></div><div id="rankBlocks"></div></section>
 <section class="page" id="guilds"><div class="hero"><h1>Гильдии</h1><div class="muted">Рейтинг и составы гильдий.</div></div><div class="toolbar"><input id="gs" placeholder="Поиск гильдии"><button class="btn editorOnly" onclick="guildForm()">+ Гильдия</button></div><div class="g3" id="guildCards"></div></section>
 <section class="page" id="tournaments"><div class="hero"><h1>Турниры</h1><div class="muted">Активные и будущие соревнования.</div></div><div class="actions" style="margin-bottom:12px"><button class="btn adminOnly" onclick="tournamentForm()">+ Турнир</button></div><div class="g3" id="tourCards"></div></section>
@@ -269,153 +257,65 @@ body:before{
 <section class="page" id="streamerZone">
   <div class="hero">
     <div class="eyebrow">STREAMER ACCESS</div>
-    <h1>Стример-панель</h1>
-    <div class="muted">Матчи, статистика игроков, свой стрим и OBS Overlay. ELO, победы и поражения считаются автоматически.</div>
-    <div class="actions" style="margin-top:10px"><button class="btn red" onclick="logout()">Выйти</button><button class="btn green" onclick="loadStreamerZone()">Обновить данные</button></div>
+    <h1>Streamer Zone</h1>
+    <div class="muted">Личная зона стримера: запуск/остановка стрима, выбор матча и свой OBS Overlay.</div>
+    <div class="actions" style="margin-top:10px"><button class="btn red" onclick="logout()">Выйти</button></div>
   </div>
-
-  <div class="g4">
-    <div class="card stat"><b id="szcp">0</b><span>ИГРОКОВ</span></div>
-    <div class="card stat"><b id="szcg">0</b><span>ГИЛЬДИЙ</span></div>
-    <div class="card stat"><b id="szcm">0</b><span>МАТЧЕЙ</span></div>
-    <div class="card stat"><b id="szlive">OFF</b><span>МОЙ СТРИМ</span></div>
-  </div>
-
-  <div class="grid" style="margin-top:14px">
-    <div class="card">
-      <div class="head"><h2>Быстрые действия</h2><span class="muted small">Доступ стримера</span></div>
-      <div class="body actions">
-        <button class="btn" onclick="playerForm()">+ Игрок</button>
-        <button class="btn" onclick="guildForm()">+ Гильдия</button>
-        <button class="btn" onclick="matchForm()">+ Матч</button>
-        <button class="btn green" onclick="streamerStatsPicker()">+ Киллы / смерти / хедшоты</button>
-        <button class="btn dark" onclick="showPage('players')">Игроки</button>
-        <button class="btn dark" onclick="showPage('guilds')">Гильдии</button>
-        <button class="btn dark" onclick="showPage('matches')">Матчи</button>
-      </div>
-    </div>
-    <div class="card">
-      <div class="head"><h2>Мой доступ</h2></div>
-      <div class="body"><p class="muted">Стример не может вручную менять ELO, победы, поражения, игроков или гильдии. ELO и результат считаются автоматически после игры. Вручную добавляются только киллы, смерти и хедшоты.</p><div class="actions"><button class="btn green" onclick="showPage('streamers')">Открыть стримеров</button></div></div>
-    </div>
-  </div>
-
-  <div class="card" style="margin-top:14px">
-    <div class="head">
-      <h2>Статистика игроков</h2>
-      <span class="muted small">Только + Kills / Deaths / Headshots</span>
-    </div>
+  <div class="card" style="margin-bottom:14px">
+    <div class="head"><h2>Редактор сайта</h2><span class="muted small">Доступ стримера</span></div>
     <div class="body">
-      <p class="muted">
-        Выбери игрока и укажи показатели за только что сыгранную катку.
-        Значения прибавляются к общей статистике. Убавлять статистику стример не может.
-        ELO, победы и поражения здесь недоступны.
-      </p>
+      <p class="muted">Ты можешь добавлять игроков в общий рейтинг и создавать матчи на сайте.</p>
       <div class="actions">
-        <button class="btn green" onclick="streamerStatsPicker()">+ Добавить статистику за катку</button>
-        <button class="btn dark" onclick="showPage('players')">Открыть статистику игроков</button>
+        <button class="btn" onclick="playerForm()">+ Добавить игрока</button>
+        <button class="btn" onclick="guildForm()">+ Добавить гильдию</button>
+        <button class="btn" onclick="matchForm()">+ Добавить матч</button>
+        <button class="btn dark" onclick="showPage('players')">Открыть игроков</button>
+        <button class="btn dark" onclick="showPage('guilds')">Открыть гильдии</button>
+        <button class="btn dark" onclick="showPage('matches')">Открыть матчи</button>
       </div>
     </div>
   </div>
-
-
-  <!-- STREAMER MATCH CONTROL -->
-  <div class="card streamerMatchControl" style="margin-top:14px">
-    <div class="head">
-      <h2>Матч</h2>
-      <span class="muted small">Выбор игроков и победителя</span>
-    </div>
-    <div class="body">
-      <div class="field">
-        <label>Матч</label>
-        <select id="smMatch" onchange="loadStreamerMatchControl()"></select>
-      </div>
-
-      <div class="field">
-        <label>Название</label>
-        <input id="smTitle" readonly>
-      </div>
-
-      <div class="grid">
-        <div class="field">
-          <label>Счёт A</label>
-          <input id="smScoreA" type="number" min="0" value="0" readonly>
-        </div>
-        <div class="field">
-          <label>Счёт B</label>
-          <input id="smScoreB" type="number" min="0" value="0" readonly>
-        </div>
-        <div class="field">
-          <label>Раунд</label>
-          <input id="smRound" readonly>
-        </div>
-        <div class="field">
-          <label>Формат</label>
-          <input id="smFormat" readonly>
-        </div>
-      </div>
-
-      <div class="field">
-        <label>Статус</label>
-        <select id="smStatus" disabled>
-          <option value="LIVE">LIVE</option>
-          <option value="SCHEDULED">SCHEDULED</option>
-          <option value="PAUSED">PAUSED</option>
-          <option value="FINAL">FINAL</option>
-        </select>
-      </div>
-
-      <div class="grid">
-        <div class="field">
-          <label>Игрок A</label>
-          <select id="smPlayerA" onchange="syncStreamerWinnerOptions()"></select>
-        </div>
-        <div class="field">
-          <label>Игрок B</label>
-          <select id="smPlayerB" onchange="syncStreamerWinnerOptions()"></select>
-        </div>
-      </div>
-
-      <div class="field">
-        <label>🏆 Победитель</label>
-        <select id="smWinner">
-          <option value="">— выбери победителя —</option>
-        </select>
-      </div>
-
-      <div class="actions" style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
-        <button class="btn" onclick="saveStreamerMatchView()">Сохранить</button>
-        <button class="btn green" onclick="streamerSetWinner()">🏆 Указать победителя + ELO</button>
-        <button class="btn dark" onclick="streamerFinishByScore()">🏁 По счёту + ELO</button>
-        <button class="btn dark" onclick="streamerScorePlus('A')">A +</button>
-        <button class="btn dark" onclick="streamerScorePlus('B')">B +</button>
-        <button class="btn dark" onclick="streamerScoreMinus('A')">A −</button>
-        <button class="btn dark" onclick="streamerScoreMinus('B')">B −</button>
-      </div>
-
-      <div class="muted small" style="margin-top:10px">
-        Выбери игрока A, игрока B и победителя. ELO пересчитается автоматически.
-      </div>
-    </div>
-  </div>
-
-  <div class="grid" style="margin-top:14px">
-    <div class="card"><div class="head"><h2>Мой стрим</h2><span class="muted small">Управление эфиром</span></div><div class="body">
+  <div class="grid">
+    <div class="card"><div class="head"><h2>Мой стрим</h2></div><div class="body">
       <div class="field"><label>Название</label><input id="szTitle"></div>
       <div class="field"><label>Платформа</label><select id="szPlatform"><option>YouTube</option><option>TikTok</option><option>Twitch</option><option>VK</option><option>Другой</option></select></div>
       <div class="field"><label>Ссылка на стрим</label><input id="szUrl" placeholder="https://..."></div>
       <div class="field"><label>Матч для оверлея</label><select id="szMatch"></select></div>
       <div class="grid">
-        <div class="field"><label>Игрок слева в оверлее</label><input id="szPlayerASearch" list="szPlayersAList" placeholder="Начни вводить ник, ID или гильдию..." autocomplete="off"><datalist id="szPlayersAList"></datalist><input id="szPlayerA" type="hidden"><div class="muted small" id="szPlayerAInfo">Поиск по нику / Game ID / гильдии</div></div>
-        <div class="field"><label>Игрок справа в оверлее</label><input id="szPlayerBSearch" list="szPlayersBList" placeholder="Начни вводить ник, ID или гильдию..." autocomplete="off"><datalist id="szPlayersBList"></datalist><input id="szPlayerB" type="hidden"><div class="muted small" id="szPlayerBInfo">Поиск по нику / Game ID / гильдии</div></div>
+        <div class="field">
+          <label>Игрок слева в оверлее</label>
+          <input id="szPlayerASearch" list="szPlayersAList" placeholder="Начни вводить ник, ID или гильдию..." autocomplete="off">
+          <datalist id="szPlayersAList"></datalist>
+          <input id="szPlayerA" type="hidden">
+          <div class="muted small" id="szPlayerAInfo">Поиск по нику / Game ID / гильдии</div>
+        </div>
+        <div class="field">
+          <label>Игрок справа в оверлее</label>
+          <input id="szPlayerBSearch" list="szPlayersBList" placeholder="Начни вводить ник, ID или гильдию..." autocomplete="off">
+          <datalist id="szPlayersBList"></datalist>
+          <input id="szPlayerB" type="hidden">
+          <div class="muted small" id="szPlayerBInfo">Поиск по нику / Game ID / гильдии</div>
+        </div>
       </div>
-      <div class="actions" style="margin-bottom:8px"><button class="btn green" onclick="streamerStatsPicker()">+ Добавить статистику игрока</button></div>
+      <div class="actions" style="margin-bottom:8px"><button class="btn dark" onclick="playerForm()">+ Добавить нового игрока</button></div>
       <div class="field"><label>Статус</label><select id="szStatus"><option>OFFLINE</option><option>LIVE</option><option>PAUSED</option></select></div>
       <div class="actions"><button class="btn green" onclick="streamerStart()">▶ Начать стрим</button><button class="btn red" onclick="streamerStop()">■ Остановить</button><button class="btn" onclick="saveStreamerZone()">Сохранить</button></div>
     </div></div>
-    <div class="card"><div class="head"><h2>Мой Overlay</h2><span class="muted small">OBS</span></div><div class="body">
+    <div class="card"><div class="head"><h2>Мой Overlay</h2></div><div class="body">
       <div class="field"><label>Текст сверху</label><input id="szText"></div>
-      <div class="field"><label>Цвет</label><input id="szAccent" type="color"></div>
+      <div class="field"><label>Основной цвет свечения</label><input id="szAccent" type="color"></div>
+      <div class="grid">
+        <div class="field"><label>Фон карточки игрока A</label><input id="szPlayerAColor" type="color"></div>
+        <div class="field"><label>Фон карточки игрока B</label><input id="szPlayerBColor" type="color"></div>
+      </div>
+      <div class="grid">
+        <div class="field"><label>Цвет текста игрока A</label><input id="szPlayerATextColor" type="color"></div>
+        <div class="field"><label>Цвет текста игрока B</label><input id="szPlayerBTextColor" type="color"></div>
+      </div>
+      <div class="field"><label>Цвет центрального блока со счётом</label><input id="szCenterColor" type="color"></div>
+      <div class="field"><label>Фото / GIF на фон игрока A</label><input id="szPlayerABg" placeholder="https://...jpg / .png / .gif"><div class="muted small">Можно вставить прямую ссылку на JPG, PNG, WEBP или GIF.</div></div>
+      <div class="field"><label>Фото / GIF на фон игрока B</label><input id="szPlayerBBg" placeholder="https://...jpg / .png / .gif"><div class="muted small">GIF будет анимироваться прямо в OBS.</div></div>
+      <div class="field"><label>Прозрачность затемнения поверх фото: <span id="szOpacityValue">88%</span></label><input id="szPanelOpacity" type="range" min="15" max="100" value="88"></div>
       <div class="field"><label>Позиция</label><select id="szPosition"><option value="bottom">Снизу</option><option value="top">Сверху</option></select></div>
       <div class="actions"><button class="btn green" onclick="copyStreamerObs()">Скопировать OBS URL</button></div>
       <p class="muted small" id="szObs"></p>
@@ -627,104 +527,11 @@ function renderAll(){
  $("newsBox").innerHTML=db.news.filter(n=>!isNotice(n)).slice(0,3).map(n=>`<div style="margin-bottom:10px"><b>${n.pinned?"📌 ":""}${esc(n.title)}</b><div class="muted">${esc(n.body).slice(0,130)}</div></div>`).join("")||`<div class="muted">Новостей нет</div>`;
  $("topPlayers").innerHTML=db.players.slice(0,6).map((p,i)=>`<tr><td>${i+1}</td><td>${media(p.avatar)}<b>${esc(p.nickname)}</b></td><td>${esc(p.guild?.name||"—")}</td><td><span class="rank">${p.rank}</span></td><td>${p.elo}</td></tr>`).join("");
  $("topGuilds").innerHTML=db.guilds.slice(0,6).map((g,i)=>`<tr><td>${i+1}</td><td>${media(g.logo)}<b>${esc(g.name)}</b></td><td><span class="rank">${g.rank}</span></td><td>${g.elo}</td></tr>`).join("");
- renderPlayers();if(typeof renderRanks==="function")renderRanks();renderGuilds();renderTournaments();renderMatches();renderNews();renderStreamers();renderAdminStreamers();renderNotificationCurtain();renderAdminNotifications();
+ renderPlayers();renderRanks();renderGuilds();renderTournaments();renderMatches();renderNews();renderStreamers();renderAdminStreamers();renderNotificationCurtain();renderAdminNotifications();
  $("acp").textContent=db.players.length;$("acg").textContent=db.guilds.length;$("acm").textContent=db.matches.length;$("act").textContent=db.tournaments.length;
 }
-function renderPlayers(){
-  const q=($("ps")?.value||"").toLowerCase();
-  const r=$("pr")?.value||"";
-
-  $("playersBody").innerHTML=db.players
-    .filter(
-      p=>
-        (p.nickname+" "+p.gameId)
-          .toLowerCase()
-          .includes(q) &&
-        (!r||p.rank===r)
-    )
-    .map(
-      (p,i)=>`
-        <tr>
-          <td>${i+1}</td>
-          <td>
-            ${media(p.avatar)}
-            <b>${esc(p.nickname)}</b>
-            <div class="muted small">
-              ${esc(p.gameId)}
-            </div>
-          </td>
-          <td>${esc(p.guild?.name||"—")}</td>
-          <td><span class="rank">${p.rank}</span></td>
-          <td>${p.elo}</td>
-          <td>${p.kd}</td>
-          <td>${Number(p.headshots||0)}</td>
-          <td>${Number(p.headshotRate||0)}%</td>
-          <td>${p.winrate}%</td>
-          <td>
-            ${
-              admin
-                ? `<button class="btn dark" onclick="playerForm(${p.id})">Изм.</button>`
-                : role==="streamer"
-                  ? `<button class="btn green" onclick="streamerStatsForm(${p.id})">+ Статистика</button>`
-                  : ""
-            }
-          </td>
-        </tr>
-      `
-    )
-    .join("");
-}
-
-function renderRanks(){
-  try{
-    const ranksBox = $("rankBlocks");
-    if(ranksBox){
-      const order=["S","A","B","C","D","E","F"];
-      ranksBox.innerHTML=order.map(rank=>{
-        const count=(db?.players||[]).filter(p=>String(p.rank||"")===rank).length;
-        return `<div class="stat"><b>${rank}</b><span>${count} игроков</span></div>`;
-      }).join("");
-    }
-
-    const topPlayers=$("topPlayers");
-    if(topPlayers){
-      const list=(db?.players||[])
-        .slice()
-        .sort((a,b)=>Number(b.elo||0)-Number(a.elo||0))
-        .slice(0,10);
-
-      topPlayers.innerHTML=list.map((p,i)=>`
-        <tr>
-          <td>${i+1}</td>
-          <td>${media(p.avatar)} <b>${esc(p.nickname)}</b></td>
-          <td>${esc(p.guild?.name||"—")}</td>
-          <td><span class="rank">${esc(p.rank||"F")}</span></td>
-          <td>${Number(p.elo||0)}</td>
-        </tr>
-      `).join("");
-    }
-
-    const topGuilds=$("topGuilds");
-    if(topGuilds){
-      const list=(db?.guilds||[])
-        .slice()
-        .sort((a,b)=>Number(b.elo||0)-Number(a.elo||0))
-        .slice(0,10);
-
-      topGuilds.innerHTML=list.map((g,i)=>`
-        <tr>
-          <td>${i+1}</td>
-          <td>${media(g.logo)} <b>${esc(g.name)}</b></td>
-          <td><span class="rank">${esc(g.rank||"F")}</span></td>
-          <td>${Number(g.elo||0)}</td>
-        </tr>
-      `).join("");
-    }
-  }catch(error){
-    console.error("renderRanks error:",error);
-  }
-}
-
+function renderPlayers(){const q=($("ps")?.value||"").toLowerCase(),r=$("pr")?.value||"";$("playersBody").innerHTML=db.players.filter(p=>(p.nickname+" "+p.gameId).toLowerCase().includes(q)&&(!r||p.rank===r)).map((p,i)=>`<tr><td>${i+1}</td><td>${media(p.avatar)}<b>${esc(p.nickname)}</b><div class="muted small">${esc(p.gameId)}${p.createdByRole==="streamer"?` • добавил: ${esc(p.createdByName||"стример")}`:""}</div></td><td>${esc(p.guild?.name||"—")}</td><td><span class="rank">${p.rank}</span></td><td>${p.elo}</td><td>${p.kd}</td><td>${p.winrate}%</td><td>${(admin||role==="streamer")?`<button class="btn dark" onclick="playerForm(${p.id})">Изм.</button>`:""}</td></tr>`).join("")}
+function renderRanks(){const r={S:[],A:[],B:[],C:[],D:[],E:[],F:[]};db.players.forEach(p=>r[p.rank].push(p));$("rankBlocks").innerHTML=Object.keys(r).map(k=>`<div class="card" style="margin-bottom:12px"><div class="head"><h2>${k} RANK</h2><span class="muted">${r[k].length}</span></div><div class="table"><table><tbody>${r[k].map(p=>`<tr><td>${media(p.avatar)}<b>${esc(p.nickname)}</b></td><td>${esc(p.guild?.name||"—")}</td><td>${p.elo}</td><td>K/D ${p.kd}</td></tr>`).join("")||"<tr><td>Пусто</td></tr>"}</tbody></table></div></div>`).join("")}
 function renderGuilds(){const q=($("gs")?.value||"").toLowerCase();$("guildCards").innerHTML=db.guilds.filter(g=>(g.name+" "+g.tag).toLowerCase().includes(q)).map(g=>`<div class="card guildCard">${media(g.logo,"avatarLg")}<h3>${esc(g.name)}</h3><div class="muted">[${esc(g.tag)}] • ${esc(g.region)}${g.createdByRole==="streamer"?` • добавил: ${esc(g.createdByName||"стример")}`:""}</div><p><span class="rank">${g.rank}</span> ELO <b>${g.elo}</b> • WR ${g.winrate}%</p><p class="muted">${esc(g.description||"")}</p><div>${(Array.isArray(g.roster)?g.roster:[]).map(p=>`<span class="chip">${esc(p.nickname)}</span>`).join("")}</div>${(admin||role==="streamer")?`<div class="actions" style="margin-top:10px"><button class="btn dark" onclick="guildForm(${g.id})">Редактировать</button></div>`:""}</div>`).join("")}
 function renderTournaments(){$("tourCards").innerHTML=db.tournaments.map(t=>`<div class="card tourCard"><span class="status ${t.status}">${esc(t.status)}</span><h3>${esc(t.name)}</h3><p class="muted">${esc(t.description||"")}</p><span class="chip">${esc(t.format)}</span><span class="chip">${(Array.isArray(t.participants)?t.participants.length:0)} гильдий</span>${admin?`<div class="actions" style="margin-top:10px"><button class="btn dark" onclick="tournamentForm(${t.id})">Редактировать</button></div>`:""}</div>`).join("")}
 function renderMatches(){
@@ -815,16 +622,22 @@ async function loadStreamerZone(){
   try{
     streamerZoneData=await api("/api/streamer/me");
     const st=streamerZoneData.stream||{};
-    if($("szcp")) $("szcp").textContent=(streamerZoneData.players||db?.players||[]).length;
-    if($("szcg")) $("szcg").textContent=(db?.guilds||[]).length;
-    if($("szcm")) $("szcm").textContent=(streamerZoneData.matches||db?.matches||[]).length;
-    if($("szlive")) $("szlive").textContent=String(st.status||"OFFLINE").toUpperCase()==="LIVE"?"LIVE":"OFF";
     $("szTitle").value=st.title||"";
     $("szPlatform").value=st.platform||"YouTube";
     $("szUrl").value=st.streamUrl||"";
     $("szStatus").value=st.status||"OFFLINE";
     $("szText").value=st.customText||`${streamerZoneData.streamer.displayName||streamerZoneData.streamer.username} • LIVE`;
     $("szAccent").value=st.accent||"#b46cff";
+    $("szPlayerAColor").value=st.playerAColor||"#24112f";
+    $("szPlayerBColor").value=st.playerBColor||"#0d2430";
+    $("szPlayerATextColor").value=st.playerATextColor||"#ffffff";
+    $("szPlayerBTextColor").value=st.playerBTextColor||"#ffffff";
+    $("szCenterColor").value=st.centerColor||"#140d1c";
+    $("szPlayerABg").value=st.playerABg||"";
+    $("szPlayerBBg").value=st.playerBBg||"";
+    $("szPanelOpacity").value=Math.round((Number(st.panelOpacity)||0.88)*100);
+    $("szOpacityValue").textContent=$("szPanelOpacity").value+"%";
+    $("szPanelOpacity").oninput=()=>{$("szOpacityValue").textContent=$("szPanelOpacity").value+"%"};
     $("szPosition").value=st.position||"bottom";
     $("szMatch").innerHTML=(streamerZoneData.matches||[]).map(m=>`<option value="${m.id}">${esc(m.title)} — ${esc(m.guildA?.name||"A")} vs ${esc(m.guildB?.name||"B")}</option>`).join("");
     $("szMatch").value=st.matchId||streamerZoneData.matches?.[0]?.id||"";
@@ -845,6 +658,10 @@ async function saveStreamerZone(){
       title:$("szTitle").value,platform:$("szPlatform").value,streamUrl:$("szUrl").value,
       matchId:Number($("szMatch").value)||null,playerAId:Number($("szPlayerA").value)||null,playerBId:Number($("szPlayerB").value)||null,status:$("szStatus").value,
       customText:$("szText").value,accent:$("szAccent").value,position:$("szPosition").value,
+      playerAColor:$("szPlayerAColor").value,playerBColor:$("szPlayerBColor").value,
+      playerATextColor:$("szPlayerATextColor").value,playerBTextColor:$("szPlayerBTextColor").value,
+      centerColor:$("szCenterColor").value,playerABg:$("szPlayerABg").value.trim(),playerBBg:$("szPlayerBBg").value.trim(),
+      panelOpacity:Number($("szPanelOpacity").value)/100,
       showPlayers:true,showStats:true
     })});
     streamerZoneData.stream=st;toastMsg("Стримерская зона сохранена");
@@ -1076,404 +893,11 @@ async function activate(id){try{await api("/api/overlay",{method:"PATCH",body:JS
 function draw(d){const m=d?.match,o=d?.overlay;if(!m||!o?.visible){$("preview").innerHTML=`<div class="muted">Overlay скрыт</div>`;return}document.documentElement.style.setProperty("--a",o.accent||"#b46cff");$("preview").innerHTML=`<div class="oh"><div style="color:var(--a);font-weight:900;letter-spacing:4px">${esc(o.customText)}</div><h2>${esc(m.title)}</h2></div><div class="orow"><div class="obox">${m.playerA?`<div class="pname">${media(m.playerA.avatar)}${esc(m.playerA.nickname)}</div>`:""}<div class="gname">${media(m.guildA?.logo)}${esc(m.guildA?.name||"TEAM A")}</div></div><div><div class="oscore">${m.scoreA} : ${m.scoreB}</div><div class="muted" style="text-align:center">${esc(m.roundText)}</div></div><div class="obox r">${m.playerB?`<div class="pname">${esc(m.playerB.nickname)} ${media(m.playerB.avatar)}</div>`:""}<div class="gname">${esc(m.guildB?.name||"TEAM B")} ${media(m.guildB?.logo)}</div></div></div><div class="ostatus">● ${esc(m.status)}</div>`}
 async function imageFromFile(input,target){const f=input.files?.[0];if(!f)return;if(!f.type.startsWith("image/"))return toastMsg("Выбери изображение");if(f.size>5*1024*1024)return toastMsg("Файл слишком большой");const bmp=await createImageBitmap(f);const max=512,scale=Math.min(1,max/Math.max(bmp.width,bmp.height));const c=document.createElement("canvas");c.width=Math.round(bmp.width*scale);c.height=Math.round(bmp.height*scale);c.getContext("2d").drawImage(bmp,0,0,c.width,c.height);$(target).value=c.toDataURL("image/jpeg",.82);toastMsg("Аватарка готова")}
 function avatarField(id,v,label){return `<div class="field"><label>${label}</label><input id="${id}" value="${esc(v||"")}" placeholder="эмодзи или фото"><input type="file" accept="image/*" onchange="imageFromFile(this,'${id}')"></div>`}
-function guildForm(id){
-  if(role==="streamer" && id){
-    return toastMsg("Стример не может редактировать гильдию");
-  }const g=id?db.guilds.find(x=>x.id===id):null;modalOpen(`<h2>${g?"Редактировать":"Новая"} гильдия</h2><div class="grid"><div class="field"><label>Название</label><input id="gn" value="${esc(g?.name||"")}"></div><div class="field"><label>Тег</label><input id="gt" value="${esc(g?.tag||"")}"></div>${avatarField("gl",g?.logo||"🪻","Логотип")}<div class="field"><label>Регион</label><input id="gr" value="${esc(g?.region||"Кыргызстан")}"></div><div class="field"><label>ELO</label><input id="ge" type="number" value="${g?.elo||1200}"></div><div class="field"><label>Победы</label><input id="gw" type="number" value="${g?.wins||0}"></div><div class="field"><label>Поражения</label><input id="gls" type="number" value="${g?.losses||0}"></div><div class="field"><label>Капитан</label><input id="gc" value="${esc(g?.captain||"")}"></div></div><div class="field"><label>Описание</label><textarea id="gd">${esc(g?.description||"")}</textarea></div><div class="actions"><button class="btn" onclick="saveGuild(${id||0})">Сохранить</button>${g?`<button class="btn red" onclick="delGuild(${g.id})">Удалить</button>`:""}</div>`)}
+function guildForm(id){const g=id?db.guilds.find(x=>x.id===id):null;modalOpen(`<h2>${g?"Редактировать":"Новая"} гильдия</h2><div class="grid"><div class="field"><label>Название</label><input id="gn" value="${esc(g?.name||"")}"></div><div class="field"><label>Тег</label><input id="gt" value="${esc(g?.tag||"")}"></div>${avatarField("gl",g?.logo||"🪻","Логотип")}<div class="field"><label>Регион</label><input id="gr" value="${esc(g?.region||"Кыргызстан")}"></div><div class="field"><label>ELO</label><input id="ge" type="number" value="${g?.elo||1200}"></div><div class="field"><label>Победы</label><input id="gw" type="number" value="${g?.wins||0}"></div><div class="field"><label>Поражения</label><input id="gls" type="number" value="${g?.losses||0}"></div><div class="field"><label>Капитан</label><input id="gc" value="${esc(g?.captain||"")}"></div></div><div class="field"><label>Описание</label><textarea id="gd">${esc(g?.description||"")}</textarea></div><div class="actions"><button class="btn" onclick="saveGuild(${id||0})">Сохранить</button>${g?`<button class="btn red" onclick="delGuild(${g.id})">Удалить</button>`:""}</div>`)}
 async function saveGuild(id){try{await api(id?"/api/guilds/"+id:"/api/guilds",{method:id?"PATCH":"POST",body:JSON.stringify({name:$("gn").value,tag:$("gt").value,logo:$("gl").value,region:$("gr").value,elo:Number($("ge").value),wins:Number($("gw").value),losses:Number($("gls").value),captain:$("gc").value,description:$("gd").value})});closeModal();await load(true)}catch(e){handleActionError(e,"admin")}}
 async function delGuild(id){if(confirm("Удалить гильдию?"))try{await api("/api/guilds/"+id,{method:"DELETE"});closeModal();await load(true)}catch(e){handleActionError(e,"admin")}}
-
-function streamerStatsPicker(){
-  if(role!=="streamer"){
-    return toastMsg("Доступно только стримеру");
-  }
-
-  const options=(db.players||[])
-    .map(
-      p=>`
-        <option value="${p.id}">
-          ${esc(p.nickname)}
-          • ${esc(p.guild?.name||"Без гильдии")}
-          • ELO ${p.elo}
-        </option>
-      `
-    )
-    .join("");
-
-  modalOpen(`
-    <h2>Добавить статистику за катку</h2>
-
-    <div class="field">
-      <label>Игрок</label>
-      <select id="ssPlayer">
-        <option value="">— выбери игрока —</option>
-        ${options}
-      </select>
-    </div>
-
-    <div class="actions">
-      <button
-        class="btn"
-        onclick="
-          const id=Number($('ssPlayer').value);
-          if(!id)return toastMsg('Выбери игрока');
-          streamerStatsForm(id);
-        "
-      >
-        Продолжить
-      </button>
-    </div>
-  `);
-}
-
-function streamerStatsForm(id){
-  if(role!=="streamer"){
-    return toastMsg("Доступно только стримеру");
-  }
-
-  const p=(db.players||[])
-    .find(
-      x=>
-        Number(x.id)===
-        Number(id)
-    );
-
-  if(!p){
-    return toastMsg("Игрок не найден");
-  }
-
-  modalOpen(`
-    <h2>${esc(p.nickname)}</h2>
-
-    <p class="muted">
-      Текущая статистика:
-      K ${Number(p.kills||0)}
-      • D ${Number(p.deaths||0)}
-      • HS ${Number(p.headshots||0)}
-      • K/D ${p.kd}
-      • HS ${Number(p.headshotRate||0)}%
-    </p>
-
-    <div class="grid">
-      <div class="field">
-        <label>Киллы за эту катку</label>
-        <input
-          id="ssk"
-          type="number"
-          min="0"
-          step="1"
-          value="0"
-        >
-      </div>
-
-      <div class="field">
-        <label>Смерти за эту катку</label>
-        <input
-          id="ssd"
-          type="number"
-          min="0"
-          step="1"
-          value="0"
-        >
-      </div>
-
-      <div class="field">
-        <label>Хедшоты за эту катку</label>
-        <input
-          id="sshs"
-          type="number"
-          min="0"
-          step="1"
-          value="0"
-        >
-      </div>
-    </div>
-
-    <div class="muted small">
-      Стример может только прибавлять эти показатели.
-      ELO, победы и поражения рассчитываются автоматически по результату игры.
-    </div>
-
-    <div class="actions" style="margin-top:12px">
-      <button
-        class="btn green"
-        onclick="saveStreamerStats(${p.id})"
-      >
-        + Добавить статистику
-      </button>
-    </div>
-  `);
-}
-
-async function saveStreamerStats(id){
-  try{
-    const kills=
-      Math.max(
-        0,
-        Math.floor(
-          Number($("ssk").value)||
-          0
-        )
-      );
-
-    const deaths=
-      Math.max(
-        0,
-        Math.floor(
-          Number($("ssd").value)||
-          0
-        )
-      );
-
-    const headshots=
-      Math.max(
-        0,
-        Math.floor(
-          Number($("sshs").value)||
-          0
-        )
-      );
-
-    if(headshots>kills){
-      return toastMsg(
-        "Хедшотов не может быть больше киллов"
-      );
-    }
-
-    const result=
-      await api(
-        `/api/streamer/player-stats/${id}`,
-        {
-          method:"POST",
-
-          body:JSON.stringify({
-            kills,
-            deaths,
-            headshots
-          })
-        }
-      );
-
-    closeModal();
-
-    await load(true);
-
-    toastMsg(
-      `${result.player.nickname}: +${kills} K • +${deaths} D • +${headshots} HS`
-    );
-  }catch(e){
-    handleActionError(
-      e,
-      "streamerZone"
-    );
-  }
-}
-
-
-
-function streamerMatchOptions(){
-  const box=$("smMatch");
-  if(!box)return;
-
-  const list=(db?.matches||[]);
-  box.innerHTML=list.map(
-    m=>`<option value="${m.id}">${esc(m.title||"MATCH")} • ${esc(m.guildA?.name||"A")} ${m.scoreA||0}:${m.scoreB||0} ${esc(m.guildB?.name||"B")}</option>`
-  ).join("");
-
-  if(streamerMe?.stream?.matchId){
-    box.value=String(streamerMe.stream.matchId);
-  }
-
-  loadStreamerMatchControl();
-}
-
-function streamerPlayersForGuild(guildId){
-  return (db?.players||[])
-    .filter(p=>Number(p.guildId)===Number(guildId))
-    .sort((a,b)=>Number(b.elo||0)-Number(a.elo||0));
-}
-
-function streamerPlayerOptions(guildId,selected){
-  return `<option value="">— выбери игрока —</option>`+
-    streamerPlayersForGuild(guildId).map(
-      p=>`<option value="${p.id}" ${Number(selected)===Number(p.id)?"selected":""}>${esc(p.nickname)} • ELO ${p.elo} • ${esc(p.rank||"")}</option>`
-    ).join("");
-}
-
-function loadStreamerMatchControl(){
-  const id=Number($("smMatch")?.value)||null;
-  const m=(db?.matches||[]).find(x=>Number(x.id)===id);
-  if(!m)return;
-
-  $("smTitle").value=m.title||"";
-  $("smScoreA").value=Number(m.scoreA||0);
-  $("smScoreB").value=Number(m.scoreB||0);
-  $("smRound").value=m.roundText||"";
-  $("smFormat").value=m.format||"";
-  $("smStatus").value=m.status||"LIVE";
-
-  $("smPlayerA").innerHTML=streamerPlayerOptions(m.guildAId,m.playerAId);
-  $("smPlayerB").innerHTML=streamerPlayerOptions(m.guildBId,m.playerBId);
-
-  syncStreamerWinnerOptions();
-}
-
-function syncStreamerWinnerOptions(){
-  const aId=Number($("smPlayerA")?.value)||null;
-  const bId=Number($("smPlayerB")?.value)||null;
-
-  const a=(db?.players||[]).find(p=>Number(p.id)===aId);
-  const b=(db?.players||[]).find(p=>Number(p.id)===bId);
-
-  const box=$("smWinner");
-  if(!box)return;
-
-  box.innerHTML=
-    `<option value="">— выбери победителя —</option>`+
-    (a?`<option value="${a.id}">${esc(a.nickname)}</option>`:"")+
-    (b?`<option value="${b.id}">${esc(b.nickname)}</option>`:"");
-}
-
-function streamerCurrentMatch(){
-  const id=Number($("smMatch")?.value)||null;
-  return (db?.matches||[]).find(x=>Number(x.id)===id)||null;
-}
-
-function streamerScorePlus(side){
-  const el=$(side==="A"?"smScoreA":"smScoreB");
-  if(!el)return;
-  el.value=Number(el.value||0)+1;
-}
-
-function streamerScoreMinus(side){
-  const el=$(side==="A"?"smScoreA":"smScoreB");
-  if(!el)return;
-  el.value=Math.max(0,Number(el.value||0)-1);
-}
-
-async function saveStreamerMatchView(){
-  const m=streamerCurrentMatch();
-  if(!m)return toastMsg("Выбери матч");
-
-  try{
-    await api(`/api/matches/${m.id}`,{
-      method:"PATCH",
-      body:JSON.stringify({
-        playerAId:Number($("smPlayerA").value)||null,
-        playerBId:Number($("smPlayerB").value)||null,
-        scoreA:Number($("smScoreA").value)||0,
-        scoreB:Number($("smScoreB").value)||0
-      })
-    });
-
-    if(streamerMe?.stream){
-      await api("/api/streamer/me",{
-        method:"PATCH",
-        body:JSON.stringify({
-          matchId:m.id,
-          playerAId:Number($("smPlayerA").value)||null,
-          playerBId:Number($("smPlayerB").value)||null
-        })
-      });
-    }
-
-    await load(true);
-    toastMsg("Матч сохранён");
-    streamerMatchOptions();
-  }catch(e){
-    handleActionError(e,"streamerZone");
-  }
-}
-
-async function streamerSetWinner(){
-  const m=streamerCurrentMatch();
-  if(!m)return toastMsg("Выбери матч");
-
-  const playerAId=Number($("smPlayerA").value)||null;
-  const playerBId=Number($("smPlayerB").value)||null;
-  const winnerId=Number($("smWinner").value)||null;
-
-  if(!playerAId||!playerBId){
-    return toastMsg("Выбери двух игроков");
-  }
-
-  if(!winnerId){
-    return toastMsg("Выбери победителя");
-  }
-
-  try{
-    const isSeries=[6,8,10,12].includes(Number(m.seriesSize));
-
-    if(isSeries){
-      await api(`/api/matches/${m.id}/series-game`,{
-        method:"POST",
-        body:JSON.stringify({
-          playerAId,
-          playerBId,
-          winnerId
-        })
-      });
-    }else{
-      await api(`/api/matches/${m.id}/set-winner`,{
-        method:"POST",
-        body:JSON.stringify({
-          playerAId,
-          playerBId,
-          winnerId
-        })
-      });
-    }
-
-    await load(true);
-    toastMsg("Победитель сохранён • ELO обновлено");
-    streamerMatchOptions();
-  }catch(e){
-    handleActionError(e,"streamerZone");
-  }
-}
-
-async function streamerFinishByScore(){
-  const m=streamerCurrentMatch();
-  if(!m)return toastMsg("Выбери матч");
-
-  const playerAId=Number($("smPlayerA").value)||null;
-  const playerBId=Number($("smPlayerB").value)||null;
-
-  if(!playerAId||!playerBId){
-    return toastMsg("Выбери двух игроков");
-  }
-
-  const scoreA=Number($("smScoreA").value)||0;
-  const scoreB=Number($("smScoreB").value)||0;
-
-  if(scoreA===scoreB){
-    return toastMsg("Ничья не подходит для ELO");
-  }
-
-  try{
-    await api(`/api/matches/${m.id}/finish`,{
-      method:"POST",
-      body:JSON.stringify({
-        scoreA,
-        scoreB,
-        playerAId,
-        playerBId
-      })
-    });
-
-    await load(true);
-    toastMsg("Матч завершён • ELO обновлено");
-    streamerMatchOptions();
-  }catch(e){
-    handleActionError(e,"streamerZone");
-  }
-}
-
-function playerForm(id){
-  if(role==="streamer" && id){
-    return toastMsg("Стример не может редактировать игрока");
-  }const p=id?db.players.find(x=>x.id===id):null,go=`<option value="">Без гильдии</option>`+db.guilds.map(g=>`<option value="${g.id}" ${p?.guildId===g.id?"selected":""}>${esc(g.name)}</option>`).join("");modalOpen(`<h2>${p?"Редактировать":"Новый"} игрок</h2><div class="grid"><div class="field"><label>Ник</label><input id="pn" value="${esc(p?.nickname||"")}"></div><div class="field"><label>Game ID</label><input id="pid" value="${esc(p?.gameId||"")}"></div>${avatarField("pa",p?.avatar||"👤","Аватар")}<div class="field"><label>Гильдия</label><select id="pg">${go}</select></div><div class="field"><label>ELO</label><input id="pe" type="number" value="${p?.elo||1200}"></div><div class="field"><label>Победы</label><input id="pw" type="number" value="${p?.wins||0}"></div><div class="field"><label>Поражения</label><input id="pls" type="number" value="${p?.losses||0}"></div><div class="field"><label>Убийства</label><input id="pk" type="number" value="${p?.kills||0}"></div><div class="field"><label>Смерти</label><input id="pd" type="number" value="${p?.deaths||0}"></div><div class="field"><label>Хедшоты</label><input id="phs" type="number" value="${p?.headshots||0}"></div></div><div class="actions"><button class="btn" onclick="savePlayer(${id||0})">Сохранить</button>${p?`<button class="btn red" onclick="delPlayer(${p.id})">Удалить</button>`:""}</div>`)}
-async function savePlayer(id){try{await api(id?"/api/players/"+id:"/api/players",{method:id?"PATCH":"POST",body:JSON.stringify({nickname:$("pn").value,gameId:$("pid").value,avatar:$("pa").value,guildId:Number($("pg").value)||null,elo:Number($("pe").value),wins:Number($("pw").value),losses:Number($("pls").value),kills:Number($("pk").value),deaths:Number($("pd").value),headshots:Number($("phs").value)})});closeModal();await load(true)}catch(e){handleActionError(e,"admin")}}
+function playerForm(id){const p=id?db.players.find(x=>x.id===id):null,go=`<option value="">Без гильдии</option>`+db.guilds.map(g=>`<option value="${g.id}" ${p?.guildId===g.id?"selected":""}>${esc(g.name)}</option>`).join("");modalOpen(`<h2>${p?"Редактировать":"Новый"} игрок</h2><div class="grid"><div class="field"><label>Ник</label><input id="pn" value="${esc(p?.nickname||"")}"></div><div class="field"><label>Game ID</label><input id="pid" value="${esc(p?.gameId||"")}"></div>${avatarField("pa",p?.avatar||"👤","Аватар")}<div class="field"><label>Гильдия</label><select id="pg">${go}</select></div><div class="field"><label>ELO</label><input id="pe" type="number" value="${p?.elo||1200}"></div><div class="field"><label>Победы</label><input id="pw" type="number" value="${p?.wins||0}"></div><div class="field"><label>Поражения</label><input id="pls" type="number" value="${p?.losses||0}"></div><div class="field"><label>Убийства</label><input id="pk" type="number" value="${p?.kills||0}"></div><div class="field"><label>Смерти</label><input id="pd" type="number" value="${p?.deaths||0}"></div></div><div class="actions"><button class="btn" onclick="savePlayer(${id||0})">Сохранить</button>${p?`<button class="btn red" onclick="delPlayer(${p.id})">Удалить</button>`:""}</div>`)}
+async function savePlayer(id){try{await api(id?"/api/players/"+id:"/api/players",{method:id?"PATCH":"POST",body:JSON.stringify({nickname:$("pn").value,gameId:$("pid").value,avatar:$("pa").value,guildId:Number($("pg").value)||null,elo:Number($("pe").value),wins:Number($("pw").value),losses:Number($("pls").value),kills:Number($("pk").value),deaths:Number($("pd").value)})});closeModal();await load(true)}catch(e){handleActionError(e,"admin")}}
 async function delPlayer(id){if(confirm("Удалить игрока?"))try{await api("/api/players/"+id,{method:"DELETE"});closeModal();await load(true)}catch(e){handleActionError(e,"admin")}}
 
 async function quickFinishMatch(id){
