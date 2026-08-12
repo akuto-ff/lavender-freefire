@@ -250,6 +250,28 @@ body:before{
   .streamerMatchControl .winnerRow{grid-template-columns:1fr}
 }
 
+
+/* ===== OVERLAY CENTER ===== */
+.overlayCenterGrid{display:grid;grid-template-columns:420px 1fr;gap:14px;align-items:start}
+.overlayControlCard{position:sticky;top:82px}
+.overlayColorGrid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.overlayColorBox{padding:10px;border:1px solid #35243f;border-radius:12px;background:#0b0810}
+.overlayColorBox input[type="color"]{height:46px;padding:3px;cursor:pointer}
+.overlayAvatarPreview{width:68px;height:68px;object-fit:cover;background:#0b0810;border:2px solid #5c3a70;display:block;margin-top:8px}
+.overlayAvatarPreview.circle{border-radius:50%}.overlayAvatarPreview.square{border-radius:4px}.overlayAvatarPreview.rounded{border-radius:16px}
+.overlayLivePreview{min-height:520px;border-radius:18px;overflow:hidden;display:flex;align-items:flex-end;padding:30px;position:relative;background:#08060b}
+.overlayLivePreview:before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 25% 25%,rgba(180,108,255,.18),transparent 35%),radial-gradient(circle at 80% 65%,rgba(101,228,255,.10),transparent 30%);pointer-events:none}
+.overlayDemoHud{position:relative;z-index:1;width:100%}
+.overlayDemoTop{text-align:center;font-weight:1000;letter-spacing:4px;margin-bottom:10px}
+.overlayDemoRow{display:grid;grid-template-columns:1fr 150px 1fr;gap:12px;align-items:center}
+.overlayDemoTeam{padding:16px;border:1px solid rgba(255,255,255,.14);backdrop-filter:blur(12px);display:flex;align-items:center;gap:12px;min-height:92px}
+.overlayDemoTeam.r{justify-content:flex-end;text-align:right}
+.overlayDemoAvatar{width:58px;height:58px;object-fit:cover;border:2px solid currentColor;background:#09070d}
+.overlayDemoScore{text-align:center;font-size:40px;font-weight:1000}
+.overlayThemePills{display:flex;gap:7px;flex-wrap:wrap}
+.overlayThemePills button.on{outline:2px solid var(--a);box-shadow:0 0 18px rgba(217,124,255,.22)}
+@media(max-width:980px){.overlayCenterGrid{grid-template-columns:1fr}.overlayControlCard{position:static}.overlayLivePreview{min-height:420px}.overlayDemoRow{grid-template-columns:1fr}.overlayDemoTeam,.overlayDemoTeam.r{justify-content:center;text-align:center}.overlayDemoScore{order:-1}}
+
 </style></head><body>
 <header class="top"><div class="brand" id="brand">🪻 LAVENDER</div><button class="menu" onclick="nav.classList.toggle('open')">☰</button><nav class="nav" id="nav"></nav><div class="state" id="state">PUBLIC</div></header><div class="noticeCurtain" id="noticeCurtain" data-type="info"><div class="noticeCurtainInner"><div class="noticeIcon" id="noticeIcon">🔔</div><div><div class="noticeTitle" id="noticeTitle"></div><div class="noticeText" id="noticeText"></div></div><button class="noticeClose" onclick="closeNoticeCurtain()" aria-label="Закрыть">×</button></div></div>
 <main class="wrap"><div class="banner" id="banner"></div>
@@ -291,7 +313,7 @@ body:before{
         <button class="btn green" onclick="streamerStatsPicker()">+ Киллы / смерти / хедшоты</button>
         <button class="btn dark" onclick="showPage('players')">Игроки</button>
         <button class="btn dark" onclick="showPage('guilds')">Гильдии</button>
-        <button class="btn dark" onclick="showPage('matches')">Матчи</button>
+        <button class="btn dark" onclick="showPage('matches')">Матчи</button><button class="btn green" onclick="showPage('overlayCenter')">🎨 Мой Overlay</button>
       </div>
     </div>
     <div class="card">
@@ -423,6 +445,118 @@ body:before{
   </div>
 </section>
 
+
+<section class="page" id="overlayCenter">
+  <div class="hero">
+    <div class="eyebrow">OBS DESIGN</div>
+    <h1>Overlay Center</h1>
+    <div class="muted">Отдельный редактор оверлея для администратора и стримеров: цвета, аватарки, стиль и OBS URL.</div>
+  </div>
+
+  <div class="overlayCenterGrid">
+    <div class="card overlayControlCard">
+      <div class="head"><h2>Настройки Overlay</h2><span class="muted small" id="ocRole">—</span></div>
+      <div class="body">
+
+        <div class="field">
+          <label>Текст сверху</label>
+          <input id="ocText" placeholder="LAVENDER • LIVE" oninput="renderOverlayCenterPreview()">
+        </div>
+
+        <div class="field">
+          <label>Тема</label>
+          <select id="ocTheme" onchange="renderOverlayCenterPreview()">
+            <option value="neon">Neon</option>
+            <option value="glass">Glass</option>
+            <option value="minimal">Minimal</option>
+          </select>
+        </div>
+
+        <div class="overlayColorGrid">
+          <div class="overlayColorBox">
+            <label class="small muted">Главный цвет</label>
+            <input id="ocAccent" type="color" value="#b46cff" oninput="renderOverlayCenterPreview()">
+          </div>
+          <div class="overlayColorBox">
+            <label class="small muted">Цвет текста</label>
+            <input id="ocTextColor" type="color" value="#ffffff" oninput="renderOverlayCenterPreview()">
+          </div>
+          <div class="overlayColorBox">
+            <label class="small muted">Цвет панелей</label>
+            <input id="ocPanelColor" type="color" value="#17101e" oninput="renderOverlayCenterPreview()">
+          </div>
+          <div class="overlayColorBox">
+            <label class="small muted">Свечение</label>
+            <input id="ocGlowColor" type="color" value="#b46cff" oninput="renderOverlayCenterPreview()">
+          </div>
+          <div class="overlayColorBox" style="grid-column:1/-1">
+            <label class="small muted">Фон OBS-превью</label>
+            <input id="ocBackgroundColor" type="color" value="#08060b" oninput="renderOverlayCenterPreview()">
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Форма аватарок</label>
+          <select id="ocAvatarShape" onchange="renderOverlayCenterPreview()">
+            <option value="rounded">Скруглённые</option>
+            <option value="circle">Круглые</option>
+            <option value="square">Квадратные</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label><input id="ocShowAvatars" type="checkbox" checked onchange="renderOverlayCenterPreview()" style="width:auto"> Показывать аватарки</label>
+        </div>
+
+        <div class="grid">
+          <div>
+            <div class="field">
+              <label>Своя аватарка слева</label>
+              <input id="ocLeftAvatar" placeholder="эмодзи или изображение" oninput="renderOverlayCenterPreview()">
+              <input type="file" accept="image/*" onchange="overlayImageFromFile(this,'ocLeftAvatar','ocLeftPreview')">
+            </div>
+            <img id="ocLeftPreview" class="overlayAvatarPreview rounded" alt="">
+          </div>
+
+          <div>
+            <div class="field">
+              <label>Своя аватарка справа</label>
+              <input id="ocRightAvatar" placeholder="эмодзи или изображение" oninput="renderOverlayCenterPreview()">
+              <input type="file" accept="image/*" onchange="overlayImageFromFile(this,'ocRightAvatar','ocRightPreview')">
+            </div>
+            <img id="ocRightPreview" class="overlayAvatarPreview rounded" alt="">
+          </div>
+        </div>
+
+        <div class="field adminOnly">
+          <label>Позиция глобального Overlay</label>
+          <select id="ocPosition">
+            <option value="bottom">Снизу</option>
+            <option value="top">Сверху</option>
+          </select>
+        </div>
+
+        <div class="actions" style="margin-top:14px">
+          <button class="btn" onclick="saveOverlayCenter()">Сохранить Overlay</button>
+          <button class="btn green" onclick="copyOverlayCenterUrl()">Скопировать OBS URL</button>
+          <button class="btn dark" onclick="resetOverlayCenterVisual()">Сбросить цвета</button>
+        </div>
+
+        <p class="muted small" id="ocUrl" style="overflow-wrap:anywhere;margin-top:10px"></p>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="head"><h2>Предпросмотр</h2><span class="muted small">Обновляется сразу</span></div>
+      <div class="body">
+        <div class="overlayLivePreview" id="ocPreview">
+          <div class="overlayDemoHud" id="ocPreviewHud"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
 <section class="page" id="studio"><div class="hero"><div class="eyebrow">PRIVATE</div><h1>Stream Studio</h1><div class="muted">Управление активным матчем и OBS Overlay.</div><div class="actions" style="margin-top:10px"><button class="btn red" onclick="logout()">Выйти</button></div></div><div class="grid"><div class="card"><div class="head"><h2>Матч</h2></div><div class="body"><div class="field"><label>Матч</label><select id="smatch"></select></div><div class="field"><label>Название</label><input id="stitle"></div><div class="grid"><div class="field"><label>Счёт A</label><input id="ssa" type="number"></div><div class="field"><label>Счёт B</label><input id="ssb" type="number"></div></div><div class="grid"><div class="field"><label>Раунд</label><input id="sround"></div><div class="field"><label>Формат</label><input id="sformat"></div></div><div class="field"><label>Статус</label><select id="sstatus"><option>LIVE</option><option>SCHEDULED</option><option>PAUSED</option><option>FINAL</option></select></div><div class="field"><label>Победитель</label><select id="swinner"><option value="">— выбери победителя —</option></select></div>
 <div class="muted small" style="margin-bottom:10px">Выбираешь двух игроков и победителя — ELO распределится автоматически.</div><div class="actions"><button class="btn" onclick="saveStudio()">Сохранить</button><button class="btn green" onclick="applyWinnerElo()">🏆 Указать победителя + ELO</button><button class="btn dark" onclick="finishStudioMatch()">🏁 По счёту + ELO</button><button class="btn dark" onclick="bump(1,0)">A +</button><button class="btn dark" onclick="bump(0,1)">B +</button><button class="btn dark" onclick="bump(-1,0)">A −</button><button class="btn dark" onclick="bump(0,-1)">B −</button></div></div></div><div class="card"><div class="head"><h2>Overlay</h2></div><div class="body"><div class="field"><label>Текст</label><input id="otext"></div><div class="field"><label>Цвет</label><input id="oaccent" type="color"></div>
 <div class="field">
@@ -445,7 +579,7 @@ body:before{
 </div>
 
 </div><div class="actions"><button class="btn" onclick="saveOverlay()">Обновить OBS</button><button class="btn green" onclick="copyObs()">Скопировать URL</button></div><p class="muted small">OBS: <span id="obsUrl"></span></p></div></div></div><div class="card" style="margin-top:14px"><div class="head"><h2>Предпросмотр</h2></div><div class="body"><div class="overlayPreview"><div class="hud" id="preview"></div></div></div></div></section>
-<section class="page" id="admin"><div class="hero"><div class="eyebrow">PRIVATE</div><h1>Админ-панель</h1><div class="muted">Управление контентом и резервной копией.</div><div class="actions" style="margin-top:10px"><button class="btn red" onclick="logout()">Выйти</button><button class="btn green" onclick="testAdmin()">Проверить админ</button></div></div><div class="g4"><div class="card stat"><b id="acp">0</b><span>ИГРОКОВ</span></div><div class="card stat"><b id="acg">0</b><span>ГИЛЬДИЙ</span></div><div class="card stat"><b id="acm">0</b><span>МАТЧЕЙ</span></div><div class="card stat"><b id="act">0</b><span>ТУРНИРОВ</span></div></div><div class="grid" style="margin-top:14px"><div class="card"><div class="head"><h2>Быстрые действия</h2></div><div class="body actions"><button class="btn" onclick="playerForm()">+ Игрок</button><button class="btn" onclick="guildForm()">+ Гильдия</button><button class="btn" onclick="matchForm()">+ Матч</button><button class="btn" onclick="tournamentForm()">+ Турнир</button><button class="btn" onclick="newsForm()">+ Новость</button><button class="btn" onclick="streamerForm()">+ Стример</button><button class="btn" onclick="notificationForm()">🔔 Уведомление</button></div></div><div class="card"><div class="head"><h2>Backup</h2></div><div class="body"><div class="actions"><button class="btn green" onclick="exportBackup()">Скачать backup</button><button class="btn dark" onclick="$('importFile').click()">Импорт</button><input id="importFile" type="file" accept=".json,application/json" style="display:none"></div><p class="muted small">На бесплатном Render делай backup регулярно.</p></div></div></div>
+<section class="page" id="admin"><div class="hero"><div class="eyebrow">PRIVATE</div><h1>Админ-панель</h1><div class="muted">Управление контентом и резервной копией.</div><div class="actions" style="margin-top:10px"><button class="btn red" onclick="logout()">Выйти</button><button class="btn green" onclick="testAdmin()">Проверить админ</button></div></div><div class="g4"><div class="card stat"><b id="acp">0</b><span>ИГРОКОВ</span></div><div class="card stat"><b id="acg">0</b><span>ГИЛЬДИЙ</span></div><div class="card stat"><b id="acm">0</b><span>МАТЧЕЙ</span></div><div class="card stat"><b id="act">0</b><span>ТУРНИРОВ</span></div></div><div class="grid" style="margin-top:14px"><div class="card"><div class="head"><h2>Быстрые действия</h2></div><div class="body actions"><button class="btn" onclick="playerForm()">+ Игрок</button><button class="btn" onclick="guildForm()">+ Гильдия</button><button class="btn" onclick="matchForm()">+ Матч</button><button class="btn" onclick="tournamentForm()">+ Турнир</button><button class="btn" onclick="newsForm()">+ Новость</button><button class="btn" onclick="streamerForm()">+ Стример</button><button class="btn" onclick="notificationForm()">🔔 Уведомление</button><button class="btn green" onclick="showPage('overlayCenter')">🎨 Overlay Center</button></div></div><div class="card"><div class="head"><h2>Backup</h2></div><div class="body"><div class="actions"><button class="btn green" onclick="exportBackup()">Скачать backup</button><button class="btn dark" onclick="$('importFile').click()">Импорт</button><input id="importFile" type="file" accept=".json,application/json" style="display:none"></div><p class="muted small">На бесплатном Render делай backup регулярно.</p></div></div></div>
 <div class="card" style="margin-top:14px"><div class="head"><h2>Уведомления на главном экране</h2><button class="btn" onclick="notificationForm()">+ Уведомление</button></div><div class="body" id="adminNotificationList"></div></div>
 <div class="card" style="margin-top:14px">
   <div class="head"><h2>Стримеры</h2><button class="btn" onclick="streamerForm()">+ Добавить стримера</button></div>
@@ -561,7 +695,7 @@ function toastMsg(t){const e=$("toast");e.textContent=t;e.style.display="block";
 function media(v,cls="avatar"){v=String(v||"");return v.startsWith("data:image/")?`<img class="${cls}" src="${v}" alt="">`:`<span style="font-size:${cls==="avatarLg"?"42px":"22px"};margin-right:7px">${esc(v||"👤")}</span>`}
 function modalOpen(html){$("modalBox").innerHTML=html;$("modal").classList.add("show")}
 function closeModal(){$("modal").classList.remove("show")}
-function buildNav(){const items=[["home","Главная"],["players","Игроки"],["ranks","S–F"],["guilds","Гильдии"],["tournaments","Турниры"],["matches","Матчи"],["news","Новости"],["streamers","Стримеры"],["streamerZone","🎥 Streamer Zone"],["studio","🔒 Studio"],["admin","🔒 Admin"]];$("nav").innerHTML=items.map(x=>`<button data-p="${x[0]}" onclick="showPage('${x[0]}')">${x[1]}</button>`).join("")}
+function buildNav(){const items=[["home","Главная"],["players","Игроки"],["ranks","S–F"],["guilds","Гильдии"],["tournaments","Турниры"],["matches","Матчи"],["news","Новости"],["streamers","Стримеры"],["streamerZone","🎥 Streamer Zone"],["overlayCenter","🎨 Overlay"],["studio","🔒 Studio"],["admin","🔒 Admin"]];$("nav").innerHTML=items.map(x=>`<button data-p="${x[0]}" onclick="showPage('${x[0]}')">${x[1]}</button>`).join("")}
 async function authStatus(){
   const a=await api("/api/auth/status");
   role=a.authenticated?a.role:null;
@@ -576,7 +710,9 @@ async function authStatus(){
 async function showPage(id){
   if((id==="studio"||id==="admin")&&!admin){loginModal(id);return}
   if(id==="streamerZone"&&role!=="streamer"&&!admin){loginModal(id);return}
+  if(id==="overlayCenter"&&role!=="streamer"&&!admin){loginModal(id);return}
   if(id==="streamerZone"&&role==="streamer")await loadStreamerZone();
+  if(id==="overlayCenter")await loadOverlayCenter();
 document.querySelectorAll(".page").forEach(x=>x.classList.remove("on"));$(id).classList.add("on");document.querySelectorAll("#nav button").forEach(x=>x.classList.toggle("on",x.dataset.p===id));$("nav").classList.remove("open")}
 function loginModal(target){modalOpen(`<h2>🔒 Вход администратора</h2><p class="muted">Админ входит своими данными. Стример — логином и паролем, которые создал админ.</p><div class="field"><label>Логин</label><input id="lu" autocomplete="username" autocapitalize="none"></div><div class="field"><label>Пароль</label><input id="lp" type="password" autocomplete="current-password"></div><button class="btn" style="width:100%" id="loginBtn">Войти</button>`);setTimeout(()=>{$("loginBtn").onclick=()=>doLogin(target);$("lp").onkeydown=e=>{if(e.key==="Enter")doLogin(target)};$("lu").focus()},0)}
 async function doLogin(target){
@@ -973,6 +1109,191 @@ function bindGlobalPlayerSearch(side){
 function setupGlobalPlayerSearch(){
   bindGlobalPlayerSearch("A");
   bindGlobalPlayerSearch("B");
+}
+
+
+let overlayCenterState=null;
+
+function overlayCenterImageValue(value,fallback){
+  const v=String(value||"").trim();
+  return v||fallback||"";
+}
+
+function overlayCenterMedia(value,cls){
+  const v=String(value||"").trim();
+  if(!v)return "";
+  if(v.startsWith("data:image/")||/^https?:\/\//i.test(v)){
+    return `<img class="${cls}" src="${esc(v)}" alt="">`;
+  }
+  return `<div class="${cls}" style="display:grid;place-items:center;font-size:30px">${esc(v)}</div>`;
+}
+
+async function overlayImageFromFile(input,target,preview){
+  const f=input.files?.[0];
+  if(!f)return;
+  if(!f.type.startsWith("image/"))return toastMsg("Выбери изображение");
+  if(f.size>5*1024*1024)return toastMsg("Файл слишком большой");
+  const bmp=await createImageBitmap(f);
+  const max=512;
+  const scale=Math.min(1,max/Math.max(bmp.width,bmp.height));
+  const c=document.createElement("canvas");
+  c.width=Math.round(bmp.width*scale);
+  c.height=Math.round(bmp.height*scale);
+  c.getContext("2d").drawImage(bmp,0,0,c.width,c.height);
+  $(target).value=c.toDataURL("image/jpeg",.86);
+  $(preview).src=$(target).value;
+  renderOverlayCenterPreview();
+}
+
+function overlayCenterDefaults(){
+  return {
+    customText:"LAVENDER • LIVE",
+    accent:"#b46cff",
+    textColor:"#ffffff",
+    panelColor:"#17101e",
+    glowColor:"#b46cff",
+    backgroundColor:"#08060b",
+    leftAvatar:"",
+    rightAvatar:"",
+    showAvatars:true,
+    avatarShape:"rounded",
+    theme:"neon",
+    position:"bottom"
+  };
+}
+
+function setOverlayCenterFields(o){
+  const d={...overlayCenterDefaults(),...(o||{})};
+  $("ocText").value=d.customText||"";
+  $("ocAccent").value=d.accent||"#b46cff";
+  $("ocTextColor").value=d.textColor||"#ffffff";
+  $("ocPanelColor").value=d.panelColor||"#17101e";
+  $("ocGlowColor").value=d.glowColor||d.accent||"#b46cff";
+  $("ocBackgroundColor").value=d.backgroundColor||"#08060b";
+  $("ocLeftAvatar").value=d.leftAvatar||"";
+  $("ocRightAvatar").value=d.rightAvatar||"";
+  $("ocShowAvatars").checked=d.showAvatars!==false;
+  $("ocAvatarShape").value=d.avatarShape||"rounded";
+  $("ocTheme").value=d.theme||"neon";
+  if($("ocPosition"))$("ocPosition").value=d.position||"bottom";
+  $("ocLeftPreview").src=d.leftAvatar?.startsWith("data:image/")?d.leftAvatar:"";
+  $("ocRightPreview").src=d.rightAvatar?.startsWith("data:image/")?d.rightAvatar:"";
+  $("ocLeftPreview").className=`overlayAvatarPreview ${d.avatarShape||"rounded"}`;
+  $("ocRightPreview").className=`overlayAvatarPreview ${d.avatarShape||"rounded"}`;
+}
+
+function overlayCenterPayload(){
+  return {
+    customText:$("ocText").value,
+    accent:$("ocAccent").value,
+    textColor:$("ocTextColor").value,
+    panelColor:$("ocPanelColor").value,
+    glowColor:$("ocGlowColor").value,
+    backgroundColor:$("ocBackgroundColor").value,
+    leftAvatar:$("ocLeftAvatar").value,
+    rightAvatar:$("ocRightAvatar").value,
+    showAvatars:$("ocShowAvatars").checked,
+    avatarShape:$("ocAvatarShape").value,
+    theme:$("ocTheme").value,
+    position:$("ocPosition")?.value||"bottom"
+  };
+}
+
+async function loadOverlayCenter(){
+  try{
+    if(role==="streamer"){
+      const z=await api("/api/streamer/me");
+      streamerZoneData=z;
+      overlayCenterState=z.stream||{};
+      $("ocRole").textContent=`STREAMER • ${z.streamer?.displayName||z.streamer?.username||""}`;
+      $("ocUrl").textContent=location.origin+`/overlay.html?streamer=${z.streamer.id}`;
+      setOverlayCenterFields(overlayCenterState);
+    }else if(admin){
+      const state=await api("/api/overlay");
+      overlayCenterState=state.overlay||{};
+      $("ocRole").textContent="ADMIN • GLOBAL";
+      $("ocUrl").textContent=location.origin+"/overlay.html";
+      setOverlayCenterFields(overlayCenterState);
+    }
+    renderOverlayCenterPreview();
+  }catch(e){
+    toastMsg(e.message);
+  }
+}
+
+async function saveOverlayCenter(){
+  try{
+    const body=overlayCenterPayload();
+    if(role==="streamer"){
+      const st=await api("/api/streamer/me",{method:"PATCH",body:JSON.stringify(body)});
+      if(streamerZoneData)streamerZoneData.stream=st;
+      overlayCenterState=st;
+    }else if(admin){
+      const state=await api("/api/overlay",{method:"PATCH",body:JSON.stringify(body)});
+      overlayCenterState=state.overlay||body;
+    }else{
+      return toastMsg("Нужен вход стримера или администратора");
+    }
+    renderOverlayCenterPreview();
+    toastMsg("Overlay сохранён");
+  }catch(e){
+    toastMsg(e.message);
+  }
+}
+
+function copyOverlayCenterUrl(){
+  const url=$("ocUrl").textContent.trim();
+  if(!url)return;
+  navigator.clipboard.writeText(url).then(()=>toastMsg("OBS URL скопирован")).catch(()=>toastMsg("Скопируй URL вручную"));
+}
+
+function resetOverlayCenterVisual(){
+  const d=overlayCenterDefaults();
+  setOverlayCenterFields(d);
+  renderOverlayCenterPreview();
+}
+
+function renderOverlayCenterPreview(){
+  const o=overlayCenterPayload();
+  const shape=o.avatarShape||"rounded";
+  $("ocLeftPreview").className=`overlayAvatarPreview ${shape}`;
+  $("ocRightPreview").className=`overlayAvatarPreview ${shape}`;
+
+  const pA=(db?.players||[])[0]||null;
+  const pB=(db?.players||[])[1]||null;
+  const left=o.leftAvatar||pA?.avatar||"👤";
+  const right=o.rightAvatar||pB?.avatar||"👤";
+
+  const preview=$("ocPreview");
+  preview.style.background=o.theme==="glass"
+    ?`linear-gradient(145deg,${o.backgroundColor}dd,${o.panelColor}aa)`
+    :o.theme==="minimal"
+      ?o.backgroundColor
+      :`radial-gradient(circle at 25% 20%,${o.glowColor}44,transparent 35%),radial-gradient(circle at 80% 70%,${o.accent}33,transparent 35%),${o.backgroundColor}`;
+
+  const radius=shape==="circle"?"50%":shape==="square"?"4px":"16px";
+  const shadow=o.theme==="minimal"?"none":`0 0 28px ${o.glowColor}66`;
+
+  $("ocPreviewHud").innerHTML=`
+    <div class="overlayDemoTop" style="color:${o.accent};text-shadow:${shadow}">${esc(o.customText||"LAVENDER • LIVE")}</div>
+    <div class="overlayDemoRow" style="color:${o.textColor}">
+      <div class="overlayDemoTeam" style="background:${o.panelColor}e8;border-color:${o.accent}88;box-shadow:${shadow};border-radius:${o.theme==="minimal"?"4px":"16px"}">
+        ${o.showAvatars?overlayCenterMedia(left,"overlayDemoAvatar"):""}
+        <div><b style="font-size:19px">${esc(pA?.nickname||"PLAYER A")}</b><div class="muted small">TEAM A</div></div>
+      </div>
+      <div class="overlayDemoScore" style="color:${o.textColor};text-shadow:${shadow}">3 : 2</div>
+      <div class="overlayDemoTeam r" style="background:${o.panelColor}e8;border-color:${o.accent}88;box-shadow:${shadow};border-radius:${o.theme==="minimal"?"4px":"16px"}">
+        <div><b style="font-size:19px">${esc(pB?.nickname||"PLAYER B")}</b><div class="muted small">TEAM B</div></div>
+        ${o.showAvatars?overlayCenterMedia(right,"overlayDemoAvatar"):""}
+      </div>
+    </div>
+    <div style="text-align:center;margin-top:10px;color:${o.accent};font-weight:900;letter-spacing:3px">● LIVE</div>
+  `;
+
+  document.querySelectorAll(".overlayDemoAvatar").forEach(x=>{
+    x.style.borderRadius=radius;
+    x.style.borderColor=o.accent;
+  });
 }
 
 function setupStudio(){setupGlobalPlayerSearch();

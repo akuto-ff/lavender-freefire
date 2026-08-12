@@ -108,7 +108,16 @@ function baseData() {
       position: "bottom",
       showPlayers: true,
       showStats: true,
-      customText: "LAVENDER • LIVE"
+      customText: "LAVENDER • LIVE",
+      textColor: "#ffffff",
+      panelColor: "#17101e",
+      glowColor: "#b46cff",
+      backgroundColor: "#08060b",
+      leftAvatar: "",
+      rightAvatar: "",
+      showAvatars: true,
+      avatarShape: "rounded",
+      theme: "neon"
     }
   };
 }
@@ -1560,7 +1569,46 @@ function streamerOverlayState(
         `${
           streamer.displayName ||
           streamer.username
-        } • LIVE`
+        } • LIVE`,
+
+      textColor:
+        stream.textColor ||
+        "#ffffff",
+
+      panelColor:
+        stream.panelColor ||
+        "#17101e",
+
+      glowColor:
+        stream.glowColor ||
+        stream.accent ||
+        "#b46cff",
+
+      backgroundColor:
+        stream.backgroundColor ||
+        "#08060b",
+
+      leftAvatar:
+        stream.leftAvatar ||
+        "",
+
+      rightAvatar:
+        stream.rightAvatar ||
+        "",
+
+      showAvatars:
+        stream.showAvatars !==
+        false,
+
+      avatarShape:
+        ["circle","square","rounded"].includes(stream.avatarShape)
+          ? stream.avatarShape
+          : "rounded",
+
+      theme:
+        ["neon","glass","minimal"].includes(stream.theme)
+          ? stream.theme
+          : "neon"
     },
 
     match:
@@ -2138,6 +2186,34 @@ app.post(
         customText:
           `${displayName} • LIVE`,
 
+        textColor:
+          "#ffffff",
+
+        panelColor:
+          "#17101e",
+
+        glowColor:
+          data.settings.accent ||
+          "#b46cff",
+
+        backgroundColor:
+          "#08060b",
+
+        leftAvatar:
+          "",
+
+        rightAvatar:
+          "",
+
+        showAvatars:
+          true,
+
+        avatarShape:
+          "rounded",
+
+        theme:
+          "neon",
+
         updatedAt:
           new Date()
             .toISOString()
@@ -2513,6 +2589,34 @@ app.get(
             req.streamer.username
           } • LIVE`,
 
+        textColor:
+          "#ffffff",
+
+        panelColor:
+          "#17101e",
+
+        glowColor:
+          data.settings.accent ||
+          "#b46cff",
+
+        backgroundColor:
+          "#08060b",
+
+        leftAvatar:
+          "",
+
+        rightAvatar:
+          "",
+
+        showAvatars:
+          true,
+
+        avatarShape:
+          "rounded",
+
+        theme:
+          "neon",
+
         updatedAt:
           new Date()
             .toISOString()
@@ -2728,6 +2832,90 @@ app.patch(
           body.customText,
           80
         );
+    }
+
+    for (const key of [
+      "textColor",
+      "panelColor",
+      "glowColor",
+      "backgroundColor"
+    ]) {
+      if (
+        key in body &&
+        /^#[0-9a-f]{6}$/i.test(
+          String(body[key] || "")
+        )
+      ) {
+        stream[key] =
+          body[key];
+      }
+    }
+
+    if (
+      "leftAvatar" in body
+    ) {
+      stream.leftAvatar =
+        cleanImage(
+          body.leftAvatar,
+          ""
+        );
+    }
+
+    if (
+      "rightAvatar" in body
+    ) {
+      stream.rightAvatar =
+        cleanImage(
+          body.rightAvatar,
+          ""
+        );
+    }
+
+    if (
+      "showAvatars" in body
+    ) {
+      stream.showAvatars =
+        !!body.showAvatars;
+    }
+
+    if (
+      "avatarShape" in body
+    ) {
+      const shape =
+        String(
+          body.avatarShape
+        );
+
+      if (
+        [
+          "circle",
+          "square",
+          "rounded"
+        ].includes(shape)
+      ) {
+        stream.avatarShape =
+          shape;
+      }
+    }
+
+    if (
+      "theme" in body
+    ) {
+      const theme =
+        String(
+          body.theme
+        );
+
+      if (
+        [
+          "neon",
+          "glass",
+          "minimal"
+        ].includes(theme)
+      ) {
+        stream.theme =
+          theme;
+      }
     }
 
     stream.updatedAt =
@@ -5029,6 +5217,90 @@ app.patch(
           body.customText,
           80
         );
+    }
+
+    for (const key of [
+      "textColor",
+      "panelColor",
+      "glowColor",
+      "backgroundColor"
+    ]) {
+      if (
+        key in body &&
+        /^#[0-9a-f]{6}$/i.test(
+          String(body[key] || "")
+        )
+      ) {
+        data.overlay[key] =
+          body[key];
+      }
+    }
+
+    if (
+      "leftAvatar" in body
+    ) {
+      data.overlay.leftAvatar =
+        cleanImage(
+          body.leftAvatar,
+          ""
+        );
+    }
+
+    if (
+      "rightAvatar" in body
+    ) {
+      data.overlay.rightAvatar =
+        cleanImage(
+          body.rightAvatar,
+          ""
+        );
+    }
+
+    if (
+      "showAvatars" in body
+    ) {
+      data.overlay.showAvatars =
+        !!body.showAvatars;
+    }
+
+    if (
+      "avatarShape" in body
+    ) {
+      const shape =
+        String(
+          body.avatarShape
+        );
+
+      if (
+        [
+          "circle",
+          "square",
+          "rounded"
+        ].includes(shape)
+      ) {
+        data.overlay.avatarShape =
+          shape;
+      }
+    }
+
+    if (
+      "theme" in body
+    ) {
+      const theme =
+        String(
+          body.theme
+        );
+
+      if (
+        [
+          "neon",
+          "glass",
+          "minimal"
+        ].includes(theme)
+      ) {
+        data.overlay.theme =
+          theme;
+      }
     }
 
     await atomicWrite(data);

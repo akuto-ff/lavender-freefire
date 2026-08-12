@@ -5,100 +5,114 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>LAVENDER Overlay</title>
 <style>
-:root{
-  --accent:#d97cff;--cyan:#65e4ff;--gold:#ffd76e;
-  --a-bg:#24112f;--b-bg:#0d2430;--a-text:#fff;--b-text:#fff;--center:#140d1c;--shade:.88
-}
 *{box-sizing:border-box}
-html,body{margin:0;width:100%;height:100%;background:transparent;color:#fff;font-family:Inter,Segoe UI,Arial,sans-serif;overflow:hidden}
-.stage{width:100%;height:100vh;display:flex;align-items:flex-end;justify-content:center;padding:26px 34px}
-.wrap{width:min(1500px,97vw);filter:drop-shadow(0 18px 38px rgba(0,0,0,.72))}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:transparent;font-family:Inter,Segoe UI,Arial,sans-serif;color:#fff}
+#root{width:100%;height:100%;display:flex;align-items:flex-end;padding:36px}
+.hud{width:100%;max-width:1500px;margin:0 auto}
+.top{text-align:center;font-weight:1000;letter-spacing:5px;margin-bottom:10px;font-size:18px}
+.row{display:grid;grid-template-columns:1fr 180px 1fr;gap:14px;align-items:center}
+.team{min-height:100px;padding:15px 18px;display:flex;align-items:center;gap:14px;border:1px solid rgba(255,255,255,.16);backdrop-filter:blur(14px)}
+.team.r{justify-content:flex-end;text-align:right}
+.avatar{width:70px;height:70px;object-fit:cover;border:2px solid currentColor;background:#09070d}
+.avatarEmoji{width:70px;height:70px;display:grid;place-items:center;font-size:38px;border:2px solid currentColor;background:#09070d}
+.player{font-weight:1000;font-size:24px}
+.guild{font-size:15px;opacity:.75;margin-top:4px}
+.score{text-align:center;font-size:50px;font-weight:1000}
+.round{text-align:center;font-size:13px;opacity:.78;margin-top:2px}
+.status{text-align:center;margin-top:10px;font-size:12px;font-weight:1000;letter-spacing:5px}
 .hidden{display:none!important}
-.header{text-align:center;margin-bottom:9px}
-.live{display:inline-block;padding:5px 14px;border:1px solid color-mix(in srgb,var(--accent) 55%,transparent);border-radius:999px;background:rgba(8,5,12,.72);font-size:10px;letter-spacing:4px;color:#f1c8ff;font-weight:1000;box-shadow:0 0 24px color-mix(in srgb,var(--accent) 25%,transparent)}
-.title{font-size:22px;font-weight:1000;margin-top:5px;text-shadow:0 3px 18px #000}
-.extras{display:grid;grid-template-columns:.85fr 1.25fr;gap:12px;margin-bottom:12px}
-.panel{background:linear-gradient(135deg,rgba(31,13,42,.94),rgba(8,14,22,.92));border:1px solid color-mix(in srgb,var(--accent) 42%,transparent);border-radius:16px;padding:12px 15px;box-shadow:0 0 32px color-mix(in srgb,var(--accent) 13%,transparent);backdrop-filter:blur(12px)}
-.pt{font-size:10px;font-weight:1000;letter-spacing:3px;color:#efc9ff;margin-bottom:8px}
-.donors,.queue{display:flex;gap:8px;overflow:hidden}
-.donor,.q{min-width:0;background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.09);border-radius:10px;padding:7px 10px;white-space:nowrap}
-.donor b{color:var(--gold)}.q span{color:#c8bacf;font-size:10px;margin-left:5px}
-.main{display:grid;grid-template-columns:minmax(0,1fr) 190px minmax(0,1fr);gap:10px;align-items:stretch}
-.team{position:relative;min-height:138px;border-radius:20px;overflow:hidden;border:1px solid rgba(255,255,255,.18);isolation:isolate;display:flex;align-items:flex-end}
-.team::before{content:"";position:absolute;inset:0;z-index:-3;background-color:var(--team-color);background-image:var(--team-image);background-size:cover;background-position:center;transform:scale(1.025)}
-.team::after{content:"";position:absolute;inset:0;z-index:-2;background:linear-gradient(90deg,rgba(4,3,7,var(--shade)),rgba(4,3,7,calc(var(--shade) * .56)),rgba(4,3,7,.18))}
-.team.r::after{background:linear-gradient(270deg,rgba(4,3,7,var(--shade)),rgba(4,3,7,calc(var(--shade) * .56)),rgba(4,3,7,.18))}
-.team.a{--team-color:var(--a-bg);border-left:5px solid var(--accent);box-shadow:-8px 0 30px color-mix(in srgb,var(--accent) 18%,transparent),inset 0 0 35px rgba(0,0,0,.18)}
-.team.b{--team-color:var(--b-bg);border-right:5px solid var(--cyan);box-shadow:8px 0 30px color-mix(in srgb,var(--cyan) 15%,transparent),inset 0 0 35px rgba(0,0,0,.18)}
-.teamContent{width:100%;padding:20px 22px;text-shadow:0 3px 12px #000,0 1px 3px #000}
-.team.r .teamContent{text-align:right}
-.player{font-size:30px;font-weight:1000;line-height:1.02;letter-spacing:.3px}
-.team.a .player,.team.a .guild{color:var(--a-text)}
-.team.b .player,.team.b .guild{color:var(--b-text)}
-.guild{font-size:14px;font-weight:900;margin-top:8px;opacity:.88}
-.elo{display:inline-block;margin-top:8px;padding:4px 9px;border-radius:999px;background:rgba(0,0,0,.42);border:1px solid rgba(255,255,255,.13);font-size:10px;font-weight:900;letter-spacing:1px}
-.score{min-height:138px;background:linear-gradient(180deg,color-mix(in srgb,var(--center) 96%,black),color-mix(in srgb,var(--center) 80%,black));border:1px solid rgba(255,255,255,.17);border-radius:20px;display:flex;flex-direction:column;justify-content:center;align-items:center;box-shadow:0 0 34px color-mix(in srgb,var(--accent) 12%,transparent),inset 0 1px 0 rgba(255,255,255,.06)}
-.num{font-size:48px;font-weight:1000;letter-spacing:-2px;text-shadow:0 0 24px color-mix(in srgb,var(--accent) 20%,transparent)}
-.meta{font-size:9px;letter-spacing:2px;color:#e6b5ff;font-weight:1000;margin-top:8px;text-align:center;padding:0 8px}
-@media(max-width:900px){.extras{grid-template-columns:1fr}.stage{padding:12px}.main{grid-template-columns:1fr 115px 1fr}.team{min-height:105px}.score{min-height:105px}.player{font-size:18px}.teamContent{padding:13px}.num{font-size:31px}.guild{font-size:11px}}
+@media(max-width:900px){#root{padding:16px}.row{grid-template-columns:1fr}.score{order:-1}.team,.team.r{justify-content:center;text-align:center}}
 </style>
 </head>
 <body>
-<div class="stage" id="stage"><div class="wrap hidden" id="wrap"></div></div>
+<div id="root"><div class="hud" id="hud"></div></div>
 <script src="/socket.io/socket.io.js"></script>
 <script>
+const $=id=>document.getElementById(id);
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-const safeBg=url=>{
-  const s=String(url||"").trim();
-  if(!/^https?:\/\//i.test(s))return "none";
-  return `url("${s.replace(/["\\]/g,"")}")`;
-};
-function draw(d){
-  const o=d?.overlay,m=d?.match;
-  if(!o?.visible){wrap.classList.add("hidden");return}
-  wrap.classList.remove("hidden");
-  const root=document.documentElement.style;
-  root.setProperty("--accent",o.accent||"#d97cff");
-  root.setProperty("--a-bg",o.playerAColor||"#24112f");
-  root.setProperty("--b-bg",o.playerBColor||"#0d2430");
-  root.setProperty("--a-text",o.playerATextColor||"#ffffff");
-  root.setProperty("--b-text",o.playerBTextColor||"#ffffff");
-  root.setProperty("--center",o.centerColor||"#140d1c");
-  root.setProperty("--shade",String(Math.max(.15,Math.min(1,Number(o.panelOpacity)||.88))));
-  stage.style.alignItems=o.position==="top"?"flex-start":"flex-end";
+const params=new URLSearchParams(location.search);
+const streamerId=Number(params.get("streamer"))||null;
+const socket=io({transports:["websocket","polling"]});
 
-  const donors=(d.donations||[]).slice(0,3);
-  const queue=(d.queue||[]).filter(x=>!["ACCEPTED","REJECTED"].includes(x.status)).slice(0,5);
-  const ex=(donors.length||queue.length)?`<div class="extras">
-    <div class="panel"><div class="pt">💜 TOP DONATE</div><div class="donors">${donors.map((x,i)=>`<div class="donor">${["🥇","🥈","🥉"][i]||"💜"} ${esc(x.name)} <b>${Number(x.amount||0).toLocaleString("ru-RU")} сом</b></div>`).join("")||'<div class="donor">Пока нет донатов</div>'}</div></div>
-    <div class="panel"><div class="pt">🎮 ОЧЕРЕДЬ НА ПРОВЕРКУ В ГИЛЬДИЮ</div><div class="queue">${queue.map(x=>`<div class="q"><b>#${x.position} ${esc(x.nickname)}</b><span>${x.status==="CHECKING"?"ПРОВЕРКА":"ОЖИДАЕТ"}</span></div>`).join("")||'<div class="q">Очередь свободна</div>'}</div></div>
-  </div>`:"";
-
-  const match=m?`<div class="header"><div class="live">${esc(o.customText||"LAVENDER • LIVE")}</div><div class="title">${esc(m.title||"LIVE MATCH")}</div></div>
-  <div class="main">
-    <div class="team a" style="--team-image:${safeBg(o.playerABg)}"><div class="teamContent">
-      <div class="player">${esc(m.playerA?.nickname||m.guildA?.name||"PLAYER A")}</div>
-      <div class="guild">${esc(m.guildA?.name||"TEAM A")}</div>
-      ${m.playerA?`<div class="elo">ELO ${esc(m.playerA.elo)} • ${esc(m.playerA.rank||"")}</div>`:""}
-    </div></div>
-    <div class="score"><div class="num">${m.scoreA||0} : ${m.scoreB||0}</div><div class="meta">${esc(m.roundText||"")} • ${esc(m.status||"LIVE")}</div></div>
-    <div class="team b r" style="--team-image:${safeBg(o.playerBBg)}"><div class="teamContent">
-      <div class="player">${esc(m.playerB?.nickname||m.guildB?.name||"PLAYER B")}</div>
-      <div class="guild">${esc(m.guildB?.name||"TEAM B")}</div>
-      ${m.playerB?`<div class="elo">ELO ${esc(m.playerB.elo)} • ${esc(m.playerB.rank||"")}</div>`:""}
-    </div></div>
-  </div>`:"";
-  wrap.innerHTML=ex+match;
+function media(v,cls,shape,accent){
+  const value=String(v||"").trim();
+  if(!value)return "";
+  const radius=shape==="circle"?"50%":shape==="square"?"4px":"16px";
+  if(value.startsWith("data:image/")||/^https?:\/\//i.test(value)){
+    return `<img class="${cls}" src="${esc(value)}" style="border-radius:${radius};border-color:${accent}" alt="">`;
+  }
+  return `<div class="avatarEmoji" style="border-radius:${radius};border-color:${accent}">${esc(value)}</div>`;
 }
-const id=new URLSearchParams(location.search).get("streamer"),socket=io({reconnection:true});
-if(id){
-  fetch(`/api/streamer-overlay/${id}`,{cache:"no-store"}).then(r=>r.json()).then(draw);
-  socket.emit("watch-streamer",Number(id));
-  socket.on("streamer-overlay:update",draw);
+
+function render(state){
+  const m=state?.match;
+  const o=state?.overlay||{};
+  if(!m||o.visible===false){
+    $("hud").innerHTML="";
+    return;
+  }
+
+  const accent=o.accent||"#b46cff";
+  const text=o.textColor||"#ffffff";
+  const panel=o.panelColor||"#17101e";
+  const glow=o.glowColor||accent;
+  const bg=o.backgroundColor||"#08060b";
+  const theme=o.theme||"neon";
+  const shape=o.avatarShape||"rounded";
+  const showAvatars=o.showAvatars!==false;
+
+  const shadow=theme==="minimal"?"none":`0 0 30px ${glow}77`;
+  const panelBg=theme==="glass"?`${panel}bb`:`${panel}ee`;
+  const borderRadius=theme==="minimal"?"4px":"16px";
+
+  document.body.style.color=text;
+
+  const left=o.leftAvatar||m.playerA?.avatar||"";
+  const right=o.rightAvatar||m.playerB?.avatar||"";
+
+  $("root").style.alignItems=o.position==="top"?"flex-start":"flex-end";
+
+  $("hud").innerHTML=`
+    <div class="top" style="color:${accent};text-shadow:${shadow}">${esc(o.customText||"LAVENDER • LIVE")}</div>
+    <div class="row">
+      <div class="team" style="background:${panelBg};border-color:${accent}88;border-radius:${borderRadius};box-shadow:${shadow}">
+        ${showAvatars?media(left,"avatar",shape,accent):""}
+        <div>
+          <div class="player">${esc(m.playerA?.nickname||"PLAYER A")}</div>
+          <div class="guild">${esc(m.guildA?.name||"TEAM A")}</div>
+        </div>
+      </div>
+      <div>
+        <div class="score" style="text-shadow:${shadow}">${Number(m.scoreA)||0} : ${Number(m.scoreB)||0}</div>
+        <div class="round">${esc(m.roundText||"")}</div>
+      </div>
+      <div class="team r" style="background:${panelBg};border-color:${accent}88;border-radius:${borderRadius};box-shadow:${shadow}">
+        <div>
+          <div class="player">${esc(m.playerB?.nickname||"PLAYER B")}</div>
+          <div class="guild">${esc(m.guildB?.name||"TEAM B")}</div>
+        </div>
+        ${showAvatars?media(right,"avatar",shape,accent):""}
+      </div>
+    </div>
+    <div class="status" style="color:${accent};text-shadow:${shadow}">● ${esc(m.status||"LIVE")}</div>
+  `;
+}
+
+async function fetchState(){
+  const url=streamerId?`/api/streamer-overlay/${streamerId}`:"/api/overlay";
+  const r=await fetch(url,{cache:"no-store"});
+  if(!r.ok)return;
+  render(await r.json());
+}
+
+if(streamerId){
+  socket.emit("watch-streamer",streamerId);
+  socket.on("streamer-overlay:update",render);
 }else{
-  fetch('/api/overlay',{cache:'no-store'}).then(r=>r.json()).then(draw);
-  socket.on('overlay:update',draw);
+  socket.on("overlay:update",render);
 }
+socket.on("site:update",()=>setTimeout(fetchState,120));
+fetchState();
 </script>
 </body>
 </html>
