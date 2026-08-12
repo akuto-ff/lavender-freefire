@@ -238,6 +238,18 @@ body:before{
 .seriesHistoryRow{display:grid;grid-template-columns:44px 1fr auto;gap:8px;padding:9px 10px;border:1px solid #2d2036;border-radius:9px;background:#0b0810}
 @media(max-width:700px){.seriesLineups,.seriesCurrent{grid-template-columns:1fr}.seriesPlayer.r{text-align:left}.seriesVs{text-align:center}}
 
+
+/* ===== STREAMER MATCH CONTROL — ADMIN STYLE ===== */
+.streamerMatchControl .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.streamerMatchControl .field.full{grid-column:1/-1}
+.streamerMatchControl .scoreActions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.streamerMatchControl .winnerRow{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:end}
+@media(max-width:700px){
+  .streamerMatchControl .grid{grid-template-columns:1fr}
+  .streamerMatchControl .field.full{grid-column:auto}
+  .streamerMatchControl .winnerRow{grid-template-columns:1fr}
+}
+
 </style></head><body>
 <header class="top"><div class="brand" id="brand">🪻 LAVENDER</div><button class="menu" onclick="nav.classList.toggle('open')">☰</button><nav class="nav" id="nav"></nav><div class="state" id="state">PUBLIC</div></header><div class="noticeCurtain" id="noticeCurtain" data-type="info"><div class="noticeCurtainInner"><div class="noticeIcon" id="noticeIcon">🔔</div><div><div class="noticeTitle" id="noticeTitle"></div><div class="noticeText" id="noticeText"></div></div><button class="noticeClose" onclick="closeNoticeCurtain()" aria-label="Закрыть">×</button></div></div>
 <main class="wrap"><div class="banner" id="banner"></div>
@@ -1176,6 +1188,205 @@ async function saveStreamerStats(id){
   }
 }
 
+
+
+function streamerMatchOptions(){
+  const box=$("smMatch");
+  if(!box)return;
+
+  const list=(db?.matches||[]);
+  box.innerHTML=list.map(
+    m=>`<option value="${m.id}">${esc(m.title||"MATCH")} • ${esc(m.guildA?.name||"A")} ${m.scoreA||0}:${m.scoreB||0} ${esc(m.guildB?.name||"B")}</option>`
+  ).join("");
+
+  if(streamerMe?.stream?.matchId){
+    box.value=String(streamerMe.stream.matchId);
+  }
+
+  loadStreamerMatchControl();
+}
+
+function streamerPlayersForGuild(guildId){
+  return (db?.players||[])
+    .filter(p=>Number(p.guildId)===Number(guildId))
+    .sort((a,b)=>Number(b.elo||0)-Number(a.elo||0));
+}
+
+function streamerPlayerOptions(guildId,selected){
+  return `<option value="">— выбери игрока —</option>`+
+    streamerPlayersForGuild(guildId).map(
+      p=>`<option value="${p.id}" ${Number(selected)===Number(p.id)?"selected":""}>${esc(p.nickname)} • ELO ${p.elo} • ${esc(p.rank||"")}</option>`
+    ).join("");
+}
+
+function loadStreamerMatchControl(){
+  const id=Number($("smMatch")?.value)||null;
+  const m=(db?.matches||[]).find(x=>Number(x.id)===id);
+  if(!m)return;
+
+  $("smTitle").value=m.title||"";
+  $("smScoreA").value=Number(m.scoreA||0);
+  $("smScoreB").value=Number(m.scoreB||0);
+  $("smRound").value=m.roundText||"";
+  $("smFormat").value=m.format||"";
+  $("smStatus").value=m.status||"LIVE";
+
+  $("smPlayerA").innerHTML=streamerPlayerOptions(m.guildAId,m.playerAId);
+  $("smPlayerB").innerHTML=streamerPlayerOptions(m.guildBId,m.playerBId);
+
+  syncStreamerWinnerOptions();
+}
+
+function syncStreamerWinnerOptions(){
+  const aId=Number($("smPlayerA")?.value)||null;
+  const bId=Number($("smPlayerB")?.value)||null;
+
+  const a=(db?.players||[]).find(p=>Number(p.id)===aId);
+  const b=(db?.players||[]).find(p=>Number(p.id)===bId);
+
+  const box=$("smWinner");
+  if(!box)return;
+
+  box.innerHTML=
+    `<option value="">— выбери победителя —</option>`+
+    (a?`<option value="${a.id}">${esc(a.nickname)}</option>`:"")+
+    (b?`<option value="${b.id}">${esc(b.nickname)}</option>`:"");
+}
+
+function streamerCurrentMatch(){
+  const id=Number($("smMatch")?.value)||null;
+  return (db?.matches||[]).find(x=>Number(x.id)===id)||null;
+}
+
+function streamerScorePlus(side){
+  const el=$(side==="A"?"smScoreA":"smScoreB");
+  if(!el)return;
+  el.value=Number(el.value||0)+1;
+}
+
+function streamerScoreMinus(side){
+  const el=$(side==="A"?"smScoreA":"smScoreB");
+  if(!el)return;
+  el.value=Math.max(0,Number(el.value||0)-1);
+}
+
+async function saveStreamerMatchView(){
+  const m=streamerCurrentMatch();
+  if(!m)return toastMsg("Выбери матч");
+
+  try{
+    await api(`/api/matches/${m.id}`,{
+      method:"PATCH",
+      body:JSON.stringify({
+        playerAId:Number($("smPlayerA").value)||null,
+        playerBId:Number($("smPlayerB").value)||null,
+        scoreA:Number($("smScoreA").value)||0,
+        scoreB:Number($("smScoreB").value)||0
+      })
+    });
+
+    if(streamerMe?.stream){
+      await api("/api/streamer/me",{
+        method:"PATCH",
+        body:JSON.stringify({
+          matchId:m.id,
+          playerAId:Number($("smPlayerA").value)||null,
+          playerBId:Number($("smPlayerB").value)||null
+        })
+      });
+    }
+
+    await load(true);
+    toastMsg("Матч сохранён");
+    streamerMatchOptions();
+  }catch(e){
+    handleActionError(e,"streamerZone");
+  }
+}
+
+async function streamerSetWinner(){
+  const m=streamerCurrentMatch();
+  if(!m)return toastMsg("Выбери матч");
+
+  const playerAId=Number($("smPlayerA").value)||null;
+  const playerBId=Number($("smPlayerB").value)||null;
+  const winnerId=Number($("smWinner").value)||null;
+
+  if(!playerAId||!playerBId){
+    return toastMsg("Выбери двух игроков");
+  }
+
+  if(!winnerId){
+    return toastMsg("Выбери победителя");
+  }
+
+  try{
+    const isSeries=[6,8,10,12].includes(Number(m.seriesSize));
+
+    if(isSeries){
+      await api(`/api/matches/${m.id}/series-game`,{
+        method:"POST",
+        body:JSON.stringify({
+          playerAId,
+          playerBId,
+          winnerId
+        })
+      });
+    }else{
+      await api(`/api/matches/${m.id}/set-winner`,{
+        method:"POST",
+        body:JSON.stringify({
+          playerAId,
+          playerBId,
+          winnerId
+        })
+      });
+    }
+
+    await load(true);
+    toastMsg("Победитель сохранён • ELO обновлено");
+    streamerMatchOptions();
+  }catch(e){
+    handleActionError(e,"streamerZone");
+  }
+}
+
+async function streamerFinishByScore(){
+  const m=streamerCurrentMatch();
+  if(!m)return toastMsg("Выбери матч");
+
+  const playerAId=Number($("smPlayerA").value)||null;
+  const playerBId=Number($("smPlayerB").value)||null;
+
+  if(!playerAId||!playerBId){
+    return toastMsg("Выбери двух игроков");
+  }
+
+  const scoreA=Number($("smScoreA").value)||0;
+  const scoreB=Number($("smScoreB").value)||0;
+
+  if(scoreA===scoreB){
+    return toastMsg("Ничья не подходит для ELO");
+  }
+
+  try{
+    await api(`/api/matches/${m.id}/finish`,{
+      method:"POST",
+      body:JSON.stringify({
+        scoreA,
+        scoreB,
+        playerAId,
+        playerBId
+      })
+    });
+
+    await load(true);
+    toastMsg("Матч завершён • ELO обновлено");
+    streamerMatchOptions();
+  }catch(e){
+    handleActionError(e,"streamerZone");
+  }
+}
 
 function playerForm(id){
   if(role==="streamer" && id){
