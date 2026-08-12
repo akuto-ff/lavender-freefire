@@ -318,6 +318,87 @@ body:before{
     </div>
   </div>
 
+
+  <!-- STREAMER MATCH CONTROL -->
+  <div class="card streamerMatchControl" style="margin-top:14px">
+    <div class="head">
+      <h2>Матч</h2>
+      <span class="muted small">Выбор игроков и победителя</span>
+    </div>
+    <div class="body">
+      <div class="field">
+        <label>Матч</label>
+        <select id="smMatch" onchange="loadStreamerMatchControl()"></select>
+      </div>
+
+      <div class="field">
+        <label>Название</label>
+        <input id="smTitle" readonly>
+      </div>
+
+      <div class="grid">
+        <div class="field">
+          <label>Счёт A</label>
+          <input id="smScoreA" type="number" min="0" value="0" readonly>
+        </div>
+        <div class="field">
+          <label>Счёт B</label>
+          <input id="smScoreB" type="number" min="0" value="0" readonly>
+        </div>
+        <div class="field">
+          <label>Раунд</label>
+          <input id="smRound" readonly>
+        </div>
+        <div class="field">
+          <label>Формат</label>
+          <input id="smFormat" readonly>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Статус</label>
+        <select id="smStatus" disabled>
+          <option value="LIVE">LIVE</option>
+          <option value="SCHEDULED">SCHEDULED</option>
+          <option value="PAUSED">PAUSED</option>
+          <option value="FINAL">FINAL</option>
+        </select>
+      </div>
+
+      <div class="grid">
+        <div class="field">
+          <label>Игрок A</label>
+          <select id="smPlayerA" onchange="syncStreamerWinnerOptions()"></select>
+        </div>
+        <div class="field">
+          <label>Игрок B</label>
+          <select id="smPlayerB" onchange="syncStreamerWinnerOptions()"></select>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>🏆 Победитель</label>
+        <select id="smWinner">
+          <option value="">— выбери победителя —</option>
+        </select>
+      </div>
+
+      <div class="actions" style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn" onclick="saveStreamerMatchView()">Сохранить</button>
+        <button class="btn green" onclick="streamerSetWinner()">🏆 Указать победителя + ELO</button>
+        <button class="btn dark" onclick="streamerFinishByScore()">🏁 По счёту + ELO</button>
+        <button class="btn dark" onclick="streamerScorePlus('A')">A +</button>
+        <button class="btn dark" onclick="streamerScorePlus('B')">B +</button>
+        <button class="btn dark" onclick="streamerScoreMinus('A')">A −</button>
+        <button class="btn dark" onclick="streamerScoreMinus('B')">B −</button>
+      </div>
+
+      <div class="muted small" style="margin-top:10px">
+        Выбери игрока A, игрока B и победителя. ELO пересчитается автоматически.
+      </div>
+    </div>
+  </div>
+
   <div class="grid" style="margin-top:14px">
     <div class="card"><div class="head"><h2>Мой стрим</h2><span class="muted small">Управление эфиром</span></div><div class="body">
       <div class="field"><label>Название</label><input id="szTitle"></div>
